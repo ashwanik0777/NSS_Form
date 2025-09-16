@@ -49,25 +49,7 @@ cd nss-registration-system
 npm install
 \`\`\`
 
-3. Set up environment variables:
-\`\`\`bash
-cp .env.example .env.local
-\`\`\`
 
-Edit `.env.local` with your configuration:
-\`\`\`env
-# Database
-MONGODB_URI=mongodb://localhost:27017/nss-registration
-
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-
-# Authentication
-NEXTAUTH_SECRET=your-secret-key
-NEXTAUTH_URL=http://localhost:3000
 \`\`\`
 
 4. Run the development server:
@@ -77,16 +59,7 @@ npm run dev
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Initial Setup
 
-1. Create the initial admin user by running the seed script in your MongoDB:
-\`\`\`sql
--- See scripts/seed-admin.sql
-\`\`\`
-
-2. Login with:
-   - Email: `admin@nss-up.gov.in`
-   - Password: `admin123`
 
 ## Project Structure
 
@@ -140,16 +113,6 @@ Comprehensive management interface with:
 
 ## Deployment
 
-### Environment Variables for Production
-\`\`\`env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/nss-registration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=nss@yourdomain.com
-SMTP_PASS=your-app-password
-NEXTAUTH_SECRET=your-production-secret
-NEXTAUTH_URL=https://your-domain.com
-\`\`\`
 
 ### Build and Deploy
 \`\`\`bash
@@ -178,5 +141,4 @@ For support and questions:
 
 ---
 
-**Government of India | भारत सरकार**  
-**National Service Scheme - Uttar Pradesh | राष्ट्रीय सेवा योजना - उत्तर प्रदेश**
+**National Service Scheme - Uttar Pradesh**
