@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Shield, Users, Award, ArrowRight, CheckCircle, Zap, Globe } from "lucide-react"
+import Footer from "@/components/footer"
 
 export default function HomePage() {
   return (
@@ -9,13 +10,36 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mr-4 shadow-lg">
+              {/* <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mr-4 shadow-lg">
                 <Shield className="w-7 h-7 text-white" />
-              </div>
-              <div>
+              </div> */}
+              <div className="flex gap-5">
+            <Link href="/" className="flex items-center" aria-label="GBU Home">
+              <img
+                src="/1.png"
+                alt="GBU Logo"
+                className="h-13 w-auto"
+              />
+            </Link>
+            <Link href="/" className="flex items-center" aria-label="GBU Home">
+              <img
+                src="/nssLogo.png"
+                alt="GBU Logo"
+                className="h-11 w-auto"
+              />
+            </Link>
+            <Link href="/" className="flex items-center" aria-label="GBU Home">
+              <img
+                src="/myBharatLogo.png"
+                alt="GBU Logo"
+                className="h-12 w-auto"
+              />
+            </Link>
+            </div>
+              {/* <div>
                 <h1 className="text-xl font-bold text-foreground">NSS Uttar Pradesh</h1>
                 <p className="text-xs text-muted-foreground">राष्ट्रीय सेवा योजना</p>
-              </div>
+              </div> */}
             </div>
             <nav className="flex space-x-4">
               <Link
@@ -177,20 +201,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-card/80 backdrop-blur-md border-t border-border/50 py-12">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mr-3">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-foreground text-lg">NSS Uttar Pradesh</span>
-          </div>
-          <p className="text-sm text-muted-foreground mb-3 font-medium">Government of India | भारत सरकार</p>
-          <p className="text-sm text-muted-foreground">
-            National Service Scheme - Uttar Pradesh | राष्ट्रीय सेवा योजना - उत्तर प्रदेश
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

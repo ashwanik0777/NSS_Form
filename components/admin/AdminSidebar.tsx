@@ -51,36 +51,36 @@ const sidebarItems: SidebarItem[] = [
     href: "/admin/volunteers",
     icon: <UserCheck className="w-5 h-5" />,
   },
-  {
-    id: "events",
-    label: "Events",
-    href: "/admin/events",
-    icon: <Calendar className="w-5 h-5" />,
-  },
-  {
-    id: "certificates",
-    label: "Certificates",
-    href: "/admin/certificates",
-    icon: <Award className="w-5 h-5" />,
-  },
-  {
-    id: "reports",
-    label: "Reports",
-    href: "/admin/reports",
-    icon: <BarChart3 className="w-5 h-5" />,
-  },
+  // {
+  //   id: "events",
+  //   label: "Events",
+  //   href: "/admin/events",
+  //   icon: <Calendar className="w-5 h-5" />,
+  // },
+  // {
+  //   id: "certificates",
+  //   label: "Certificates",
+  //   href: "/admin/certificates",
+  //   icon: <Award className="w-5 h-5" />,
+  // },
+  // {
+  //   id: "reports",
+  //   label: "Reports",
+  //   href: "/admin/reports",
+  //   icon: <BarChart3 className="w-5 h-5" />,
+  // },
   {
     id: "email",
     label: "Email System",
     href: "/admin/email",
     icon: <Mail className="w-5 h-5" />,
   },
-  {
-    id: "settings",
-    label: "Settings",
-    href: "/admin/settings",
-    icon: <Settings className="w-5 h-5" />,
-  },
+  // {
+  //   id: "settings",
+  //   label: "Settings",
+  //   href: "/admin/settings",
+  //   icon: <Settings className="w-5 h-5" />,
+  // },
 ]
 
 export default function AdminSidebar() {
