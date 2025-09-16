@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 import { sendApplicationApprovedEmail, sendApplicationRejectedEmail } from "@/lib/email"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import mongoose from "mongoose"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -29,13 +32,23 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   try {
     await dbConnect()
 
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await request.json()
-    const { status, rejectionReason, reviewedBy } = body
+    const { status, rejectionReason } = body
+
+    const adminUser = await mongoose.model("User").findOne({ email: session.user.email })
+    if (!adminUser) {
+      return NextResponse.json({ success: false, message: "Admin user not found" }, { status: 404 })
+    }
 
     const updateData: any = {
       status,
       reviewedAt: new Date(),
-      reviewedBy,
+      reviewedBy: adminUser._id, // Use the actual ObjectId from database
     }
 
     if (status === "rejected" && rejectionReason) {

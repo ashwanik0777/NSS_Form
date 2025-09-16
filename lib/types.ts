@@ -14,10 +14,37 @@ export interface FormData {
   dateOfBirth: string
   mobileNo: string
   emailId: string
+  departmentName: string
+  gender: "male" | "female" | "other"
+  category: "general" | "obc" | "st" | "sc"
+  categoryProof?: File | null
+  institutionalIdCard: string
+  institutionalIdProof?: File | null
+  admissionFeesReceipt?: File | null
 
   // Educational Details
   highSchoolRollNo: string
   classSemester: string
+
+  // NSS enrollment details
+  nssEnrollmentYear: "first-year" | "second-year"
+  attendedSpecialCamp: boolean
+  specialCampDetails?: {
+    villageName: string
+    date: string
+    venue: string
+    proof?: File | null
+  }
+  myBharatPortalRegistered: boolean
+  myBharatPortalScreenshot?: File | null
+
+  // Additional achievements section
+  specialNSSAchievements?: string
+  specialNSSAchievementsProof?: File | null
+  attendedELP: boolean
+  elpProof?: File | null
+  otherAchievements?: string
+  otherAchievementsCertificates?: File | null
 }
 
 export interface ValidationErrors {

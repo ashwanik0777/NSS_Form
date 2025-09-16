@@ -17,6 +17,13 @@ export default function Step2PersonalDetails({
     }
   }
 
+  const handleFileChange = (field: string, file: File | null) => {
+    setFormData({ ...formData, [field]: file })
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: "" })
+    }
+  }
+
   const handleNext = () => {
     const stepErrors: any = {}
 
@@ -44,6 +51,18 @@ export default function Step2PersonalDetails({
       stepErrors.emailId = "Email ID is required"
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailId)) {
       stepErrors.emailId = "Please enter a valid email address"
+    }
+    if (!formData.departmentName.trim()) {
+      stepErrors.departmentName = "Department name is required"
+    }
+    if (!formData.gender) {
+      stepErrors.gender = "Gender is required"
+    }
+    if (!formData.category) {
+      stepErrors.category = "Category is required"
+    }
+    if (!formData.institutionalIdCard.trim()) {
+      stepErrors.institutionalIdCard = "Institutional I-Card number is required"
     }
 
     if (Object.keys(stepErrors).length > 0) {
@@ -172,6 +191,100 @@ export default function Step2PersonalDetails({
             placeholder="Enter email address"
           />
           {errors.emailId && <p className="text-sm text-destructive">{errors.emailId}</p>}
+        </div>
+
+        <div className="nss-form-group">
+          <label className="nss-form-label">
+            Department & Name of Institution / विभाग और संस्थान का नाम <span className="text-destructive">*</span>
+          </label>
+          <input
+            type="text"
+            className={`nss-form-input ${errors.departmentName ? "border-destructive" : ""}`}
+            value={formData.departmentName}
+            onChange={(e) => handleInputChange("departmentName", e.target.value)}
+            placeholder="Enter department name"
+          />
+          {errors.departmentName && <p className="text-sm text-destructive">{errors.departmentName}</p>}
+        </div>
+
+        <div className="nss-form-group">
+          <label className="nss-form-label">
+            Gender / लिंग <span className="text-destructive">*</span>
+          </label>
+          <select
+            className={`nss-form-select ${errors.gender ? "border-destructive" : ""}`}
+            value={formData.gender}
+            onChange={(e) => handleInputChange("gender", e.target.value)}
+          >
+            <option value="male">Male / पुरुष</option>
+            <option value="female">Female / महिला</option>
+            <option value="other">Other / अन्य</option>
+          </select>
+          {errors.gender && <p className="text-sm text-destructive">{errors.gender}</p>}
+        </div>
+
+        <div className="nss-form-group">
+          <label className="nss-form-label">
+            Category / वर्ग <span className="text-destructive">*</span>
+          </label>
+          <select
+            className={`nss-form-select ${errors.category ? "border-destructive" : ""}`}
+            value={formData.category}
+            onChange={(e) => handleInputChange("category", e.target.value)}
+          >
+            <option value="general">General / सामान्य</option>
+            <option value="obc">OBC / अन्य पिछड़ा वर्ग</option>
+            <option value="st">ST / अनुसूचित जनजाति</option>
+            <option value="sc">SC / अनुसूचित जाति</option>
+          </select>
+          {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
+        </div>
+
+        <div className="nss-form-group">
+          <label className="nss-form-label">Category Proof / वर्ग प्रमाण पत्र</label>
+          <input
+            type="file"
+            className="nss-form-input"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={(e) => handleFileChange("categoryProof", e.target.files?.[0] || null)}
+          />
+          <p className="text-xs text-muted-foreground mt-1">Upload valid proof if applicable</p>
+        </div>
+
+        <div className="nss-form-group">
+          <label className="nss-form-label">
+            Institutional I-Card Number / संस्थान का पहचान पत्र संख्या <span className="text-destructive">*</span>
+          </label>
+          <input
+            type="text"
+            className={`nss-form-input ${errors.institutionalIdCard ? "border-destructive" : ""}`}
+            value={formData.institutionalIdCard}
+            onChange={(e) => handleInputChange("institutionalIdCard", e.target.value)}
+            placeholder="Enter I-Card number"
+          />
+          {errors.institutionalIdCard && <p className="text-sm text-destructive">{errors.institutionalIdCard}</p>}
+        </div>
+
+        <div className="nss-form-group">
+          <label className="nss-form-label">I-Card Proof / पहचान पत्र प्रमाण</label>
+          <input
+            type="file"
+            className="nss-form-input"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={(e) => handleFileChange("institutionalIdProof", e.target.files?.[0] || null)}
+          />
+          <p className="text-xs text-muted-foreground mt-1">Attach valid proof</p>
+        </div>
+
+        <div className="nss-form-group">
+          <label className="nss-form-label">Admission Fees Receipt / प्रवेश शुल्क रसीद</label>
+          <input
+            type="file"
+            className="nss-form-input"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={(e) => handleFileChange("admissionFeesReceipt", e.target.files?.[0] || null)}
+          />
+          <p className="text-xs text-muted-foreground mt-1">Attach receipt</p>
         </div>
       </div>
 

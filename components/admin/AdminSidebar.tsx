@@ -72,7 +72,7 @@ const sidebarItems: SidebarItem[] = [
   {
     id: "email",
     label: "Email System",
-    href: "/admin/email",
+    href: "/admin/emailSystem",
     icon: <Mail className="w-5 h-5" />,
   },
   // {

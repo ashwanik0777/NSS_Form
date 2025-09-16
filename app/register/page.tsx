@@ -7,6 +7,7 @@ import Step1InstitutionDetails from "@/components/nss/Step1InstitutionDetails"
 import Step2PersonalDetails from "@/components/nss/Step2PersonalDetails"
 import Step3EducationalDetails from "@/components/nss/Step3EducationalDetails"
 import Step4Preview from "@/components/nss/Step4Preview"
+import Step4AdditionalDetails from "@/components/nss/Step4AdditionalDetails"
 
 const initialFormData: FormData = {
   institutionName: "",
@@ -21,11 +22,40 @@ const initialFormData: FormData = {
   dateOfBirth: "",
   mobileNo: "",
   emailId: "",
+  departmentName: "",
+  gender: "male",
+  category: "general",
+  categoryProof: null,
+  institutionalIdCard: "",
+  institutionalIdProof: null,
+  admissionFeesReceipt: null,
   highSchoolRollNo: "",
   classSemester: "",
+  nssEnrollmentYear: "first-year",
+  attendedSpecialCamp: false,
+  specialCampDetails: {
+    villageName: "",
+    date: "",
+    venue: "",
+    proof: null,
+  },
+  myBharatPortalRegistered: false,
+  myBharatPortalScreenshot: null,
+  specialNSSAchievements: "",
+  specialNSSAchievementsProof: null,
+  attendedELP: false,
+  elpProof: null,
+  otherAchievements: "",
+  otherAchievementsCertificates: null,
 }
 
-const stepTitles = ["Institution Details", "Personal Details", "Educational Details", "Review & Submit"]
+const stepTitles = [
+  "Institution Details",
+  "Personal Details",
+  "Educational & NSS Details",
+  "Additional Details",
+  "Review & Submit",
+]
 
 export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -36,7 +66,7 @@ export default function RegisterPage() {
   const [applicationId, setApplicationId] = useState("")
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -130,6 +160,8 @@ export default function RegisterPage() {
       case 3:
         return <Step3EducationalDetails {...stepProps} />
       case 4:
+        return <Step4AdditionalDetails {...stepProps} />
+      case 5:
         return (
           <Step4Preview
             formData={formData}
@@ -166,7 +198,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} totalSteps={4} stepTitles={stepTitles} />
+        <StepIndicator currentStep={currentStep} totalSteps={5} stepTitles={stepTitles} />
 
         {/* Form Container */}
         <div className="nss-form-container">{renderCurrentStep()}</div>
