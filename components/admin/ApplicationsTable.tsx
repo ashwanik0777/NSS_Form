@@ -11,6 +11,17 @@ interface Application {
   submittedAt: string
   reviewedAt?: string
   rejectionReason?: string
+  formNo?: string
+  enrollmentType?: string
+  programmeOfficer?: string
+  unitNo?: string
+  nameHindi?: string
+  fatherName?: string
+  motherName?: string
+  dateOfBirth?: string
+  mobileNo?: string
+  highSchoolRollNo?: string
+  classSemester?: string
 }
 
 interface ApplicationsTableProps {
@@ -22,6 +33,8 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
   const [loading, setLoading] = useState(true)
   const [selectedApp, setSelectedApp] = useState<Application | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewingApp, setViewingApp] = useState<Application | null>(null)
   const [reviewAction, setReviewAction] = useState<"approve" | "reject">("approve")
   const [rejectionReason, setRejectionReason] = useState("")
 
@@ -40,6 +53,19 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
       console.error("Error fetching applications:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchApplicationDetails = async (appId: string) => {
+    try {
+      const response = await fetch(`/api/applications/${appId}`)
+      const data = await response.json()
+      if (data.success) {
+        setViewingApp(data.application)
+        setShowViewModal(true)
+      }
+    } catch (error) {
+      console.error("Error fetching application details:", error)
     }
   }
 
@@ -137,10 +163,8 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => {
-                          /* View details */
-                        }}
-                        className="text-primary hover:text-primary/80 text-sm font-medium"
+                        onClick={() => fetchApplicationDetails(app._id)}
+                        className="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
                       >
                         View
                       </button>
@@ -150,7 +174,7 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                             setSelectedApp(app)
                             setShowReviewModal(true)
                           }}
-                          className="text-secondary hover:text-secondary/80 text-sm font-medium"
+                          className="text-secondary hover:text-secondary/80 text-sm font-medium transition-colors"
                         >
                           Review
                         </button>
@@ -183,6 +207,138 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
           </div>
         )}
       </div>
+
+      {/* View Details Modal */}
+      {showViewModal && viewingApp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-foreground">Application Details</h3>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false)
+                    setViewingApp(null)
+                  }}
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Institution Details */}
+              <div>
+                <h4 className="text-lg font-medium text-foreground mb-3">Institution Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Institution Name</label>
+                    <p className="text-foreground">{viewingApp.institutionName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Form Number</label>
+                    <p className="text-foreground">{viewingApp.formNo}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Enrollment Type</label>
+                    <p className="text-foreground">{viewingApp.enrollmentType}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Programme Officer</label>
+                    <p className="text-foreground">{viewingApp.programmeOfficer}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Unit Number</label>
+                    <p className="text-foreground">{viewingApp.unitNo}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Personal Details */}
+              <div>
+                <h4 className="text-lg font-medium text-foreground mb-3">Personal Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Name (English)</label>
+                    <p className="text-foreground">{viewingApp.nameEnglish}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Name (Hindi)</label>
+                    <p className="text-foreground">{viewingApp.nameHindi}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Father's Name</label>
+                    <p className="text-foreground">{viewingApp.fatherName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Mother's Name</label>
+                    <p className="text-foreground">{viewingApp.motherName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
+                    <p className="text-foreground">{viewingApp.dateOfBirth ? new Date(viewingApp.dateOfBirth).toLocaleDateString("en-IN") : "N/A"}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Mobile Number</label>
+                    <p className="text-foreground">{viewingApp.mobileNo}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Email ID</label>
+                    <p className="text-foreground">{viewingApp.emailId}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Educational Details */}
+              <div>
+                <h4 className="text-lg font-medium text-foreground mb-3">Educational Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">High School Roll No</label>
+                    <p className="text-foreground">{viewingApp.highSchoolRollNo}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Class/Semester</label>
+                    <p className="text-foreground">{viewingApp.classSemester}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Information */}
+              <div>
+                <h4 className="text-lg font-medium text-foreground mb-3">Application Status</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Current Status</label>
+                    <div className="mt-1">{getStatusBadge(viewingApp.status)}</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Submitted At</label>
+                    <p className="text-foreground">{new Date(viewingApp.submittedAt).toLocaleString("en-IN")}</p>
+                  </div>
+                  {viewingApp.reviewedAt && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Reviewed At</label>
+                      <p className="text-foreground">{new Date(viewingApp.reviewedAt).toLocaleString("en-IN")}</p>
+                    </div>
+                  )}
+                  {viewingApp.rejectionReason && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-muted-foreground">Rejection Reason</label>
+                      <p className="text-foreground bg-red-50 p-3 rounded-lg border border-red-200">
+                        {viewingApp.rejectionReason}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Review Modal */}
       {showReviewModal && selectedApp && (

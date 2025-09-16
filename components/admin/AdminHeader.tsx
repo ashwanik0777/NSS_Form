@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { signOut } from "next-auth/react"
+import { Bell, User, ChevronDown, Settings, LogOut } from "lucide-react"
 
 interface AdminHeaderProps {
   title: string
@@ -9,6 +11,19 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+
+  const notifications = [
+    { id: 1, message: "New application submitted by John Doe", time: "2 minutes ago", unread: true },
+    { id: 2, message: "Application approved for Jane Smith", time: "1 hour ago", unread: true },
+    { id: 3, message: "System maintenance scheduled", time: "3 hours ago", unread: false },
+  ]
+
+  const unreadCount = notifications.filter((n) => n.unread).length
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/login" })
+  }
 
   return (
     <header className="bg-background border-b border-border px-6 py-4">
@@ -19,54 +34,75 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <button className="p-2 hover:bg-muted rounded-lg transition-colors relative">
-            <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 17h5l-5 5v-5zM11 19H7a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v4"
-              />
-            </svg>
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-xs"></span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="p-2 hover:bg-muted rounded-lg transition-colors relative"
+            >
+              <Bell className="w-5 h-5 text-foreground" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full text-xs flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
 
-          {/* User Menu */}
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-popover border border-border rounded-lg shadow-lg z-50">
+                <div className="p-4 border-b border-border">
+                  <h3 className="font-semibold text-foreground">Notifications</h3>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 border-b border-border hover:bg-muted/50 ${notification.unread ? "bg-blue-50/50" : ""}`}
+                    >
+                      <p className="text-sm text-foreground">{notification.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 border-t border-border">
+                  <button className="text-sm text-primary hover:text-primary/80 w-full text-center">
+                    Mark all as read
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
             >
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+                <User className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="text-sm font-medium text-foreground">Admin User</span>
-              <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </button>
 
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-lg z-50">
                 <div className="py-1">
-                  <a href="#" className="block px-4 py-2 text-sm text-foreground hover:bg-muted">
+                  <button className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                    <User className="w-4 h-4 mr-2" />
                     Profile
-                  </a>
-                  <a href="#" className="block px-4 py-2 text-sm text-foreground hover:bg-muted">
+                  </button>
+                  <button className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                    <Settings className="w-4 h-4 mr-2" />
                     Settings
-                  </a>
+                  </button>
                   <hr className="my-1 border-border" />
-                  <a href="#" className="block px-4 py-2 text-sm text-destructive hover:bg-muted">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
                     Logout
-                  </a>
+                  </button>
                 </div>
               </div>
             )}

@@ -16,30 +16,23 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null
         }
-
         try {
-          await dbConnect()
-
-          const user = await User.findOne({ email: credentials.email })
-          if (!user) {
-            return null
-          }
-
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
-          if (!isPasswordValid) {
-            return null
-          }
-
+          await dbConnect();
+          // Only check DB, do not use .env
+          const user = await User.findOne({ email: credentials.email });
+          if (!user) return null;
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isPasswordValid) return null;
           return {
             id: user._id.toString(),
             email: user.email,
             name: user.name,
             role: user.role,
             permissions: user.permissions,
-          }
+          };
         } catch (error) {
-          console.error("Auth error:", error)
-          return null
+          console.error("Auth error:", error);
+          return null;
         }
       },
     }),
