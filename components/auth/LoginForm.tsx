@@ -143,7 +143,7 @@ export default function LoginForm() {
           </form>
         </div>
 
-        <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-6 border border-border/30">
+        {/* <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-6 border border-border/30">
           <h3 className="font-semibold text-foreground mb-3 flex items-center">
             <Shield className="w-4 h-4 mr-2 text-primary" />
             Admin Credentials
@@ -156,7 +156,7 @@ export default function LoginForm() {
               <span className="font-medium text-foreground">Password:</span> admin123
             </p>
           </div>
-        </div>
+        </div> */}
 
         <div className="text-center text-xs text-muted-foreground space-y-1">
           <p className="font-medium">Government of India | भारत सरकार</p>
