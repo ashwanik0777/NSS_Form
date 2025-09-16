@@ -50,3 +50,89 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 ```bash
 git clone https://github.com/your-username/nss-registration-system.git
 cd nss-registration-system
+```
+
+
+---
+
+## 📋 Key Features Explained
+
+### 🧾 Multi-step Form
+
+The registration process is divided into:
+
+- 🏫 Institution Details
+- 👤 Personal Information
+- 🎓 Educational Background
+- ✅ Review & Declaration
+
+Includes input validation, field masking (e.g., phone numbers), and real-time previews.
+
+### 🔐 Permission System
+
+| Role       | Access Level                      |
+|------------|----------------------------------|
+| Admin      | Full access to all features       |
+| Sub-admin  | Limited access (assignable)       |
+| User       | Form submission & tracking only   |
+
+Permissions are enforced both in the UI and the backend via middleware.
+
+### 📬 Email Notifications
+
+Users receive updates at each stage:
+- ✔️ Application submission confirmation
+- 🟢 Approval (with certificate or download link)
+- 🔴 Rejection (with reason and retry instructions)
+
+Admins can test emails via the dashboard interface.
+
+### 📊 Admin Dashboard
+
+Modern dashboard includes:
+- 📈 Application stats (pending, approved, rejected)
+- 🔍 Review interface with approve/reject actions
+- 📋 Sub-admin management (create, assign, remove)
+- ⚙️ Form layout editor (dynamic field configuration)
+- 🧪 Test email templates
+
+---
+
+### ⚙️ Deployment
+
+To build for production:
+
+You can deploy this app on platforms like **Vercel**, **Render**, or **DigitalOcean App Platform**.
+
+---
+
+### 🤝 Contributing
+
+Want to help improve this system?
+- Fork this repository
+- Create a new feature branch
+- Commit your changes
+- Submit a Pull Request
+
+We welcome contributions of all sizes.
+
+---
+
+### 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+### 📞 Support
+
+Need help or want to report an issue?
+- 💬 Open an issue on GitHub
+- 📧 Contact the dev team
+- 📝 Refer to the documentation folder
+
+Developed for the National Service Scheme (NSS), Uttar Pradesh 🇮🇳
+
+---
+
+<!-- YAML block for advanced documentation systems -->
