@@ -17,10 +17,9 @@ export interface FormData {
   departmentName: string
   gender: "male" | "female" | "other"
   category: "general" | "obc" | "st" | "sc"
-  categoryProof?: File | null
   institutionalIdCard: string
   institutionalIdProof?: File | null
-  admissionFeesReceipt?: File | null
+  photo?: File | null
 
   // Educational Details
   highSchoolRollNo: string

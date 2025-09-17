@@ -97,6 +97,9 @@ export default function Step1InstitutionDetails({ formData, setFormData, errors,
             <option value="">Select enrollment type</option>
             <option value="first-year">First Year / प्रथम वर्ष</option>
             <option value="second-year">Second Year / द्वितीय वर्ष</option>
+            <option value="second-year">Third Year / तृतीय वर्ष</option>
+            <option value="second-year">Fourth Year / चतुर्थ वर्ष</option>
+
           </select>
           {errors.enrollment && <p className="text-sm text-destructive">{errors.enrollment}</p>}
         </div>
@@ -131,7 +134,7 @@ export default function Step1InstitutionDetails({ formData, setFormData, errors,
       </div>
 
       <div className="flex justify-end mt-8">
-        <button onClick={handleNext} className="nss-button-primary">
+        <button onClick={handleNext} className="nss-button-primary ">
           Next / आगे
           <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

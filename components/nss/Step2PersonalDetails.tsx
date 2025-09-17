@@ -64,6 +64,9 @@ export default function Step2PersonalDetails({
     if (!formData.institutionalIdCard.trim()) {
       stepErrors.institutionalIdCard = "Institutional I-Card number is required"
     }
+    if (!formData.photo) {
+      stepErrors.photo = "Student photo is required"
+    }
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors({ ...errors, ...stepErrors })
@@ -93,6 +96,20 @@ export default function Step2PersonalDetails({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="nss-form-group md:col-span-2">
+          <label className="nss-form-label">
+            Student Photo / छात्र की फोटो <span className="text-destructive">*</span>
+          </label>
+          <input
+            type="file"
+            className={`nss-form-input ${errors.photo ? "border-destructive" : ""}`}
+            accept=".jpg,.jpeg,.png"
+            onChange={(e) => handleFileChange("photo", e.target.files?.[0] || null)}
+          />
+          {errors.photo && <p className="text-sm text-destructive">{errors.photo}</p>}
+          <p className="text-xs text-muted-foreground mt-1">Upload passport size photo (JPG/PNG format, max 2MB)</p>
+        </div>
+
         <div className="nss-form-group">
           <label className="nss-form-label">
             Name (English - Capital Letters) / नाम (अंग्रेजी में बड़े अक्षरों में) <span className="text-destructive">*</span>
@@ -216,6 +233,7 @@ export default function Step2PersonalDetails({
             value={formData.gender}
             onChange={(e) => handleInputChange("gender", e.target.value)}
           >
+            <option value="">Select Gender / लिंग चुनें</option>
             <option value="male">Male / पुरुष</option>
             <option value="female">Female / महिला</option>
             <option value="other">Other / अन्य</option>
@@ -232,23 +250,13 @@ export default function Step2PersonalDetails({
             value={formData.category}
             onChange={(e) => handleInputChange("category", e.target.value)}
           >
+            <option value="">Select Category / वर्ग चुनें</option>
             <option value="general">General / सामान्य</option>
             <option value="obc">OBC / अन्य पिछड़ा वर्ग</option>
             <option value="st">ST / अनुसूचित जनजाति</option>
             <option value="sc">SC / अनुसूचित जाति</option>
           </select>
           {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
-        </div>
-
-        <div className="nss-form-group">
-          <label className="nss-form-label">Category Proof / वर्ग प्रमाण पत्र</label>
-          <input
-            type="file"
-            className="nss-form-input"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => handleFileChange("categoryProof", e.target.files?.[0] || null)}
-          />
-          <p className="text-xs text-muted-foreground mt-1">Upload valid proof if applicable</p>
         </div>
 
         <div className="nss-form-group">
@@ -275,21 +283,10 @@ export default function Step2PersonalDetails({
           />
           <p className="text-xs text-muted-foreground mt-1">Attach valid proof</p>
         </div>
-
-        <div className="nss-form-group">
-          <label className="nss-form-label">Admission Fees Receipt / प्रवेश शुल्क रसीद</label>
-          <input
-            type="file"
-            className="nss-form-input"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => handleFileChange("admissionFeesReceipt", e.target.files?.[0] || null)}
-          />
-          <p className="text-xs text-muted-foreground mt-1">Attach receipt</p>
-        </div>
       </div>
 
       <div className="flex justify-between mt-8">
-        <button onClick={onPrevious} className="nss-button-outline">
+        <button onClick={onPrevious} className="nss-button-outline ">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>

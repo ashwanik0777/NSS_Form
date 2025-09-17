@@ -105,6 +105,18 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
             Personal Details / व्यक्तिगत विवरण
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {formData.photo && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-muted-foreground">Student Photo</p>
+                <div className="mt-2">
+                  <img
+                    src={URL.createObjectURL(formData.photo) || "/placeholder.svg"}
+                    alt="Student Photo"
+                    className="w-32 h-40 object-cover border border-border rounded-lg"
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <p className="text-sm text-muted-foreground">Name (English)</p>
               <p className="font-medium text-foreground">{formData.nameEnglish}</p>
@@ -129,9 +141,39 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
               <p className="text-sm text-muted-foreground">Mobile Number</p>
               <p className="font-medium text-foreground">{formData.mobileNo}</p>
             </div>
-            <div className="md:col-span-2">
+            <div>
               <p className="text-sm text-muted-foreground">Email ID</p>
               <p className="font-medium text-foreground">{formData.emailId}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Department</p>
+              <p className="font-medium text-foreground">{formData.departmentName}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Gender</p>
+              <p className="font-medium text-foreground">
+                {formData.gender === "male"
+                  ? "Male / पुरुष"
+                  : formData.gender === "female"
+                    ? "Female / महिला"
+                    : "Other / अन्य"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Category</p>
+              <p className="font-medium text-foreground">
+                {formData.category === "general"
+                  ? "General / सामान्य"
+                  : formData.category === "obc"
+                    ? "OBC / अन्य पिछड़ा वर्ग"
+                    : formData.category === "st"
+                      ? "ST / अनुसूचित जनजाति"
+                      : "SC / अनुसूचित जाति"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Institutional I-Card Number</p>
+              <p className="font-medium text-foreground">{formData.institutionalIdCard}</p>
             </div>
           </div>
         </div>
@@ -160,6 +202,92 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
             </div>
           </div>
         </div>
+
+        {(formData.nssEnrollmentYear || formData.attendedSpecialCamp || formData.myBharatPortalRegistered) && (
+          <div className="bg-background border border-border rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              NSS Enrollment Details / एनएसएस नामांकन विवरण
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {formData.nssEnrollmentYear && (
+                <div>
+                  <p className="text-sm text-muted-foreground">NSS Enrollment Year</p>
+                  <p className="font-medium text-foreground">
+                    {formData.nssEnrollmentYear === "first-year" ? "First Year / प्रथम वर्ष" : "Second Year / द्वितीय वर्ष"}
+                  </p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Attended 07-Day Special Camp</p>
+                <p className="font-medium text-foreground">{formData.attendedSpecialCamp ? "Yes / हाँ" : "No / नहीं"}</p>
+              </div>
+              {formData.attendedSpecialCamp && formData.specialCampDetails && (
+                <>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Village/Urban Slum Name</p>
+                    <p className="font-medium text-foreground">{formData.specialCampDetails.villageName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Camp Date</p>
+                    <p className="font-medium text-foreground">{formatDate(formData.specialCampDetails.date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Camp Venue</p>
+                    <p className="font-medium text-foreground">{formData.specialCampDetails.venue}</p>
+                  </div>
+                </>
+              )}
+              <div>
+                <p className="text-sm text-muted-foreground">My Bharat Portal Registration</p>
+                <p className="font-medium text-foreground">
+                  {formData.myBharatPortalRegistered ? "Yes / हाँ" : "No / नहीं"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(formData.specialNSSAchievements || formData.attendedELP || formData.otherAchievements) && (
+          <div className="bg-background border border-border rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Additional Achievements / अतिरिक्त उपलब्धियां
+            </h3>
+            <div className="space-y-4">
+              {formData.specialNSSAchievements && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Special NSS Achievements</p>
+                  <p className="font-medium text-foreground">{formData.specialNSSAchievements}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Attended ELP (Experiential Learning Programme)</p>
+                <p className="font-medium text-foreground">{formData.attendedELP ? "Yes / हाँ" : "No / नहीं"}</p>
+              </div>
+              {formData.otherAchievements && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Other Achievements</p>
+                  <p className="font-medium text-foreground">{formData.otherAchievements}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Declaration */}
         <div className="bg-muted/50 border border-border rounded-lg p-6">

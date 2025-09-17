@@ -1,13 +1,24 @@
 import nodemailer from "nodemailer"
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: Number.parseInt(process.env.SMTP_PORT || "587"),
-  secure: false,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
+})
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("[v0] SMTP connection error:", error)
+  } else {
+    console.log("[v0] SMTP server is ready to take our messages")
+  }
 })
 
 interface ApplicationSubmittedData {

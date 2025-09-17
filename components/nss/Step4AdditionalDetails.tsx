@@ -115,7 +115,7 @@ export default function Step4AdditionalDetails({
 
           {formData.attendedSpecialCamp && (
             <div className="mt-6 p-4 bg-background rounded-lg border border-border">
-              <h4 className="font-medium text-foreground mb-4">Special Camp Details / विशेष शिविर विवरण</h4>
+              <h4 className="font-medium text-foreground mb-4">Special Camp Details / विशेष शिविर विवर���</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="nss-form-group">
                   <label className="nss-form-label">Village/Urban Slum Name / गाँव/शहरी मलिन बस्ती का नाम</label>

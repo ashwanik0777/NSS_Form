@@ -134,5 +134,3 @@ Need help or want to report an issue?
 Developed for the National Service Scheme (NSS), Uttar Pradesh 🇮🇳
 
 ---
-
-<!-- YAML block for advanced documentation systems -->
