@@ -4,24 +4,51 @@ import { useState, useEffect } from "react"
 
 interface Application {
   _id: string
-  nameEnglish: string
-  emailId: string
+  // Institution Details
   institutionName: string
+  formNo: string
+  enrollment: "first-year" | "second-year"
+  programOfficerName: string
+  unitNo: string
+
+  // Personal Details
+  nameEnglish: string
+  nameHindi: string
+  fatherName: string
+  motherName: string
+  dateOfBirth: string
+  mobileNo: string
+  emailId: string
+  departmentName: string
+  gender: "male" | "female" | "other"
+  category: "general" | "obc" | "st" | "sc"
+  institutionalIdCard: string
+  photo?: string // URL or base64
+
+  // Educational Details
+  highSchoolRollNo: string
+  classSemester: string
+
+  // NSS enrollment details
+  nssEnrollmentYear: "first-year" | "second-year"
+  attendedSpecialCamp: boolean
+  specialCampDetails?: {
+    villageName: string
+    date: string
+    venue: string
+  }
+  myBharatPortalRegistered: boolean
+
+  // Additional achievements section
+  specialNSSAchievements?: string
+  attendedELP: boolean
+  otherAchievements?: string
+
+  // Status
   status: "submitted" | "under-review" | "approved" | "rejected"
   submittedAt: string
   reviewedAt?: string
   rejectionReason?: string
-  formNo?: string
-  enrollmentType?: string
-  programmeOfficer?: string
-  unitNo?: string
-  nameHindi?: string
-  fatherName?: string
-  motherName?: string
-  dateOfBirth?: string
-  mobileNo?: string
-  highSchoolRollNo?: string
-  classSemester?: string
 }
 
 interface ApplicationsTableProps {
@@ -243,12 +270,12 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                     <p className="text-foreground">{viewingApp.formNo}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Enrollment Type</label>
-                    <p className="text-foreground">{viewingApp.enrollmentType}</p>
+                    <label className="text-sm font-medium text-muted-foreground">Enrollment</label>
+                    <p className="text-foreground">{viewingApp.enrollment === "first-year" ? "First Year / प्रथम वर्ष" : "Second Year / द्वितीय वर्ष"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Programme Officer</label>
-                    <p className="text-foreground">{viewingApp.programmeOfficer}</p>
+                    <p className="text-foreground">{viewingApp.programOfficerName}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Unit Number</label>
@@ -304,6 +331,57 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                     <label className="text-sm font-medium text-muted-foreground">Class/Semester</label>
                     <p className="text-foreground">{viewingApp.classSemester}</p>
                   </div>
+                </div>
+              </div>
+
+              {/* NSS & Additional Details */}
+              <div>
+                <h4 className="text-lg font-medium text-foreground mb-3">NSS & Additional Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">NSS Enrollment Year</label>
+                    <p className="text-foreground">{viewingApp.nssEnrollmentYear === "first-year" ? "First Year / प्रथम वर्ष" : viewingApp.nssEnrollmentYear === "second-year" ? "Second Year / द्वितीय वर्ष" : ""}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Attended 07-Day Special Camp</label>
+                    <p className="text-foreground">{viewingApp.attendedSpecialCamp ? "Yes / हाँ" : "No / नहीं"}</p>
+                  </div>
+                  {viewingApp.attendedSpecialCamp && viewingApp.specialCampDetails && (
+                    <>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Village/Urban Slum Name</label>
+                        <p className="text-foreground">{viewingApp.specialCampDetails.villageName}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Camp Date</label>
+                        <p className="text-foreground">{viewingApp.specialCampDetails.date ? new Date(viewingApp.specialCampDetails.date).toLocaleDateString("en-IN") : "N/A"}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Camp Venue</label>
+                        <p className="text-foreground">{viewingApp.specialCampDetails.venue}</p>
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">My Bharat Portal Registration</label>
+                    <p className="text-foreground">{viewingApp.myBharatPortalRegistered ? "Yes / हाँ" : "No / नहीं"}</p>
+                  </div>
+                  {viewingApp.specialNSSAchievements && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-muted-foreground">Special NSS Achievements</label>
+                      <p className="text-foreground">{viewingApp.specialNSSAchievements}</p>
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Attended ELP (Experiential Learning Programme)</label>
+                    <p className="text-foreground">{viewingApp.attendedELP ? "Yes / हाँ" : "No / नहीं"}</p>
+                  </div>
+                  {viewingApp.otherAchievements && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-muted-foreground">Other Achievements</label>
+                      <p className="text-foreground">{viewingApp.otherAchievements}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

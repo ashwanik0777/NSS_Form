@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { FormData, ValidationErrors } from "@/lib/types"
 import StepIndicator from "@/components/nss/StepIndicator"
 import Step1InstitutionDetails from "@/components/nss/Step1InstitutionDetails"
 import Step2PersonalDetails from "@/components/nss/Step2PersonalDetails"
 import Step3EducationalDetails from "@/components/nss/Step3EducationalDetails"
-import Step4Preview from "@/components/nss/Step4Preview"
+import Step4Preview from "@/components/nss/Step5Preview"
 import Step4AdditionalDetails from "@/components/nss/Step4AdditionalDetails"
 
 const initialFormData: FormData = {
@@ -58,12 +58,43 @@ const stepTitles = [
 ]
 
 export default function RegisterPage() {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [formData, setFormData] = useState<FormData>(initialFormData)
+  // Restore from localStorage if present
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedStep = localStorage.getItem("nss_currentStep")
+      return savedStep ? Number(savedStep) : 1
+    }
+    return 1
+  })
+  const [formData, setFormData] = useState<FormData>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("nss_formData")
+      if (saved) {
+        try {
+          return { ...initialFormData, ...JSON.parse(saved) }
+        } catch {
+          return initialFormData
+        }
+      }
+    }
+    return initialFormData
+  })
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [applicationId, setApplicationId] = useState("")
+
+  // Persist to localStorage on change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("nss_formData", JSON.stringify(formData))
+    }
+  }, [formData])
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("nss_currentStep", String(currentStep))
+    }
+  }, [currentStep])
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -97,6 +128,9 @@ export default function RegisterPage() {
       if (result.success) {
         setApplicationId(result.applicationId)
         setSubmitSuccess(true)
+        // Clear localStorage on successful submit
+        localStorage.removeItem("nss_formData")
+        localStorage.removeItem("nss_currentStep")
       } else {
         alert("Error submitting application: " + result.message)
       }

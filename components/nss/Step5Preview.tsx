@@ -31,6 +31,7 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
     onSubmit()
   }
 
+
   return (
     <div className="nss-form-section">
       <div className="flex items-center mb-6">
@@ -203,91 +204,68 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
         </div>
 
-        {(formData.nssEnrollmentYear || formData.attendedSpecialCamp || formData.myBharatPortalRegistered) && (
-          <div className="bg-background border border-border rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-              <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              NSS Enrollment Details / एनएसएस नामांकन विवरण
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {formData.nssEnrollmentYear && (
-                <div>
-                  <p className="text-sm text-muted-foreground">NSS Enrollment Year</p>
-                  <p className="font-medium text-foreground">
-                    {formData.nssEnrollmentYear === "first-year" ? "First Year / प्रथम वर्ष" : "Second Year / द्वितीय वर्ष"}
-                  </p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-muted-foreground">Attended 07-Day Special Camp</p>
-                <p className="font-medium text-foreground">{formData.attendedSpecialCamp ? "Yes / हाँ" : "No / नहीं"}</p>
-              </div>
-              {formData.attendedSpecialCamp && formData.specialCampDetails && (
-                <>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Village/Urban Slum Name</p>
-                    <p className="font-medium text-foreground">{formData.specialCampDetails.villageName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Camp Date</p>
-                    <p className="font-medium text-foreground">{formatDate(formData.specialCampDetails.date)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Camp Venue</p>
-                    <p className="font-medium text-foreground">{formData.specialCampDetails.venue}</p>
-                  </div>
-                </>
-              )}
-              <div>
-                <p className="text-sm text-muted-foreground">My Bharat Portal Registration</p>
-                <p className="font-medium text-foreground">
-                  {formData.myBharatPortalRegistered ? "Yes / हाँ" : "No / नहीं"}
-                </p>
-              </div>
+        {/* NSS Enrollment & Additional Details */}
+        <div className="bg-background border border-border rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            NSS & Additional Details / एनएसएस और अतिरिक्त विवरण
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">NSS Enrollment Year</p>
+              <p className="font-medium text-foreground">
+                {formData.nssEnrollmentYear === "first-year" ? "First Year / प्रथम वर्ष" : "Second Year / द्वितीय वर्ष"}
+              </p>
             </div>
-          </div>
-        )}
-
-        {(formData.specialNSSAchievements || formData.attendedELP || formData.otherAchievements) && (
-          <div className="bg-background border border-border rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-              <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Additional Achievements / अतिरिक्त उपलब्धियां
-            </h3>
-            <div className="space-y-4">
-              {formData.specialNSSAchievements && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Special NSS Achievements</p>
-                  <p className="font-medium text-foreground">{formData.specialNSSAchievements}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-muted-foreground">Attended ELP (Experiential Learning Programme)</p>
-                <p className="font-medium text-foreground">{formData.attendedELP ? "Yes / हाँ" : "No / नहीं"}</p>
-              </div>
-              {formData.otherAchievements && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Other Achievements</p>
-                  <p className="font-medium text-foreground">{formData.otherAchievements}</p>
-                </div>
-              )}
+            <div>
+              <p className="text-sm text-muted-foreground">Attended 07-Day Special Camp</p>
+              <p className="font-medium text-foreground">{formData.attendedSpecialCamp ? "Yes / हाँ" : "No / नहीं"}</p>
             </div>
+            {formData.attendedSpecialCamp && formData.specialCampDetails && (
+              <>
+                <div>
+                  <p className="text-sm text-muted-foreground">Village/Urban Slum Name</p>
+                  <p className="font-medium text-foreground">{formData.specialCampDetails.villageName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Camp Date</p>
+                  <p className="font-medium text-foreground">{formatDate(formData.specialCampDetails.date)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Camp Venue</p>
+                  <p className="font-medium text-foreground">{formData.specialCampDetails.venue}</p>
+                </div>
+              </>
+            )}
+            <div>
+              <p className="text-sm text-muted-foreground">My Bharat Portal Registration</p>
+              <p className="font-medium text-foreground">{formData.myBharatPortalRegistered ? "Yes / हाँ" : "No / नहीं"}</p>
+            </div>
+            {formData.specialNSSAchievements && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-muted-foreground">Special NSS Achievements</p>
+                <p className="font-medium text-foreground">{formData.specialNSSAchievements}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-sm text-muted-foreground">Attended ELP (Experiential Learning Programme)</p>
+              <p className="font-medium text-foreground">{formData.attendedELP ? "Yes / हाँ" : "No / नहीं"}</p>
+            </div>
+            {formData.otherAchievements && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-muted-foreground">Other Achievements</p>
+                <p className="font-medium text-foreground">{formData.otherAchievements}</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Declaration */}
         <div className="bg-muted/50 border border-border rounded-lg p-6">
@@ -327,13 +305,13 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
       {/* Action Buttons */}
       <div className="flex justify-between mt-8">
         <button onClick={onPrevious} className="nss-button-outline" disabled={isSubmitting}>
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Edit / संपादित करें
         </button>
 
-        <div className="flex space-x-4">
+        <div className="flex space-x-3">
           <button onClick={() => window.print()} className="nss-button-secondary" disabled={isSubmitting}>
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path

@@ -273,20 +273,11 @@ export default function Step2PersonalDetails({
           {errors.institutionalIdCard && <p className="text-sm text-destructive">{errors.institutionalIdCard}</p>}
         </div>
 
-        <div className="nss-form-group">
-          <label className="nss-form-label">I-Card Proof / पहचान पत्र प्रमाण</label>
-          <input
-            type="file"
-            className="nss-form-input"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => handleFileChange("institutionalIdProof", e.target.files?.[0] || null)}
-          />
-          <p className="text-xs text-muted-foreground mt-1">Attach valid proof</p>
-        </div>
+  {/* I-Card Proof upload removed as per requirements */}
       </div>
 
       <div className="flex justify-between mt-8">
-        <button onClick={onPrevious} className="nss-button-outline ">
+        <button onClick={onPrevious} className="nss-button-outline flex items-center">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
