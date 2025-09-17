@@ -162,7 +162,7 @@ export default function RegisterPage() {
                 Please save this Application ID for future reference. You will receive an email confirmation shortly.
               </p>
             </div>
-            <div className="space-y-4 flex items-center justify-center">
+            <div className="flex items-center justify-center">
               <button onClick={() => window.print()} className="nss-button-secondary mr-4">
                 Print Confirmation
               </button>
