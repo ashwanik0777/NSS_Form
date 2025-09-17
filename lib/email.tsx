@@ -33,6 +33,10 @@ interface ApplicationApprovedData {
   institutionName: string
 }
 
+interface ApplicationApprovedWithPDFData extends ApplicationApprovedData {
+  pdfBuffer?: Buffer | Uint8Array
+}
+
 interface ApplicationRejectedData {
   name: string
   applicationId: string
@@ -77,8 +81,8 @@ export async function sendApplicationSubmittedEmail(to: string, data: Applicatio
   await transporter.sendMail(mailOptions)
 }
 
-export async function sendApplicationApprovedEmail(to: string, data: ApplicationApprovedData) {
-  const mailOptions = {
+export async function sendApplicationApprovedEmail(to: string, data: ApplicationApprovedWithPDFData) {
+  const mailOptions: any = {
     from: process.env.SMTP_USER,
     to,
     subject: "NSS Application Approved - Welcome to NSS!",
@@ -118,7 +122,15 @@ export async function sendApplicationApprovedEmail(to: string, data: Application
       </div>
     `,
   }
-
+  if (data.pdfBuffer) {
+    mailOptions.attachments = [
+      {
+        filename: `NSS_Application_${data.applicationId}.pdf`,
+        content: data.pdfBuffer,
+        contentType: 'application/pdf',
+      },
+    ]
+  }
   await transporter.sendMail(mailOptions)
 }
 
