@@ -1,4 +1,5 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { PDFDocument, rgb } from 'pdf-lib'
+import fontkit from 'fontkit'
 import fs from 'fs'
 import path from 'path'
 
@@ -9,6 +10,7 @@ async function fetchImageAsBytes(imagePath: string) {
 
 export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
+  pdfDoc.registerFontkit(fontkit)
   const page1 = pdfDoc.addPage([595, 842]) // A4 portrait
   const page2 = pdfDoc.addPage([595, 842])
   const page3 = pdfDoc.addPage([595, 842])
@@ -32,8 +34,9 @@ export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Arr
     } catch {}
   }
 
-  // Fonts
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+  // Fonts: Use Unicode font for Hindi/Devanagari support
+  const notoFontBytes = await fs.promises.readFile(path.join(process.cwd(), 'public/NotoSansDevanagari-Regular.ttf'))
+  const font = await pdfDoc.embedFont(notoFontBytes)
 
   // --- PAGE 1: Logos and Institution/Personal Details ---
   page1.drawImage(logo1Embed, { x: 40, y: 770, width: 60, height: 60 })
