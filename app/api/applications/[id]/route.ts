@@ -3,7 +3,7 @@ import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 import { sendApplicationApprovedEmail, sendApplicationRejectedEmail } from "@/lib/email"
 import { generateNSSApplicationPDF } from "@/lib/generateNSSApplicationPDF"
-
+import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import mongoose from "mongoose"
 
@@ -33,15 +33,23 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   try {
     await dbConnect()
 
-    // TODO: Restore admin authentication check
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await request.json()
     const { status, rejectionReason } = body
 
-    // Skipping adminUser check for now
+    const adminUser = await mongoose.model("User").findOne({ email: session.user.email })
+    if (!adminUser) {
+      return NextResponse.json({ success: false, message: "Admin user not found" }, { status: 404 })
+    }
+
     const updateData: any = {
       status,
       reviewedAt: new Date(),
-      // reviewedBy: adminUser._id, // Use the actual ObjectId from database
+      reviewedBy: adminUser._id, // Use the actual ObjectId from database
     }
 
     if (status === "rejected" && rejectionReason) {
@@ -59,13 +67,40 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     try {
       if (status === "approved") {
-        // Generate PDF with all application data
-        const pdfBuffer = await generateNSSApplicationPDF(application)
+        // Prepare formData for PDF
+        const formData = {
+          institutionName: application.institutionName,
+          formNo: application.formNo,
+          enrollment: application.enrollment,
+          programOfficerName: application.programOfficerName,
+          unitNo: application.unitNo,
+          nameEnglish: application.nameEnglish,
+          nameHindi: application.nameHindi,
+          fatherName: application.fatherName,
+          motherName: application.motherName,
+          dateOfBirth: application.dateOfBirth?.toISOString().split('T')[0] || '',
+          mobileNo: application.mobileNo,
+          emailId: application.emailId,
+          departmentName: application.departmentName || '',
+          gender: application.gender || '',
+          category: application.category || '',
+          institutionalIdCard: application.institutionalIdCard || '',
+          photo: application.photo || '',
+          highSchoolRollNo: application.highSchoolRollNo,
+          classSemester: application.classSemester,
+          nssEnrollmentYear: application.nssEnrollmentYear || '',
+          attendedSpecialCamp: application.attendedSpecialCamp || false,
+          specialCampDetails: application.specialCampDetails || undefined,
+          myBharatPortalRegistered: application.myBharatPortalRegistered || false,
+          specialNSSAchievements: application.specialNSSAchievements || '',
+          attendedELP: application.attendedELP || false,
+          otherAchievements: application.otherAchievements || '',
+        };
         await sendApplicationApprovedEmail(application.emailId, {
           name: application.nameEnglish,
           applicationId: application._id.toString(),
           institutionName: application.institutionName,
-          pdfBuffer,
+          formData,
         })
       } else if (status === "rejected") {
         await sendApplicationRejectedEmail(application.emailId, {

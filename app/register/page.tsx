@@ -25,10 +25,10 @@ const initialFormData: FormData = {
   departmentName: "",
   gender: "male",
   category: "general",
-  categoryProof: null,
+  // categoryProof: null,
   institutionalIdCard: "",
   institutionalIdProof: null,
-  admissionFeesReceipt: null,
+  // admissionFeesReceipt: null,
   highSchoolRollNo: "",
   classSemester: "",
   nssEnrollmentYear: "first-year",
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                 Please save this Application ID for future reference. You will receive an email confirmation shortly.
               </p>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 flex items-center justify-center">
               <button onClick={() => window.print()} className="nss-button-secondary mr-4">
                 Print Confirmation
               </button>
@@ -239,8 +239,8 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-muted-foreground">
-          <p>Government of India | भारत सरकार</p>
-          <p>National Service Scheme - Uttar Pradesh | राष्ट्रीय सेवा योजना - उत्तर प्रदेश</p>
+          {/* <p>Government of India | भारत सरकार</p> */}
+          <p>GBU - National Service Scheme </p>
         </div>
       </div>
     </div>

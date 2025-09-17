@@ -20,6 +20,7 @@ export interface FormData {
   institutionalIdCard: string
   institutionalIdProof?: File | null
   photo?: File | null
+  signature?: string | null // Path to student signature image (PNG)
 
   // Educational Details
   highSchoolRollNo: string

@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { generateNSSApplicationPDF } from "@/lib/generateNSSApplicationPDF"
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
@@ -31,10 +32,7 @@ interface ApplicationApprovedData {
   name: string
   applicationId: string
   institutionName: string
-}
-
-interface ApplicationApprovedWithPDFData extends ApplicationApprovedData {
-  pdfBuffer?: Buffer | Uint8Array
+  formData?: any // For PDF generation
 }
 
 interface ApplicationRejectedData {
@@ -81,8 +79,22 @@ export async function sendApplicationSubmittedEmail(to: string, data: Applicatio
   await transporter.sendMail(mailOptions)
 }
 
-export async function sendApplicationApprovedEmail(to: string, data: ApplicationApprovedWithPDFData) {
-  const mailOptions: any = {
+export async function sendApplicationApprovedEmail(to: string, data: ApplicationApprovedData) {
+  let attachments = [];
+  if (data.formData) {
+    try {
+      const pdfBytes = await generateNSSApplicationPDF(data.formData);
+      attachments.push({
+        filename: `NSS_Application_${data.applicationId}.pdf`,
+        content: Buffer.from(pdfBytes),
+        contentType: 'application/pdf',
+      });
+    } catch (err) {
+      console.error("Failed to generate PDF for approval email", err);
+    }
+  }
+
+  const mailOptions = {
     from: process.env.SMTP_USER,
     to,
     subject: "NSS Application Approved - Welcome to NSS!",
@@ -121,18 +133,12 @@ export async function sendApplicationApprovedEmail(to: string, data: Application
         </div>
       </div>
     `,
+    attachments,
   }
-  if (data.pdfBuffer) {
-    mailOptions.attachments = [
-      {
-        filename: `NSS_Application_${data.applicationId}.pdf`,
-        content: data.pdfBuffer,
-        contentType: 'application/pdf',
-      },
-    ]
-  }
+
   await transporter.sendMail(mailOptions)
 }
+
 
 export async function sendApplicationRejectedEmail(to: string, data: ApplicationRejectedData) {
   const mailOptions = {

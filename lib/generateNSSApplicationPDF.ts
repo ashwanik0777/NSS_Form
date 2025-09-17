@@ -1,101 +1,114 @@
-import { PDFDocument, rgb } from 'pdf-lib'
-import fontkit from 'fontkit'
-import fs from 'fs'
-import path from 'path'
+import { PDFDocument, rgb } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
+import fs from 'fs';
+import path from 'path';
+import type { FormData } from './types';
 
-// Helper to fetch image as Uint8Array
-async function fetchImageAsBytes(imagePath: string) {
-  return fs.promises.readFile(imagePath)
+// Helper to load image as Uint8Array
+function loadImage(filePath: string) {
+	return fs.readFileSync(path.resolve(process.cwd(), filePath));
 }
 
-export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.create()
-  pdfDoc.registerFontkit(fontkit)
-  const page1 = pdfDoc.addPage([595, 842]) // A4 portrait
-  const page2 = pdfDoc.addPage([595, 842])
-  const page3 = pdfDoc.addPage([595, 842])
+export async function generateNSSApplicationPDF(formData: FormData): Promise<Uint8Array> {
+	const pdfDoc = await PDFDocument.create();
+	pdfDoc.registerFontkit(fontkit);
+	// Load Noto Sans Devanagari font (supports both Hindi and English)
+	const notoFontBytes = loadImage('public/fonts/NotoSansDevanagari-Regular.ttf');
+	const font = await pdfDoc.embedFont(notoFontBytes);
 
-  // Load logos
-  const logo1 = await fetchImageAsBytes(path.join(process.cwd(), 'public/1.png'))
-  const logo2 = await fetchImageAsBytes(path.join(process.cwd(), 'public/myBharatLogo.png'))
-  const logo3 = await fetchImageAsBytes(path.join(process.cwd(), 'public/nssLogo.png'))
-  const logo1Embed = await pdfDoc.embedPng(logo1)
-  const logo2Embed = await pdfDoc.embedPng(logo2)
-  const logo3Embed = await pdfDoc.embedPng(logo3)
+	// Load logos
+	const logo1 = await pdfDoc.embedPng(loadImage('public/1.png'));
+	const logo2 = await pdfDoc.embedPng(loadImage('public/myBharatLogo.png'));
+	const logo3 = await pdfDoc.embedPng(loadImage('public/nssLogo.png'));
 
-  // Student photo (optional)
-  let studentPhotoEmbed = null
-  if (formData.photo) {
-    try {
-      const photoBytes = Buffer.isBuffer(formData.photo)
-        ? formData.photo
-        : Buffer.from(formData.photo.split(',')[1], 'base64')
-      studentPhotoEmbed = await pdfDoc.embedJpg(photoBytes)
-    } catch {}
-  }
+	// Helper for drawing text
+	const drawText = (page: any, text: string, x: number, y: number, size = 12, opts = {}) => {
+		page.drawText(text, { x, y, size, font, color: rgb(0, 0, 0), ...opts });
+	};
 
-  // Fonts: Use Unicode font for Hindi/Devanagari support
-  const notoFontBytes = await fs.promises.readFile(path.join(process.cwd(), 'public/NotoSansDevanagari-Regular.ttf'))
-  const font = await pdfDoc.embedFont(notoFontBytes)
+	// PAGE 1: Logos and Institution/Personal Details
+	const page1 = pdfDoc.addPage([595, 842]); // A4 portrait
+	// Draw logos at top
+	page1.drawImage(logo1, { x: 40, y: 770, width: 60, height: 60 });
+	page1.drawImage(logo2, { x: 267, y: 770, width: 60, height: 60 });
+	page1.drawImage(logo3, { x: 495, y: 770, width: 60, height: 60 });
+	drawText(page1, 'NSS Volunteer Application Form', 150, 750, 20, { color: rgb(0.1,0.1,0.5) });
+	drawText(page1, 'Institution Details', 50, 720, 14);
+	drawText(page1, `Institution Name: ${formData.institutionName}`, 50, 700);
+	drawText(page1, `Form Number: ${formData.formNo}`, 320, 700);
+	drawText(page1, `Enrollment: ${formData.enrollment}`, 50, 680);
+	drawText(page1, `Programme Officer: ${formData.programOfficerName}`, 320, 680);
+	drawText(page1, `Unit Number: ${formData.unitNo}`, 50, 660);
 
-  // --- PAGE 1: Logos and Institution/Personal Details ---
-  page1.drawImage(logo1Embed, { x: 40, y: 770, width: 60, height: 60 })
-  page1.drawImage(logo2Embed, { x: 260, y: 770, width: 60, height: 60 })
-  page1.drawImage(logo3Embed, { x: 495, y: 770, width: 60, height: 60 })
-  page1.drawText('NSS Volunteer Registration Form', { x: 120, y: 800, size: 18, font, color: rgb(0,0,0) })
-  page1.drawText('Institution Details:', { x: 40, y: 740, size: 14, font })
-  page1.drawText(`Institution Name: ${formData.institutionName || ''}`, { x: 60, y: 720, size: 12, font })
-  page1.drawText(`Form Number: ${formData.formNo || ''}`, { x: 60, y: 705, size: 12, font })
-  page1.drawText(`Enrollment: ${formData.enrollment || ''}`, { x: 60, y: 690, size: 12, font })
-  page1.drawText(`Programme Officer: ${formData.programOfficerName || ''}`, { x: 60, y: 675, size: 12, font })
-  page1.drawText(`Unit Number: ${formData.unitNo || ''}`, { x: 60, y: 660, size: 12, font })
-  page1.drawText('Personal Details:', { x: 40, y: 640, size: 14, font })
-  page1.drawText(`Name (English): ${formData.nameEnglish || ''}`, { x: 60, y: 620, size: 12, font })
-  page1.drawText(`Name (Hindi): ${formData.nameHindi || ''}`, { x: 60, y: 605, size: 12, font })
-  page1.drawText(`Father's Name: ${formData.fatherName || ''}`, { x: 60, y: 590, size: 12, font })
-  page1.drawText(`Mother's Name: ${formData.motherName || ''}`, { x: 60, y: 575, size: 12, font })
-  page1.drawText(`Date of Birth: ${formData.dateOfBirth || ''}`, { x: 60, y: 560, size: 12, font })
-  page1.drawText(`Mobile No: ${formData.mobileNo || ''}`, { x: 60, y: 545, size: 12, font })
-  page1.drawText(`Email ID: ${formData.emailId || ''}`, { x: 60, y: 530, size: 12, font })
-  page1.drawText(`Department: ${formData.departmentName || ''}`, { x: 60, y: 515, size: 12, font })
-  page1.drawText(`Gender: ${formData.gender || ''}`, { x: 60, y: 500, size: 12, font })
-  page1.drawText(`Category: ${formData.category || ''}`, { x: 60, y: 485, size: 12, font })
-  page1.drawText(`Institutional I-Card No: ${formData.institutionalIdCard || ''}`, { x: 60, y: 470, size: 12, font })
-  if (studentPhotoEmbed) {
-    page1.drawImage(studentPhotoEmbed, { x: 450, y: 600, width: 100, height: 120 })
-    page1.drawText('Student Photo', { x: 470, y: 590, size: 10, font })
-  }
+	drawText(page1, 'Personal Details', 50, 630, 14);
+	drawText(page1, `Name (English): ${formData.nameEnglish}`, 50, 610);
+	drawText(page1, `Name (Hindi): ${formData.nameHindi}`, 320, 610);
+	drawText(page1, `Father's Name: ${formData.fatherName}`, 50, 590);
+	drawText(page1, `Mother's Name: ${formData.motherName}`, 320, 590);
+	drawText(page1, `DOB: ${formData.dateOfBirth}`, 50, 570);
+	drawText(page1, `Mobile: ${formData.mobileNo}`, 320, 570);
+	drawText(page1, `Email: ${formData.emailId}`, 50, 550);
+	drawText(page1, `Department: ${formData.departmentName}`, 320, 550);
+	drawText(page1, `Gender: ${formData.gender}`, 50, 530);
+	drawText(page1, `Category: ${formData.category}`, 320, 530);
+	drawText(page1, `Institutional I-Card No: ${formData.institutionalIdCard}`, 50, 510);
 
-  // --- PAGE 2: Educational, NSS, Achievements ---
-  page2.drawText('Educational Details:', { x: 40, y: 800, size: 14, font })
-  page2.drawText(`High School Roll No: ${formData.highSchoolRollNo || ''}`, { x: 60, y: 780, size: 12, font })
-  page2.drawText(`Class/Semester: ${formData.classSemester || ''}`, { x: 60, y: 765, size: 12, font })
-  page2.drawText('NSS & Additional Details:', { x: 40, y: 740, size: 14, font })
-  page2.drawText(`NSS Enrollment Year: ${formData.nssEnrollmentYear || ''}`, { x: 60, y: 720, size: 12, font })
-  page2.drawText(`Attended 07-Day Special Camp: ${formData.attendedSpecialCamp ? 'Yes' : 'No'}`, { x: 60, y: 705, size: 12, font })
-  if (formData.attendedSpecialCamp && formData.specialCampDetails) {
-    page2.drawText(`Village/Slum: ${formData.specialCampDetails.villageName || ''}`, { x: 80, y: 690, size: 12, font })
-    page2.drawText(`Camp Date: ${formData.specialCampDetails.date || ''}`, { x: 80, y: 675, size: 12, font })
-    page2.drawText(`Camp Venue: ${formData.specialCampDetails.venue || ''}`, { x: 80, y: 660, size: 12, font })
-  }
-  page2.drawText(`My Bharat Portal Registered: ${formData.myBharatPortalRegistered ? 'Yes' : 'No'}`, { x: 60, y: 640, size: 12, font })
-  if (formData.specialNSSAchievements) {
-    page2.drawText(`Special NSS Achievements: ${formData.specialNSSAchievements}`, { x: 60, y: 620, size: 12, font })
-  }
-  page2.drawText(`Attended ELP: ${formData.attendedELP ? 'Yes' : 'No'}`, { x: 60, y: 600, size: 12, font })
-  if (formData.otherAchievements) {
-    page2.drawText(`Other Achievements: ${formData.otherAchievements}`, { x: 60, y: 580, size: 12, font })
-  }
+	// Student photo (if available)
+	if (formData.photo && typeof formData.photo === 'string') {
+		try {
+			const photoImg = await pdfDoc.embedJpg(loadImage(formData.photo));
+			page1.drawImage(photoImg, { x: 480, y: 600, width: 80, height: 100 });
+			drawText(page1, 'Student Photo', 490, 590, 10);
+		} catch {}
+	}
 
-  // --- PAGE 3: Declaration & Signatures ---
-  page3.drawText('Self Declaration / स्वयं घोषणा', { x: 40, y: 800, size: 14, font })
-  page3.drawText('I hereby declare that the information furnished above is true to the best of my knowledge and belief. If any information is found incorrect, my enrolment shall be cancelled.', { x: 60, y: 780, size: 12, font, maxWidth: 480, lineHeight: 16 })
-  page3.drawText('मैं घोषणा करता / करती हूँ कि मेरे द्वारा दी गई उपरोक्त जानकारी मेरी जानकारी और विश्वास के अनुसार सही है। यदि कोई जानकारी गलत पाई जाती है, तो मेरा नामांकन रद्द कर दिया जाएगा।', { x: 60, y: 760, size: 12, font, maxWidth: 480, lineHeight: 16 })
-  // Signature boxes
-  page3.drawText('Signature of Student', { x: 60, y: 200, size: 12, font })
-  page3.drawText('कार्यक्रम अधिकारी का हस्ताक्षर', { x: 350, y: 200, size: 12, font })
-  page3.drawRectangle({ x: 60, y: 170, width: 180, height: 25, borderColor: rgb(0,0,0), borderWidth: 1 })
-  page3.drawRectangle({ x: 350, y: 170, width: 180, height: 25, borderColor: rgb(0,0,0), borderWidth: 1 })
+	// PAGE 2: Educational, NSS, Achievements
+	const page2 = pdfDoc.addPage([595, 842]);
+	drawText(page2, 'Educational Details', 50, 800, 14);
+	drawText(page2, `High School Roll No: ${formData.highSchoolRollNo}`, 50, 780);
+	drawText(page2, `Class/Semester: ${formData.classSemester}`, 320, 780);
 
-  return await pdfDoc.save()
+	drawText(page2, 'NSS Details', 50, 750, 14);
+	drawText(page2, `NSS Enrollment Year: ${formData.nssEnrollmentYear}`, 50, 730);
+	drawText(page2, `Attended 07-Day Special Camp: ${formData.attendedSpecialCamp ? 'Yes' : 'No'}`, 320, 730);
+	if (formData.attendedSpecialCamp && formData.specialCampDetails) {
+		drawText(page2, `Village/Slum: ${formData.specialCampDetails.villageName}`, 50, 710);
+		drawText(page2, `Camp Date: ${formData.specialCampDetails.date}`, 320, 710);
+		drawText(page2, `Venue: ${formData.specialCampDetails.venue}`, 50, 690);
+	}
+	drawText(page2, `My Bharat Portal Registered: ${formData.myBharatPortalRegistered ? 'Yes' : 'No'}`, 50, 670);
+
+	drawText(page2, 'Achievements', 50, 640, 14);
+	drawText(page2, `Special NSS Achievements: ${formData.specialNSSAchievements || '-'}`, 50, 620);
+	drawText(page2, `Attended ELP: ${formData.attendedELP ? 'Yes' : 'No'}`, 50, 600);
+	drawText(page2, `Other Achievements: ${formData.otherAchievements || '-'}`, 50, 580);
+
+	// PAGE 3: Declaration and Signatures
+	const page3 = pdfDoc.addPage([595, 842]);
+	drawText(page3, 'Self Declaration / स्वयं घोषणा', 50, 800, 16);
+	drawText(page3, 'I hereby declare that the information furnished above is true to the best of my knowledge and belief. If any information is found incorrect, my enrolment shall be cancelled.', 50, 770, 12, { maxWidth: 495 });
+	drawText(page3, 'मैं घोषणा करता / करती हूँ कि मेरे द्वारा दी गई उपरोक्त जानकारी मेरी जानकारी और विश्वास के अनुसार सही है। यदि कोई जानकारी गलत पाई जाती है, तो मेरा नामांकन रद्द कर दिया जाएगा।', 50, 750, 12, { maxWidth: 495 });
+
+
+	// Signature boxes
+	drawText(page3, 'Signature of Student', 70, 200, 12);
+	drawText(page3, 'कार्यक्रम अधिकारी का हस्ताक्षर', 370, 200, 12);
+
+	// Student photo again (if available)
+	if (formData.photo && typeof formData.photo === 'string') {
+		try {
+			const photoImg = await pdfDoc.embedJpg(loadImage(formData.photo));
+			page3.drawImage(photoImg, { x: 70, y: 230, width: 80, height: 100 });
+		} catch {}
+	}
+
+	// Student signature (if available)
+	if (formData.signature && typeof formData.signature === 'string') {
+		try {
+			const signImg = await pdfDoc.embedPng(loadImage(formData.signature));
+			page3.drawImage(signImg, { x: 70, y: 170, width: 80, height: 40 });
+		} catch {}
+	}
+
+	return await pdfDoc.save();
 }
