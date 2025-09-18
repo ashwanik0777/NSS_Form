@@ -111,7 +111,7 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
                 <p className="text-sm text-muted-foreground">Student Photo</p>
                 <div className="mt-2">
                   <img
-                    src={URL.createObjectURL(formData.photo) || "/placeholder.svg"}
+                    src={formData.photo instanceof File ? URL.createObjectURL(formData.photo) : "/placeholder.svg"}
                     alt="Student Photo"
                     className="w-32 h-40 object-cover border border-border rounded-lg"
                   />

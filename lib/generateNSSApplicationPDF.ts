@@ -282,6 +282,7 @@ export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Arr
     }
   }
 
+
   // Signature boxes
   page3.drawRectangle({
     x: 60,
@@ -292,6 +293,21 @@ export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Arr
     borderWidth: 1,
   })
 
+  // Student signature image (if available)
+  if (formData.signature) {
+    try {
+      const signImg = await pdfDoc.embedPng(loadImage(formData.signature))
+      page3.drawImage(signImg, { x: 65, y: 175, width: 110, height: 40 })
+    } catch (error) {
+      // fallback: just show label
+      drawText(page3, "Student Signature", 70, 155, 11, { bold: true })
+      drawHindiText(page3, "छात्र हस्ताक्षर", 70, 140, 11)
+    }
+  } else {
+    drawText(page3, "Student Signature", 70, 155, 11, { bold: true })
+    drawHindiText(page3, "छात्र हस्ताक्षर", 70, 140, 11)
+  }
+
   page3.drawRectangle({
     x: 350,
     y: 170,
@@ -300,9 +316,6 @@ export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Arr
     borderColor: rgb(0.5, 0.5, 0.5),
     borderWidth: 1,
   })
-
-  drawText(page3, "Student Signature", 70, 155, 11, { bold: true })
-  drawHindiText(page3, "छात्र हस्ताक्षर", 70, 140, 11)
 
   drawText(page3, "Programme Officer Signature", 360, 155, 11, { bold: true })
   drawHindiText(page3, "कार्यक्रम अधिकारी हस्ताक्षर", 360, 140, 11)

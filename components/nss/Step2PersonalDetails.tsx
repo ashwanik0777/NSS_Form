@@ -96,6 +96,7 @@ export default function Step2PersonalDetails({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         <div className="nss-form-group md:col-span-2">
           <label className="nss-form-label">
             Student Photo / छात्र की फोटो <span className="text-destructive">*</span>
@@ -108,6 +109,20 @@ export default function Step2PersonalDetails({
           />
           {errors.photo && <p className="text-sm text-destructive">{errors.photo}</p>}
           <p className="text-xs text-muted-foreground mt-1">Upload passport size photo (JPG/PNG format, max 2MB)</p>
+        </div>
+
+        <div className="nss-form-group md:col-span-2">
+          <label className="nss-form-label">
+            Student Signature / छात्र के हस्ताक्षर <span className="text-destructive">*</span>
+          </label>
+          <input
+            type="file"
+            className={`nss-form-input ${errors.signature ? "border-destructive" : ""}`}
+            accept=".jpg,.jpeg,.png"
+            onChange={(e) => handleFileChange("signature", e.target.files?.[0] || null)}
+          />
+          {errors.signature && <p className="text-sm text-destructive">{errors.signature}</p>}
+          <p className="text-xs text-muted-foreground mt-1">Upload your signature (JPG/PNG format, max 2MB)</p>
         </div>
 
         <div className="nss-form-group">
