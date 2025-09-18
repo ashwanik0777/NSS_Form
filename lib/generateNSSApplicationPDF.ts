@@ -1,4 +1,5 @@
 import { PDFDocument, rgb } from "pdf-lib"
+const fontkit = require('fontkit');
 import fs from "fs"
 import path from "path"
 
@@ -9,6 +10,7 @@ function loadImage(filePath: string) {
 
 export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
+  pdfDoc.registerFontkit(fontkit)
 
   // Load NotoSansDevanagari font for all text (English and Hindi)
   let notoFont
