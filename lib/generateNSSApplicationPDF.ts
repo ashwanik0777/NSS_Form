@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+import { PDFDocument, rgb } from "pdf-lib"
 import fs from "fs"
 import path from "path"
 
@@ -10,28 +10,22 @@ function loadImage(filePath: string) {
 export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
 
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-
-  // Load Hindi fonts with proper error handling
-  let hindiFont = regularFont // fallback
-  let hindiBoldFont = boldFont // fallback
-
+  // Load NotoSansDevanagari font for all text (English and Hindi)
+  let notoFont
   try {
-    const notoRegularBytes = fs.readFileSync(path.resolve(process.cwd(), "/public/fonts/NotoSansDevanagari-Regular.ttf"))
-    hindiFont = await pdfDoc.embedFont(notoRegularBytes)
-    console.log("Hindi regular font loaded successfully")
+    let fontPath = path.resolve(process.cwd(), "public/fonts/NotoSansDevanagari-Regular.ttf")
+    if (!fs.existsSync(fontPath)) {
+      fontPath = path.resolve(process.cwd(), "lib/fonts/NotoSansDevanagari-Regular.ttf")
+    }
+    if (!fs.existsSync(fontPath)) {
+      console.error("Font file not found at:", fontPath)
+      throw new Error("NotoSansDevanagari-Regular.ttf not found in public/fonts or lib/fonts. PDF cannot be generated.")
+    }
+    const notoRegularBytes = fs.readFileSync(fontPath)
+    notoFont = await pdfDoc.embedFont(notoRegularBytes)
+    console.log("NotoSansDevanagari-Regular loaded for all text from:", fontPath)
   } catch (error) {
-    console.log("Hindi regular font not found, using fallback")
-  }
-
-  try {
-    const notoBoldBytes = fs.readFileSync(path.resolve(process.cwd(), "/public/fonts/NotoSansDevanagari-Bold.ttf"))
-    hindiBoldFont = await pdfDoc.embedFont(notoBoldBytes)
-    console.log("Hindi bold font loaded successfully")
-  } catch (error) {
-    console.log("Hindi bold font not found, using regular Hindi font")
-    hindiBoldFont = hindiFont
+    throw error
   }
 
   let logo1, logo2, logo3
@@ -43,33 +37,21 @@ export async function generateNSSApplicationPDF(formData: any): Promise<Uint8Arr
     console.log("Logos not found")
   }
 
+  // Always use NotoSansDevanagari for all text
   const drawText = (page: any, text: string, x: number, y: number, size = 12, opts: any = {}) => {
-    const font = opts.bold ? boldFont : regularFont
     page.drawText(text || "", {
       x,
       y,
       size,
-      font,
+      font: notoFont,
       color: opts.color || rgb(0.2, 0.2, 0.2),
       maxWidth: opts.maxWidth || 500,
       lineHeight: opts.lineHeight || size * 1.2,
       ...opts,
     })
   }
-
-  const drawHindiText = (page: any, text: string, x: number, y: number, size = 12, opts: any = {}) => {
-    const font = opts.bold ? hindiBoldFont : hindiFont
-    page.drawText(text || "", {
-      x,
-      y,
-      size,
-      font,
-      color: opts.color || rgb(0.2, 0.2, 0.2),
-      maxWidth: opts.maxWidth || 500,
-      lineHeight: opts.lineHeight || size * 1.4,
-      ...opts,
-    })
-  }
+  // drawHindiText is now just an alias for drawText
+  const drawHindiText = drawText;
 
   const drawSectionHeader = (page: any, title: string, hindiTitle: string, y: number) => {
     // Background rectangle for section header
