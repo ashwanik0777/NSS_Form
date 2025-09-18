@@ -1,6 +1,8 @@
 "use client"
 
+
 import type { StepProps } from "@/lib/types"
+import { useState } from "react"
 
 export default function Step2PersonalDetails({
   formData,
@@ -10,6 +12,8 @@ export default function Step2PersonalDetails({
   onNext,
   onPrevious,
 }: StepProps) {
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({})
+  const [uploadError, setUploadError] = useState<{ [key: string]: string }>({})
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value })
     if (errors[field]) {
@@ -17,8 +21,31 @@ export default function Step2PersonalDetails({
     }
   }
 
-  const handleFileChange = (field: string, file: File | null) => {
-    setFormData({ ...formData, [field]: file })
+  const handleFileChange = async (field: string, file: File | null) => {
+    setUploadError((prev) => ({ ...prev, [field]: "" }))
+    if (!file) {
+      setFormData({ ...formData, [field]: null })
+      return
+    }
+    setUploading((prev) => ({ ...prev, [field]: true }))
+    try {
+      const data = new FormData()
+      data.append("file", file)
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data,
+      })
+      const result = await res.json()
+      if (result.success && result.path) {
+        setFormData({ ...formData, [field]: result.path })
+      } else {
+        setUploadError((prev) => ({ ...prev, [field]: result.message || "Upload failed" }))
+      }
+    } catch (e) {
+      setUploadError((prev) => ({ ...prev, [field]: "Upload failed" }))
+    } finally {
+      setUploading((prev) => ({ ...prev, [field]: false }))
+    }
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" })
     }
@@ -106,7 +133,10 @@ export default function Step2PersonalDetails({
             className={`nss-form-input ${errors.photo ? "border-destructive" : ""}`}
             accept=".jpg,.jpeg,.png"
             onChange={(e) => handleFileChange("photo", e.target.files?.[0] || null)}
+            disabled={uploading.photo}
           />
+          {uploading.photo && <p className="text-xs text-muted-foreground">Uploading...</p>}
+          {uploadError.photo && <p className="text-xs text-destructive">{uploadError.photo}</p>}
           {errors.photo && <p className="text-sm text-destructive">{errors.photo}</p>}
           <p className="text-xs text-muted-foreground mt-1">Upload passport size photo (JPG/PNG format, max 2MB)</p>
         </div>
@@ -120,10 +150,13 @@ export default function Step2PersonalDetails({
             className={`nss-form-input ${errors.signature ? "border-destructive" : ""}`}
             accept=".jpg,.jpeg,.png"
             onChange={(e) => handleFileChange("signature", e.target.files?.[0] || null)}
+            disabled={uploading.signature}
           />
+          {uploading.signature && <p className="text-xs text-muted-foreground">Uploading...</p>}
+          {uploadError.signature && <p className="text-xs text-destructive">{uploadError.signature}</p>}
           {errors.signature && <p className="text-sm text-destructive">{errors.signature}</p>}
           <p className="text-xs text-muted-foreground mt-1">Upload your signature (JPG/PNG format, max 2MB)</p>
-        </div>
+  </div>
 
         <div className="nss-form-group">
           <label className="nss-form-label">

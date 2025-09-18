@@ -106,18 +106,24 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
             Personal Details / व्यक्तिगत विवरण
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {formData.photo && (
-              <div className="md:col-span-2">
-                <p className="text-sm text-muted-foreground">Student Photo</p>
-                <div className="mt-2">
+            <div className="md:col-span-2">
+              <p className="text-sm text-muted-foreground">Student Photo</p>
+              <div className="mt-2">
+                {formData.photo ? (
                   <img
-                    src={formData.photo instanceof File ? URL.createObjectURL(formData.photo) : "/placeholder.svg"}
+                    src={typeof formData.photo === "string" ? formData.photo : "/placeholder.svg"}
                     alt="Student Photo"
                     className="w-32 h-40 object-cover border border-border rounded-lg"
                   />
-                </div>
+                ) : (
+                  <img
+                    src="/placeholder.svg"
+                    alt="No Photo"
+                    className="w-32 h-40 object-cover border border-border rounded-lg"
+                  />
+                )}
               </div>
-            )}
+            </div>
             <div>
               <p className="text-sm text-muted-foreground">Name (English)</p>
               <p className="font-medium text-foreground">{formData.nameEnglish}</p>
