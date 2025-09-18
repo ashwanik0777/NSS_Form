@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@auth/core": "latest",
+    "@auth/core": "^0.40.0",
     "@hookform/resolvers": "^3.10.0",
     "@pdf-lib/fontkit": "^1.1.1",
     "@radix-ui/react-accordion": "1.2.2",
@@ -55,8 +55,8 @@
     "lucide-react": "^0.454.0",
     "mongodb": "6.19.0",
     "mongoose": "latest",
-    "next": "14.2.16",
-    "next-auth": "4.24.11",
+    "next": "^14.2.32",
+    "next-auth": "^4.24.7",
     "next-themes": "^0.4.6",
     "nodemailer": "latest",
     "pdf-lib": "^1.17.1",
