@@ -1,6 +1,11 @@
+import { v2 as cloudinary } from 'cloudinary'
 import { NextRequest, NextResponse } from 'next/server'
-import path from 'path'
-import fs from 'fs/promises'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 export const runtime = 'nodejs'
 
@@ -11,18 +16,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, message: 'No file uploaded' }, { status: 400 })
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const ext = path.extname(file.name) || '.jpg'
-  const fileName = `nss-${Date.now()}${ext}`
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-  const filePath = path.join(uploadDir, fileName)
-  const publicPath = `/uploads/${fileName}`
-
   try {
-    await fs.mkdir(uploadDir, { recursive: true })
-    await fs.writeFile(filePath, buffer)
-    return NextResponse.json({ success: true, path: publicPath })
-  } catch (error) {
-    return NextResponse.json({ success: false, message: 'Failed to save file' }, { status: 500 })
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    // Convert buffer to base64 for Cloudinary upload
+    const base64 = buffer.toString('base64')
+    const dataUri = `data:${file.type};base64,${base64}`
+    const uploadRes = await cloudinary.uploader.upload(dataUri, {
+      folder: 'nss-registration',
+      resource_type: 'image',
+    })
+    return NextResponse.json({ success: true, path: uploadRes.secure_url })
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message || 'Failed to upload to Cloudinary' }, { status: 500 })
   }
 }
