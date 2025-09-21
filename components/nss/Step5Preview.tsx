@@ -46,23 +46,6 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
           </svg>
         </div>
 
-        {/* Student Signature Box below Declaration */}
-        <div className="mt-8 flex flex-col items-end">
-          <div className="flex flex-col items-center">
-            <span className="text-sm text-muted-foreground mb-1">Student Signature / छात्र के हस्ताक्षर</span>
-            <div className="border border-border rounded-lg bg-white w-48 h-20 flex items-center justify-center">
-              {formData.signature ? (
-                <img
-                  src={typeof formData.signature === "string" ? formData.signature : "/placeholder.svg"}
-                  alt="Student Signature"
-                  className="max-h-16 max-w-full object-contain"
-                />
-              ) : (
-                <span className="text-xs text-muted-foreground">No signature uploaded</span>
-              )}
-            </div>
-          </div>
-        </div>
         <div>
           <h2 className="text-2xl font-bold text-foreground">Review & Submit</h2>
           <p className="text-muted-foreground">समीक्षा और जमा करें</p>
@@ -302,6 +285,24 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
               cancelled.
             </p>
           </div>
+
+        {/* Student Signature Box below Declaration */}
+        <div className="mt-8 flex flex-col items-start">
+          <div className="flex flex-col items-center">
+            <span className="text-sm text-muted-foreground mb-1">Student Signature / छात्र के हस्ताक्षर</span>
+            <div className="border border-border rounded-lg bg-white w-48 h-20 flex items-center justify-center">
+              {formData.signature ? (
+                <img
+                  src={typeof formData.signature === "string" ? formData.signature : "/placeholder.svg"}
+                  alt="Student Signature"
+                  className="max-h-16 max-w-full object-contain"
+                />
+              ) : (
+                <span className="text-xs text-muted-foreground">No signature uploaded</span>
+              )}
+            </div>
+          </div>
+        </div>
 
           <div className="mt-6">
             <label className="flex items-start space-x-3 cursor-pointer">

@@ -10,7 +10,6 @@ export interface INSSApplication extends Document {
 
   // Personal Details
   nameEnglish: string
-  nameHindi: string
   fatherName: string
   motherName: string
   dateOfBirth: Date
@@ -72,11 +71,12 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       trim: true,
       uppercase: true,
     },
-    nameHindi: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    // nameHindi: {
+    
+    //   type: String,
+    //   required: true,
+    //   trim: true,
+    // },
     fatherName: {
       type: String,
       required: true,
