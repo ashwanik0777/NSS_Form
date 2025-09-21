@@ -128,10 +128,7 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
               <p className="text-sm text-muted-foreground">Name (English)</p>
               <p className="font-medium text-foreground">{formData.nameEnglish}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Name (Hindi)</p>
-              <p className="font-medium text-foreground">{formData.nameHindi}</p>
-            </div>
+
             <div>
               <p className="text-sm text-muted-foreground">Father's Name</p>
               <p className="font-medium text-foreground">{formData.fatherName}</p>

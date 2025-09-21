@@ -11,12 +11,10 @@ import Step4AdditionalDetails from "@/components/nss/Step4AdditionalDetails"
 
 const initialFormData: FormData = {
   institutionName: "",
-  formNo: "",
   enrollment: "first-year",
   programOfficerName: "",
   unitNo: "",
   nameEnglish: "",
-  nameHindi: "",
   fatherName: "",
   motherName: "",
   dateOfBirth: "",
@@ -59,26 +57,35 @@ const stepTitles = [
 
 export default function RegisterPage() {
   // Restore from localStorage if present
-  const [currentStep, setCurrentStep] = useState(() => {
-    if (typeof window !== "undefined") {
-      const savedStep = localStorage.getItem("nss_currentStep")
-      return savedStep ? Number(savedStep) : 1
-    }
-    return 1
-  })
-  const [formData, setFormData] = useState<FormData>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("nss_formData")
-      if (saved) {
-        try {
-          return { ...initialFormData, ...JSON.parse(saved) }
-        } catch {
-          return initialFormData
-        }
+  const [currentStep, setCurrentStep] = useState(1)
+  const [formData, setFormData] = useState<FormData>(initialFormData)
+
+  // Restore from localStorage on mount (client only)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("nss_formData")
+    if (saved) {
+      try {
+        setFormData({ ...initialFormData, ...JSON.parse(saved) })
+      } catch {
+        setFormData(initialFormData)
       }
     }
-    return initialFormData
-  })
+    const savedStep = localStorage.getItem("nss_currentStep")
+    if (savedStep) {
+      setCurrentStep(Number(savedStep))
+    }
+  }, [])
+
+  // Save formData and currentStep to localStorage on every change
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("nss_formData", JSON.stringify(formData))
+  }, [formData])
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("nss_currentStep", String(currentStep))
+  }, [currentStep])
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)

@@ -1,14 +1,13 @@
 export interface FormData {
   // Institution Details
   institutionName: string
-  formNo: string
+  formNo?: string // Set on server only
   enrollment: "first-year" | "second-year"
   programOfficerName: string
   unitNo: string
 
   // Personal Details
   nameEnglish: string
-  nameHindi: string
   fatherName: string
   motherName: string
   dateOfBirth: string

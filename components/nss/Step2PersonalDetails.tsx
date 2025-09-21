@@ -57,9 +57,6 @@ export default function Step2PersonalDetails({
     if (!formData.nameEnglish.trim()) {
       stepErrors.nameEnglish = "Name in English is required"
     }
-    if (!formData.nameHindi.trim()) {
-      stepErrors.nameHindi = "Name in Hindi is required"
-    }
     if (!formData.fatherName.trim()) {
       stepErrors.fatherName = "Father's name is required"
     }
@@ -160,7 +157,7 @@ export default function Step2PersonalDetails({
 
         <div className="nss-form-group">
           <label className="nss-form-label">
-            Name (English - Capital Letters) / नाम (अंग्रेजी में बड़े अक्षरों में) <span className="text-destructive">*</span>
+            Name (Capital Letters) / नाम (बड़े अक्षरों में) <span className="text-destructive">*</span>
           </label>
           <input
             type="text"
@@ -173,19 +170,7 @@ export default function Step2PersonalDetails({
           {errors.nameEnglish && <p className="text-sm text-destructive">{errors.nameEnglish}</p>}
         </div>
 
-        <div className="nss-form-group">
-          <label className="nss-form-label">
-            Name (Hindi) / नाम (हिंदी में) <span className="text-destructive">*</span>
-          </label>
-          <input
-            type="text"
-            className={`nss-form-input ${errors.nameHindi ? "border-destructive" : ""}`}
-            value={formData.nameHindi}
-            onChange={(e) => handleInputChange("nameHindi", e.target.value)}
-            placeholder="हिंदी में नाम लिखें"
-          />
-          {errors.nameHindi && <p className="text-sm text-destructive">{errors.nameHindi}</p>}
-        </div>
+
 
         <div className="nss-form-group">
           <label className="nss-form-label">

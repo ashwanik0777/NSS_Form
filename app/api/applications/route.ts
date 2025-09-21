@@ -31,9 +31,20 @@ export async function POST(request: NextRequest) {
       await user.save()
     }
 
-    // Create NSS application
+
+    // Get next form number from DB
+    let nextFormNo = "1001"
+    const lastApp: any = await NSSApplication.findOne({}, { formNo: 1 })
+      .sort({ formNo: -1 })
+      .lean()
+    if (lastApp && lastApp.formNo && !isNaN(Number(lastApp.formNo))) {
+      nextFormNo = String(Number(lastApp.formNo) + 1)
+    }
+
+    // Create NSS application with formNo set
     const application = new NSSApplication({
       ...formData,
+      formNo: nextFormNo,
       userId: user._id,
       status: "submitted",
       submittedAt: new Date(),

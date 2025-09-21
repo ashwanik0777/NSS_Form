@@ -7,10 +7,6 @@ export const validateStep1 = (data: FormData): ValidationErrors => {
     errors.institutionName = "Institution name is required"
   }
 
-  if (!data.formNo.trim()) {
-    errors.formNo = "Form number is required"
-  }
-
   if (!data.enrollment) {
     errors.enrollment = "Enrollment type is required"
   }
@@ -33,9 +29,6 @@ export const validateStep2 = (data: FormData): ValidationErrors => {
     errors.nameEnglish = "Name in English is required"
   }
 
-  if (!data.nameHindi.trim()) {
-    errors.nameHindi = "Name in Hindi is required"
-  }
 
   if (!data.fatherName.trim()) {
     errors.fatherName = "Father's name is required"

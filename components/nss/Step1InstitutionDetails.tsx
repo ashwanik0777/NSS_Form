@@ -2,7 +2,10 @@
 
 import type { StepProps } from "@/lib/types"
 
+
+
 export default function Step1InstitutionDetails({ formData, setFormData, errors, setErrors, onNext }: StepProps) {
+
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value })
     if (errors[field]) {
@@ -16,9 +19,7 @@ export default function Step1InstitutionDetails({ formData, setFormData, errors,
     if (!formData.institutionName.trim()) {
       stepErrors.institutionName = "Institution name is required"
     }
-    if (!formData.formNo.trim()) {
-      stepErrors.formNo = "Form number is required"
-    }
+
     if (!formData.enrollment) {
       stepErrors.enrollment = "Enrollment type is required"
     }
@@ -71,19 +72,7 @@ export default function Step1InstitutionDetails({ formData, setFormData, errors,
           {errors.institutionName && <p className="text-sm text-destructive">{errors.institutionName}</p>}
         </div>
 
-        <div className="nss-form-group">
-          <label className="nss-form-label">
-            Form Number / प्रपत्र संख्या <span className="text-destructive">*</span>
-          </label>
-          <input
-            type="text"
-            className={`nss-form-input ${errors.formNo ? "border-destructive" : ""}`}
-            value={formData.formNo}
-            onChange={(e) => handleInputChange("formNo", e.target.value)}
-            placeholder="Enter form number"
-          />
-          {errors.formNo && <p className="text-sm text-destructive">{errors.formNo}</p>}
-        </div>
+
 
         <div className="nss-form-group">
           <label className="nss-form-label">
