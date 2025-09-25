@@ -95,7 +95,7 @@ export default function Step1InstitutionDetails({ formData, setFormData, errors,
 
         <div className="nss-form-group">
           <label className="nss-form-label">
-            Programme Officer Name / कार्यक्रम अधिकारी का नाम <span className="text-destructive">*</span>
+            Programme Coordinator Name / कार्यक्रम समन्वयक का नाम <span className="text-destructive">*</span>
           </label>
           <input
             type="text"

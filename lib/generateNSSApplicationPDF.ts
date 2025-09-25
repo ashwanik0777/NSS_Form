@@ -2,6 +2,13 @@ import { PDFDocument, PDFPage, rgb } from "pdf-lib"
 import fs from "fs"
 import path from "path"
 
+interface SpecialCampDetails {
+  villageName?: string
+  date?: string
+  venue?: string
+  proof?: Buffer
+}
+
 interface FormData {
   formNo?: string
   institutionName?: string
@@ -19,6 +26,22 @@ interface FormData {
   gender?: string
   category?: string
   signature?: Buffer
+  institutionalIdCard?: string
+  highSchoolRollNo?: string
+  classSemester?: string
+  // Step 4
+  nssEnrollmentYear?: string
+  attendedSpecialCamp?: boolean
+  specialCampDetails?: SpecialCampDetails
+  myBharatPortalRegistered?: boolean
+  myBharatPortalScreenshot?: Buffer
+  specialNSSAchievements?: string
+  specialNSSAchievementsProof?: Buffer
+  attendedELP?: boolean
+  elpProof?: Buffer
+  otherAchievements?: string
+  otherAchievementsCertificates?: Buffer
+  // Address & Emergency (if any)
   permanentAddress?: string
   correspondenceAddress?: string
   emergencyPerson?: string
@@ -41,11 +64,10 @@ function drawSectionHeader(page: PDFPage, text: string, y: number) {
   })
 }
 
-// Utility: field box
 function drawField(page: PDFPage, label: string, value: string | undefined, x: number, y: number, width = 220) {
   page.drawText(label + ":", { x, y, size: 11, color: rgb(0.2, 0.2, 0.2) })
   page.drawRectangle({
-    x: x + 80,
+    x: x + 110,
     y: y - 2,
     width,
     height: 18,
@@ -55,7 +77,8 @@ function drawField(page: PDFPage, label: string, value: string | undefined, x: n
   })
   if (value) {
     page.drawText(String(value), {
-      x: x + 85,
+      x: x + 115,
+      y: y + 2,
       size: 10,
       color: rgb(0.1, 0.1, 0.1),
     })
@@ -63,7 +86,6 @@ function drawField(page: PDFPage, label: string, value: string | undefined, x: n
   return y - 30
 }
 
-// Utility: text
 function drawText(page: PDFPage, text: string, x: number, y: number, size = 12, options = {}) {
   page.drawText(text, {
     x,
@@ -75,14 +97,11 @@ function drawText(page: PDFPage, text: string, x: number, y: number, size = 12, 
 
 function drawCenteredText(page: PDFPage, text: string, y: number, size = 14, options = {}) {
   const { width } = page.getSize()
-  // Estimate text width (approximate calculation)
   const textWidth = text.length * size * 0.6
   const x = (width - textWidth) / 2
-  page.drawText(text, { x, y, size, color: rgb(0, 0, 0) })
+  page.drawText(text, { x, y, size, color: rgb(0, 0, 0), ...options })
 }
 
-
-// Load image helper
 function loadImage(filePath: string) {
   const absPath = path.join(process.cwd(), filePath)
   return fs.readFileSync(absPath)
@@ -91,25 +110,25 @@ function loadImage(filePath: string) {
 export async function generateNSSApplicationPDF(formData: FormData) {
   const pdfDoc = await PDFDocument.create()
 
-  // Load 3 logos from public folder
-  const logo1 = await pdfDoc.embedPng(loadImage("public/1.png")) // GBU logo
-  const logo2 = await pdfDoc.embedPng(loadImage("public/myBharatLogo.png")) // My Bharat logo
-  const logo3 = await pdfDoc.embedPng(loadImage("public/nssLogo.png")) // NSS logo
+  // Load logos
+  const logo1 = await pdfDoc.embedPng(loadImage("public/1.png"))
+  const logo2 = await pdfDoc.embedPng(loadImage("public/myBharatLogo.png"))
+  const logo3 = await pdfDoc.embedPng(loadImage("public/nssLogo.png"))
 
   // ---------------- PAGE 1 ----------------
-  const page1 = pdfDoc.addPage([595, 842]) // A4
+  const page1 = pdfDoc.addPage([595, 842])
   let currentY = 820
 
-  // Top 3 logos
+  // Top logos
   if (logo1) page1.drawImage(logo1, { x: 40, y: 790, width: 45, height: 45 })
   if (logo2) page1.drawImage(logo2, { x: 275, y: 790, width: 45, height: 45 })
   if (logo3) page1.drawImage(logo3, { x: 510, y: 790, width: 45, height: 45 })
 
   drawCenteredText(page1, "Gautam Buddha University", 770, 14, { color: rgb(0.1, 0.1, 0.4) })
-drawCenteredText(page1, "National Service Scheme (NSS)", 750, 13, { color: rgb(0.1, 0.1, 0.4)})
-drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 0, 0) })
+  drawCenteredText(page1, "National Service Scheme (NSS)", 750, 13, { color: rgb(0.1, 0.1, 0.4)})
+  drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 0, 0) })
 
-    drawText(
+  drawText(
     page1,
     `Academic Year: 2025-26   |   Form No: ${formData.formNo || "N/A"}`,
     55,
@@ -125,7 +144,7 @@ drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 
   currentY = drawField(page1, "Institution Name", formData.institutionName, 55, currentY)
   currentY = drawField(page1, "Programme Officer", formData.programOfficerName, 55, currentY)
   currentY = drawField(page1, "Unit Number", formData.unitNo, 55, currentY)
-  currentY = drawField(page1, "Enrollment Number", formData.enrollment, 55, currentY)
+  currentY = drawField(page1, "Enrollment", formData.enrollment, 55, currentY)
 
   // Personal Details
   currentY -= 20
@@ -135,7 +154,13 @@ drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 
   // Student Photo (right side)
   if (formData.photo) {
     try {
-      const photoImg = await pdfDoc.embedJpg(formData.photo)
+      let photoImg
+      // Try JPG first, if fails, try PNG
+      try {
+        photoImg = await pdfDoc.embedJpg(formData.photo)
+      } catch {
+        photoImg = await pdfDoc.embedPng(formData.photo)
+      }
       page1.drawRectangle({
         x: 420,
         y: currentY - 10,
@@ -145,7 +170,8 @@ drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 
         borderColor: rgb(0.6, 0.6, 0.6),
       })
       page1.drawImage(photoImg, { x: 425, y: currentY - 5, width: 90, height: 110 })
-    } catch {
+    } catch (err) {
+      console.error("Photo embed error:", err)
       page1.drawRectangle({
         x: 420,
         y: currentY - 10,
@@ -163,11 +189,12 @@ drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 
   currentY = drawField(page1, "Father's Name", formData.fatherName, 55, currentY)
   currentY = drawField(page1, "Mother's Name", formData.motherName, 55, currentY)
   currentY = drawField(page1, "Date of Birth", formData.dateOfBirth, 55, currentY)
+  currentY = drawField(page1, "Mobile Number", formData.mobileNo, 55, currentY)
   currentY = drawField(page1, "Email ID", formData.emailId, 55, currentY)
   currentY = drawField(page1, "Department", formData.departmentName, 55, currentY)
-  currentY = drawField(page1, "Mobile Number", formData.mobileNo, 55, currentY)
   currentY = drawField(page1, "Gender", formData.gender, 55, currentY)
   currentY = drawField(page1, "Category", formData.category, 55, currentY)
+  currentY = drawField(page1, "Institution I-Card No.", formData.institutionalIdCard, 55, currentY)
 
   // Student Signature
   if (formData.signature) {
@@ -182,12 +209,65 @@ drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 
 
   // ---------------- PAGE 2 ----------------
   const page2 = pdfDoc.addPage([595, 842])
-  let y2 = 780
+  let y2 = 800
 
+  // Educational Details
+  drawSectionHeader(page2, "Educational Details", y2)
+  y2 -= 25
+  y2 = drawField(page2, "High School Roll No.", formData.highSchoolRollNo, 55, y2, 300)
+  y2 = drawField(page2, "Class/Semester", formData.classSemester, 55, y2, 300)
+
+  y2 -= 20
+  drawSectionHeader(page2, "NSS Enrollment Details", y2)
+  y2 -= 25
+  y2 = drawField(page2, "NSS Enrollment Year", formData.nssEnrollmentYear, 55, y2)
+  y2 = drawField(page2, "Attended 7-Day Camp", formData.attendedSpecialCamp ? "Yes" : "No", 55, y2)
+  if (formData.attendedSpecialCamp && formData.specialCampDetails) {
+    y2 -= 10
+    drawText(page2, "Special Camp Details:", 65, y2, 11, { color: rgb(0.2, 0.2, 0.5) })
+    y2 -= 20
+    y2 = drawField(page2, "Village/Urban Slum Name", formData.specialCampDetails.villageName, 75, y2, 250)
+    y2 = drawField(page2, "Date", formData.specialCampDetails.date, 75, y2, 150)
+    y2 = drawField(page2, "Venue", formData.specialCampDetails.venue, 75, y2, 200)
+    if (formData.specialCampDetails.proof) {
+      drawText(page2, "Proof Certificate: [Attached]", 75, y2, 10, { color: rgb(0.1, 0.5, 0.1) })
+      y2 -= 20
+    }
+  }
+
+  y2 -= 10
+  drawSectionHeader(page2, "My Bharat Portal Registration", y2)
+  y2 -= 25
+  y2 = drawField(page2, "Registered on My Bharat Portal", formData.myBharatPortalRegistered ? "Yes" : "No", 55, y2)
+  if (formData.myBharatPortalRegistered && formData.myBharatPortalScreenshot) {
+    drawText(page2, "Screenshot: [Attached]", 85, y2, 10, { color: rgb(0.1, 0.5, 0.1) })
+    y2 -= 20
+  }
+
+  y2 -= 10
+  drawSectionHeader(page2, "Additional Achievements", y2)
+  y2 -= 25
+  y2 = drawField(page2, "NSS Achievements", formData.specialNSSAchievements, 55, y2, 350)
+  if (formData.specialNSSAchievementsProof) {
+    drawText(page2, "Achievement Proof: [Attached]", 75, y2, 10, { color: rgb(0.1, 0.5, 0.1) })
+    y2 -= 20
+  }
+  y2 = drawField(page2, "Attended ELP", formData.attendedELP ? "Yes" : "No", 55, y2)
+  if (formData.attendedELP && formData.elpProof) {
+    drawText(page2, "ELP Proof: [Attached]", 75, y2, 10, { color: rgb(0.1, 0.5, 0.1) })
+    y2 -= 20
+  }
+  y2 = drawField(page2, "Other Achievements", formData.otherAchievements, 55, y2, 350)
+  if (formData.otherAchievementsCertificates) {
+    drawText(page2, "Achievement Certificates: [Attached]", 75, y2, 10, { color: rgb(0.1, 0.5, 0.1) })
+    y2 -= 20
+  }
+
+  y2 -= 10
   drawSectionHeader(page2, "Address Details", y2)
   y2 -= 25
-  y2 = drawField(page2, "Permanent Address", formData.permanentAddress, 55, y2, 400)
-  y2 = drawField(page2, "Correspondence Address", formData.correspondenceAddress, 55, y2, 400)
+  y2 = drawField(page2, "Permanent Add.", formData.permanentAddress, 55, y2, 400)
+  y2 = drawField(page2, "Correspondence Add.", formData.correspondenceAddress, 55, y2, 400)
 
   y2 -= 20
   drawSectionHeader(page2, "Emergency Contact", y2)
@@ -196,8 +276,9 @@ drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 
   y2 = drawField(page2, "Relation", formData.emergencyRelation, 55, y2)
   y2 = drawField(page2, "Contact Number", formData.emergencyContact, 55, y2)
 
+  // Self Declaration at the end
   y2 -= 30
-  drawSectionHeader(page2, "Declaration", y2)
+  drawSectionHeader(page2, "Self Declaration", y2)
   y2 -= 40
   drawText(
     page2,
@@ -210,7 +291,7 @@ drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 720, 16, { color: rgb(0, 
 
   y2 -= 60
   drawText(page2, "Signature of Volunteer", 55, y2, 11)
-  drawText(page2, "Signature of Programme Officer", 320, y2, 11)
+  drawText(page2, "Signature of Programme Coordinator", 320, y2, 11)
 
   return await pdfDoc.save()
 }
