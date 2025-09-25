@@ -274,7 +274,7 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                     <p className="text-foreground">{viewingApp.enrollment === "first-year" ? "First Year / प्रथम वर्ष" : "Second Year / द्वितीय वर्ष"}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Programme Officer</label>
+                    <label className="text-sm font-medium text-muted-foreground">Programme Coordinator</label>
                     <p className="text-foreground">{viewingApp.programOfficerName}</p>
                   </div>
                   <div>

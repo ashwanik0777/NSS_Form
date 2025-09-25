@@ -1,24 +1,48 @@
 import mongoose, { type Document, Schema } from "mongoose"
 
 export interface INSSApplication extends Document {
-  // Institution Details
+  // Institution Details (Step 1)
   institutionName: string
   formNo: string
   enrollment: "first-year" | "second-year"
   programOfficerName: string
   unitNo: string
 
-  // Personal Details
+  // Personal Details (Step 2)
   nameEnglish: string
   fatherName: string
   motherName: string
   dateOfBirth: Date
   mobileNo: string
   emailId: string
+  departmentName: string
+  gender: "male" | "female" | "other"
+  category: "general" | "obc" | "st" | "sc"
+  institutionalIdCard: string
+  institutionalIdProof?: string
+  photo: string
+  signature: string
 
-  // Educational Details
+  // Educational Details (Step 3)
   highSchoolRollNo: string
   classSemester: string
+
+  // Additional Details (Step 4)
+  nssEnrollmentYear: "first-year" | "second-year"
+  attendedSpecialCamp: boolean
+  specialCampDetails?: {
+    villageName: string
+    date: string
+    venue: string
+  }
+  myBharatPortalRegistered: boolean
+  myBharatPortalScreenshot?: string
+  specialNSSAchievements?: string
+  specialNSSAchievementsProof?: string
+  attendedELP: boolean
+  elpProof?: string
+  otherAchievements?: string
+  otherAchievementsCertificates?: string
 
   // Application Status
   status: "draft" | "submitted" | "under-review" | "approved" | "rejected"
@@ -37,7 +61,7 @@ export interface INSSApplication extends Document {
 
 const NSSApplicationSchema = new Schema<INSSApplication>(
   {
-    // Institution Details
+    // Institution Details (Step 1)
     institutionName: {
       type: String,
       required: true,
@@ -47,6 +71,7 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
     enrollment: {
       type: String,
@@ -64,19 +89,13 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       trim: true,
     },
 
-    // Personal Details
+    // Personal Details (Step 2)
     nameEnglish: {
       type: String,
       required: true,
       trim: true,
       uppercase: true,
     },
-    // nameHindi: {
-    
-    //   type: String,
-    //   required: true,
-    //   trim: true,
-    // },
     fatherName: {
       type: String,
       required: true,
@@ -103,8 +122,42 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       trim: true,
       match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
+    departmentName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      required: true,
+    },
+    category: {
+      type: String,
+      enum: ["general", "obc", "st", "sc"],
+      required: true,
+    },
+    institutionalIdCard: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    institutionalIdProof: {
+      type: String, // File URL
+      trim: true,
+    },
+    photo: {
+      type: String, // File URL
+      required: true,
+      trim: true,
+    },
+    signature: {
+      type: String, // File URL
+      required: true,
+      trim: true,
+    },
 
-    // Educational Details
+    // Educational Details (Step 3)
     highSchoolRollNo: {
       type: String,
       required: true,
@@ -113,6 +166,66 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     classSemester: {
       type: String,
       required: true,
+      trim: true,
+    },
+
+    // Additional Details (Step 4)
+    nssEnrollmentYear: {
+      type: String,
+      enum: ["first-year", "second-year"],
+      required: true,
+    },
+    attendedSpecialCamp: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    specialCampDetails: {
+      villageName: {
+        type: String,
+        trim: true,
+      },
+      date: {
+        type: String,
+        trim: true,
+      },
+      venue: {
+        type: String,
+        trim: true,
+      },
+    },
+    myBharatPortalRegistered: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    myBharatPortalScreenshot: {
+      type: String, // File URL
+      trim: true,
+    },
+    specialNSSAchievements: {
+      type: String,
+      trim: true,
+    },
+    specialNSSAchievementsProof: {
+      type: String, // File URL
+      trim: true,
+    },
+    attendedELP: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    elpProof: {
+      type: String, // File URL
+      trim: true,
+    },
+    otherAchievements: {
+      type: String,
+      trim: true,
+    },
+    otherAchievementsCertificates: {
+      type: String, // File URL
       trim: true,
     },
 
@@ -151,8 +264,35 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
   },
 )
 
-// Index for efficient queries
+// Indexes for efficient queries
 NSSApplicationSchema.index({ userId: 1, status: 1 })
 NSSApplicationSchema.index({ status: 1, createdAt: -1 })
+NSSApplicationSchema.index({ formNo: 1 }, { unique: true })
+NSSApplicationSchema.index({ emailId: 1 })
+
+// Pre-save middleware to ensure required fields for submitted applications
+NSSApplicationSchema.pre('save', function(next) {
+  if (this.status === 'submitted') {
+    // Validate required fields for submission
+    const requiredFields = [
+      'institutionName', 'enrollment', 'programOfficerName', 'unitNo',
+      'nameEnglish', 'fatherName', 'motherName', 'dateOfBirth', 'mobileNo', 
+      'emailId', 'departmentName', 'gender', 'category', 'institutionalIdCard',
+      'photo', 'signature', 'highSchoolRollNo', 'classSemester', 'nssEnrollmentYear'
+    ]
+    
+    for (const field of requiredFields) {
+      if (!this[field as keyof INSSApplication]) {
+        return next(new Error(`${field} is required for submission`))
+      }
+    }
+    
+    // Set submittedAt if not already set
+    if (!this.submittedAt) {
+      this.submittedAt = new Date()
+    }
+  }
+  next()
+})
 
 export default mongoose.models.NSSApplication || mongoose.model<INSSApplication>("NSSApplication", NSSApplicationSchema)

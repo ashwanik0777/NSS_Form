@@ -15,7 +15,7 @@ interface FormData {
   programOfficerName?: string
   unitNo?: string
   enrollment?: string
-  photo?: Buffer
+  photo?: string
   nameEnglish?: string
   fatherName?: string
   motherName?: string
@@ -25,7 +25,7 @@ interface FormData {
   mobileNo?: string
   gender?: string
   category?: string
-  signature?: Buffer
+  signature?: string
   institutionalIdCard?: string
   highSchoolRollNo?: string
   classSemester?: string
@@ -142,7 +142,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   drawSectionHeader(page1, "Institution Details", currentY)
   currentY -= 25
   currentY = drawField(page1, "Institution Name", formData.institutionName, 55, currentY)
-  currentY = drawField(page1, "Programme Officer", formData.programOfficerName, 55, currentY)
+  currentY = drawField(page1, "Programme Coordinator", formData.programOfficerName, 55, currentY)
   currentY = drawField(page1, "Unit Number", formData.unitNo, 55, currentY)
   currentY = drawField(page1, "Enrollment", formData.enrollment, 55, currentY)
 
@@ -154,33 +154,35 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   // Student Photo (right side)
   if (formData.photo) {
     try {
+      // Convert base64 string to buffer
+      const photoBuffer = Buffer.from(formData.photo.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64')
+      
       let photoImg
-      // Try JPG first, if fails, try PNG
       try {
-        photoImg = await pdfDoc.embedJpg(formData.photo)
+      photoImg = await pdfDoc.embedJpg(photoBuffer)
       } catch {
-        photoImg = await pdfDoc.embedPng(formData.photo)
+      photoImg = await pdfDoc.embedPng(photoBuffer)
       }
       page1.drawRectangle({
-        x: 420,
-        y: currentY - 10,
-        width: 100,
-        height: 120,
-        borderWidth: 1,
-        borderColor: rgb(0.6, 0.6, 0.6),
+      x: 420,
+      y: currentY - 110,
+      width: 100,
+      height: 120,
+      borderWidth: 1,
+      borderColor: rgb(0.6, 0.6, 0.6),
       })
-      page1.drawImage(photoImg, { x: 425, y: currentY - 5, width: 90, height: 110 })
+      page1.drawImage(photoImg, { x: 425, y: currentY - 105, width: 90, height: 110 })
     } catch (err) {
       console.error("Photo embed error:", err)
       page1.drawRectangle({
-        x: 420,
-        y: currentY - 10,
-        width: 100,
-        height: 120,
-        borderWidth: 1,
-        borderColor: rgb(0.6, 0.6, 0.6),
+      x: 420,
+      y: currentY - 110,
+      width: 100,
+      height: 120,
+      borderWidth: 1,
+      borderColor: rgb(0.6, 0.6, 0.6),
       })
-      drawText(page1, "Photo", 445, currentY + 40, 12, { color: rgb(0.5, 0.5, 0.5) })
+      drawText(page1, "Photo", 445, currentY - 60, 12, { color: rgb(0.5, 0.5, 0.5) })
     }
   }
 

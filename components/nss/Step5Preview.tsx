@@ -83,7 +83,7 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Programme Officer</p>
+              <p className="text-sm text-muted-foreground">Programme Coordinator</p>
               <p className="font-medium text-foreground">{formData.programOfficerName}</p>
             </div>
             <div>

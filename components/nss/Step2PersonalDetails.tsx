@@ -1,6 +1,5 @@
 "use client"
 
-
 import type { StepProps } from "@/lib/types"
 import { useState } from "react"
 
@@ -14,6 +13,7 @@ export default function Step2PersonalDetails({
 }: StepProps) {
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({})
   const [uploadError, setUploadError] = useState<{ [key: string]: string }>({})
+  
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value })
     if (errors[field]) {
@@ -27,25 +27,38 @@ export default function Step2PersonalDetails({
       setFormData({ ...formData, [field]: null })
       return
     }
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError((prev) => ({ ...prev, [field]: "File size must be less than 2MB" }))
+      return
+    }
+    
     setUploading((prev) => ({ ...prev, [field]: true }))
     try {
       const data = new FormData()
       data.append("file", file)
-      const res = await fetch("/api/upload", {
+      // Fixed: Changed from /api/upload to /api/upload/cloudinary
+      const res = await fetch("/api/upload/cloudinary", {
         method: "POST",
         body: data,
       })
       const result = await res.json()
-      if (result.success && result.path) {
-        setFormData({ ...formData, [field]: result.path })
+      console.log(`Upload result for ${field}:`, result) // Debug log
+      
+      if (result.success && result.url) {
+        setFormData({ ...formData, [field]: result.url })
+        console.log(`${field} uploaded successfully:`, result.url) // Debug log
       } else {
         setUploadError((prev) => ({ ...prev, [field]: result.message || "Upload failed" }))
       }
     } catch (e) {
+      console.error(`Upload error for ${field}:`, e) // Debug log
       setUploadError((prev) => ({ ...prev, [field]: "Upload failed" }))
     } finally {
       setUploading((prev) => ({ ...prev, [field]: false }))
     }
+    
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" })
     }
@@ -91,12 +104,16 @@ export default function Step2PersonalDetails({
     if (!formData.photo) {
       stepErrors.photo = "Student photo is required"
     }
+    if (!formData.signature) {
+      stepErrors.signature = "Student signature is required"
+    }
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors({ ...errors, ...stepErrors })
       return
     }
 
+    console.log("Step 2 form data before next:", formData) // Debug log
     onNext()
   }
 
@@ -135,6 +152,12 @@ export default function Step2PersonalDetails({
           {uploading.photo && <p className="text-xs text-muted-foreground">Uploading...</p>}
           {uploadError.photo && <p className="text-xs text-destructive">{uploadError.photo}</p>}
           {errors.photo && <p className="text-sm text-destructive">{errors.photo}</p>}
+          {formData.photo && (
+            <div className="mt-2">
+              <p className="text-xs text-green-600">✓ Photo uploaded successfully</p>
+              <img src={formData.photo} alt="Uploaded photo" className="mt-1 w-20 h-20 object-cover rounded" />
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-1">Upload passport size photo (JPG/PNG format, max 2MB)</p>
         </div>
 
@@ -152,8 +175,14 @@ export default function Step2PersonalDetails({
           {uploading.signature && <p className="text-xs text-muted-foreground">Uploading...</p>}
           {uploadError.signature && <p className="text-xs text-destructive">{uploadError.signature}</p>}
           {errors.signature && <p className="text-sm text-destructive">{errors.signature}</p>}
+          {formData.signature && (
+            <div className="mt-2">
+              <p className="text-xs text-green-600">✓ Signature uploaded successfully</p>
+              <img src={formData.signature} alt="Uploaded signature" className="mt-1 w-32 h-16 object-cover rounded" />
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-1">Upload your signature (JPG/PNG format, max 2MB)</p>
-  </div>
+        </div>
 
         <div className="nss-form-group">
           <label className="nss-form-label">
@@ -169,8 +198,6 @@ export default function Step2PersonalDetails({
           />
           {errors.nameEnglish && <p className="text-sm text-destructive">{errors.nameEnglish}</p>}
         </div>
-
-
 
         <div className="nss-form-group">
           <label className="nss-form-label">
@@ -305,8 +332,6 @@ export default function Step2PersonalDetails({
           />
           {errors.institutionalIdCard && <p className="text-sm text-destructive">{errors.institutionalIdCard}</p>}
         </div>
-
-  {/* I-Card Proof upload removed as per requirements */}
       </div>
 
       <div className="flex justify-between mt-8">

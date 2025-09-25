@@ -18,8 +18,8 @@ export interface FormData {
   category: "general" | "obc" | "st" | "sc"
   institutionalIdCard: string
   institutionalIdProof?: File | null
-  photo?: File | null
-  signature?: string | null // Path to student signature image (PNG)
+  photo: string | null
+  signature: string | null
 
   // Educational Details
   highSchoolRollNo: string
@@ -32,7 +32,6 @@ export interface FormData {
     villageName: string
     date: string
     venue: string
-    proof?: File | null
   }
   myBharatPortalRegistered: boolean
   myBharatPortalScreenshot?: File | null

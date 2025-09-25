@@ -102,7 +102,7 @@ export default function Step1InstitutionDetails({ formData, setFormData, errors,
             className={`nss-form-input ${errors.programOfficerName ? "border-destructive" : ""}`}
             value={formData.programOfficerName}
             onChange={(e) => handleInputChange("programOfficerName", e.target.value)}
-            placeholder="Enter programme officer name"
+            placeholder="Enter programme Coordinator name"
           />
           {errors.programOfficerName && <p className="text-sm text-destructive">{errors.programOfficerName}</p>}
         </div>
