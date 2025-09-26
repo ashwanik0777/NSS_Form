@@ -49,6 +49,48 @@ interface FormData {
   emergencyContact?: string
 }
 
+// Helper function to fetch image from URL and convert to buffer
+async function fetchImageBuffer(imageUrl: string): Promise<Buffer> {
+  try {
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    return Buffer.from(arrayBuffer)
+  } catch (error) {
+    console.error('Error fetching image from URL:', error)
+    throw error
+  }
+}
+
+// Helper function to process image (URL, base64, or local path)
+async function processImageForPDF(imageString: string | undefined): Promise<Buffer | null> {
+  if (!imageString) return null
+  
+  try {
+    if (imageString.startsWith('data:image/')) {
+      // Base64 format
+      const base64Data = imageString.replace(/^data:image\/[a-z]+;base64,/, '')
+      return Buffer.from(base64Data, 'base64')
+    } else if (imageString.startsWith('http://') || imageString.startsWith('https://')) {
+      // URL format (Cloudinary)
+      return await fetchImageBuffer(imageString)
+    } else if (imageString.startsWith('/')) {
+      // Local path
+      const fullPath = path.join(process.cwd(), 'public', imageString)
+      return fs.readFileSync(fullPath)
+    } else {
+      // Assume it's a filename in public directory
+      const fullPath = path.join(process.cwd(), 'public', imageString)
+      return fs.readFileSync(fullPath)
+    }
+  } catch (error) {
+    console.error('Error processing image:', error)
+    return null
+  }
+}
+
 function drawSectionHeader(page: PDFPage, text: string, y: number) {
   page.drawText(text, {
     x: 55,
@@ -67,7 +109,7 @@ function drawSectionHeader(page: PDFPage, text: string, y: number) {
 function drawField(page: PDFPage, label: string, value: string | undefined, x: number, y: number, width = 220) {
   page.drawText(label + ":", { x, y, size: 11, color: rgb(0.2, 0.2, 0.2) })
   page.drawRectangle({
-    x: x + 110,
+    x: x + 125,
     y: y - 2,
     width,
     height: 18,
@@ -77,7 +119,7 @@ function drawField(page: PDFPage, label: string, value: string | undefined, x: n
   })
   if (value) {
     page.drawText(String(value), {
-      x: x + 115,
+      x: x + 130,
       y: y + 2,
       size: 10,
       color: rgb(0.1, 0.1, 0.1),
@@ -151,39 +193,72 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   drawSectionHeader(page1, "Personal Details", currentY)
   currentY -= 25
 
-  // Student Photo (right side)
+  // Student Photo (right side) - FIXED
   if (formData.photo) {
     try {
-      // Convert base64 string to buffer
-      const photoBuffer = Buffer.from(formData.photo.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64')
+      const photoBuffer = await processImageForPDF(formData.photo)
       
-      let photoImg
-      try {
-      photoImg = await pdfDoc.embedJpg(photoBuffer)
-      } catch {
-      photoImg = await pdfDoc.embedPng(photoBuffer)
+      if (photoBuffer) {
+        let photoImg
+        try {
+          // Try PNG first
+          photoImg = await pdfDoc.embedPng(photoBuffer)
+        } catch {
+          try {
+            // Fallback to JPG
+            photoImg = await pdfDoc.embedJpg(photoBuffer)
+          } catch (err) {
+            console.error("Failed to embed photo:", err)
+            throw err
+          }
+        }
+        
+        // Draw photo frame
+        page1.drawRectangle({
+          x: 420,
+          y: currentY - 110,
+          width: 100,
+          height: 120,
+          borderWidth: 1,
+          borderColor: rgb(0.6, 0.6, 0.6),
+        })
+        
+        // Draw the photo
+        page1.drawImage(photoImg, { 
+          x: 425, 
+          y: currentY - 105, 
+          width: 90, 
+          height: 110 
+        })
+        
+        console.log("Photo successfully embedded in PDF")
+      } else {
+        throw new Error("Failed to process photo")
       }
-      page1.drawRectangle({
-      x: 420,
-      y: currentY - 110,
-      width: 100,
-      height: 120,
-      borderWidth: 1,
-      borderColor: rgb(0.6, 0.6, 0.6),
-      })
-      page1.drawImage(photoImg, { x: 425, y: currentY - 105, width: 90, height: 110 })
     } catch (err) {
       console.error("Photo embed error:", err)
+      // Draw empty photo frame
       page1.drawRectangle({
-      x: 420,
-      y: currentY - 110,
-      width: 100,
-      height: 120,
-      borderWidth: 1,
-      borderColor: rgb(0.6, 0.6, 0.6),
+        x: 420,
+        y: currentY - 110,
+        width: 100,
+        height: 120,
+        borderWidth: 1,
+        borderColor: rgb(0.6, 0.6, 0.6),
       })
       drawText(page1, "Photo", 445, currentY - 60, 12, { color: rgb(0.5, 0.5, 0.5) })
     }
+  } else {
+    // Draw empty photo frame if no photo
+    page1.drawRectangle({
+      x: 420,
+      y: currentY - 110,
+      width: 100,
+      height: 120,
+      borderWidth: 1,
+      borderColor: rgb(0.6, 0.6, 0.6),
+    })
+    drawText(page1, "Photo", 445, currentY - 60, 12, { color: rgb(0.5, 0.5, 0.5) })
   }
 
   // Personal Fields (left side)
@@ -198,14 +273,51 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   currentY = drawField(page1, "Category", formData.category, 55, currentY)
   currentY = drawField(page1, "Institution I-Card No.", formData.institutionalIdCard, 55, currentY)
 
-  // Student Signature
+  // Student Signature - FIXED
   if (formData.signature) {
     try {
-      const signImg = await pdfDoc.embedPng(formData.signature)
-      page1.drawImage(signImg, { x: 420, y: currentY - 60, width: 100, height: 40 })
-      drawText(page1, "Student Signature", 425, currentY - 70, 10, { color: rgb(0.2, 0.2, 0.2) })
-    } catch {
-      drawText(page1, "[Signature Missing]", 425, currentY - 50, 10, { color: rgb(0.5, 0.5, 0.5) })
+      const signatureBuffer = await processImageForPDF(formData.signature)
+      
+      if (signatureBuffer) {
+        let signatureImg
+        try {
+          // Try PNG first
+          signatureImg = await pdfDoc.embedPng(signatureBuffer)
+        } catch {
+          try {
+            // Fallback to JPG
+            signatureImg = await pdfDoc.embedJpg(signatureBuffer)
+          } catch (err) {
+            console.error("Failed to embed signature:", err)
+            throw err
+          }
+        }
+        
+        // Draw signature on page 1
+        page1.drawRectangle({
+          x: 420,
+          y: currentY - 45,
+          width: 100,
+          height: 40,
+          borderWidth: 1,
+          borderColor: rgb(0.6, 0.6, 0.6),
+        })
+        
+        page1.drawImage(signatureImg, { 
+          x: 425, 
+          y: currentY - 40, 
+          width: 90, 
+          height: 30 
+        })
+        
+        drawText(page1, "Student Signature", 425, currentY - 55, 10, { color: rgb(0.2, 0.2, 0.2) })
+        console.log("Signature successfully embedded in PDF page 1")
+      } else {
+        throw new Error("Failed to process signature")
+      }
+    } catch (err) {
+      console.error("Signature embed error on page 1:", err)
+      drawText(page1, "[Signature Missing]", 425, currentY - 30, 10, { color: rgb(0.5, 0.5, 0.5) })
     }
   }
 
@@ -292,8 +404,102 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   )
 
   y2 -= 60
-  drawText(page2, "Signature of Volunteer", 55, y2, 11)
-  drawText(page2, "Signature of Programme Coordinator", 320, y2, 11)
+  
+  // Volunteer Signature (Add uploaded signature here) - FIXED
+  if (formData.signature) {
+    try {
+      const signatureBuffer = await processImageForPDF(formData.signature)
+      
+      if (signatureBuffer) {
+        let signatureImg
+        try {
+          signatureImg = await pdfDoc.embedPng(signatureBuffer)
+        } catch {
+          try {
+            signatureImg = await pdfDoc.embedJpg(signatureBuffer)
+          } catch (err) {
+            console.error("Failed to embed signature on page 2:", err)
+            throw err
+          }
+        }
+        
+        // Draw signature box and image
+        page2.drawRectangle({
+          x: 55,
+          y: y2 - 25,
+          width: 150,
+          height: 40,
+          borderWidth: 1,
+          borderColor: rgb(0.7, 0.7, 0.7),
+          color: rgb(1, 1, 1),
+        })
+        
+        // Embed the actual signature
+        page2.drawImage(signatureImg, { 
+          x: 60, 
+          y: y2 - 20, 
+          width: 140, 
+          height: 30 
+        })
+        
+        console.log("Signature successfully embedded in PDF page 2")
+      } else {
+        throw new Error("Failed to process signature")
+      }
+    } catch (err) {
+      console.error("Signature embed error on page 2:", err)
+      // Draw empty signature box if signature fails to load
+      page2.drawRectangle({
+        x: 55,
+        y: y2 - 25,
+        width: 150,
+        height: 40,
+        borderWidth: 1,
+        borderColor: rgb(0.7, 0.7, 0.7),
+        color: rgb(1, 1, 1),
+      })
+      drawText(page2, "[Signature Missing]", 85, y2 - 5, 10, { color: rgb(0.5, 0.5, 0.5) })
+    }
+  } else {
+    // Draw empty signature box if no signature provided
+    page2.drawRectangle({
+      x: 55,
+      y: y2 - 25,
+      width: 150,
+      height: 40,
+      borderWidth: 1,
+      borderColor: rgb(0.7, 0.7, 0.7),
+      color: rgb(1, 1, 1),
+    })
+  }
+  
+  drawText(page2, "Signature of Volunteer", 60, y2 - 43, 11)
+  
+  // Programme Coordinator Signature (empty box)
+  page2.drawRectangle({
+    x: 320,
+    y: y2 - 25,
+    width: 150,
+    height: 40,
+    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7),
+    color: rgb(1, 1, 1),
+  })
+  
+  // Load and embed coordinator signature
+  try {
+    const coordinatorSignImg = await pdfDoc.embedPng(loadImage("public/coordinatorSign.png"))
+    page2.drawImage(coordinatorSignImg, { 
+      x: 325, 
+      y: y2 - 20, 
+      width: 140, 
+      height: 30 
+    })
+  } catch (err) {
+    console.error("Coordinator signature embed error:", err)
+  }
+  
+  drawText(page2, "Signature of Programme Coordinator", 316, y2 - 43, 11)
 
   return await pdfDoc.save()
 }
