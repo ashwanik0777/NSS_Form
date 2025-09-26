@@ -3,14 +3,14 @@
 import type { FormData } from "@/lib/types"
 import { useState } from "react"
 
-interface Step4PreviewProps {
+interface Step5PreviewProps {
   formData: FormData
   onPrevious: () => void
   onSubmit: () => void
   isSubmitting: boolean
 }
 
-export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitting }: Step4PreviewProps) {
+export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitting }: Step5PreviewProps) {
   const [agreed, setAgreed] = useState(false)
 
   const formatDate = (dateString: string) => {
@@ -31,359 +31,525 @@ export default function Step4Preview({ formData, onPrevious, onSubmit, isSubmitt
     onSubmit()
   }
 
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF')
+      }
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+      a.download = `NSS_Application_${formData.formNo || 'form'}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      alert('Failed to download PDF. Please try again.')
+    }
+  }
 
   return (
     <div className="nss-form-section">
-      <div className="flex items-center mb-6">
-        <div className="flex-shrink-0 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-          <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+      {/* Header with action buttons */}
+      <div className="flex items-center justify-between mb-6 no-print">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Application Preview</h2>
+            <p className="text-muted-foreground">आवेदन पूर्वावलोकन</p>
+          </div>
         </div>
 
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Review & Submit</h2>
-          <p className="text-muted-foreground">समीक्षा और जमा करें</p>
+        <div className="flex space-x-3">
+          <button onClick={handlePrint} className="nss-button-secondary">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print
+          </button>
+          <button onClick={handleDownloadPDF} className="nss-button-secondary">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download PDF
+          </button>
         </div>
       </div>
 
-      {/* Preview Content */}
-      <div className="space-y-8">
-        {/* Institution Details */}
-        <div className="bg-background border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-            Institution Details / संस्थान का विवरण
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Institution Name</p>
-              <p className="font-medium text-foreground">{formData.institutionName}</p>
+      {/* PDF Preview Container */}
+      <div className="pdf-preview-container rounded-lg">
+        {/* Page 1 */}
+        <div className="pdf-page bg-white shadow-lg mx-auto mb-8" style={{ width: '210mm', minHeight: '297mm', padding: '20mm' }}>
+          {/* Header with logos */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="w-16 h-16  rounded flex items-center justify-center">
+              <img src="/1.png" alt="Logo 1" className="w-14 h-14 object-contain" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Form Number</p>
-              <p className="font-medium text-foreground">{formData.formNo}</p>
+            <div className="w-16 h-16 rounded flex items-center justify-center">
+              <img src="/myBharatLogo.png" alt="My Bharat Logo" className="w-14 h-14 object-contain" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Enrollment</p>
-              <p className="font-medium text-foreground">
-                {formData.enrollment === "first-year" ? "First Year / प्रथम वर्ष" : "Second Year / द्वितीय वर्ष"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Programme Coordinator</p>
-              <p className="font-medium text-foreground">{formData.programOfficerName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Unit Number</p>
-              <p className="font-medium text-foreground">{formData.unitNo}</p>
+            <div className="w-16 h-16  rounded flex items-center justify-center">
+              <img src="/nssLogo.png" alt="NSS Logo" className="w-14 h-14 object-contain" />
             </div>
           </div>
-        </div>
 
-        {/* Personal Details */}
-        <div className="bg-background border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-            Personal Details / व्यक्तिगत विवरण
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <p className="text-sm text-muted-foreground">Student Photo</p>
-              <div className="mt-2">
-                {formData.photo ? (
-                  <img
-                    src={typeof formData.photo === "string" ? formData.photo : "/placeholder.svg"}
-                    alt="Student Photo"
-                    className="w-32 h-40 object-cover border border-border rounded-lg"
-                  />
-                ) : (
-                  <img
-                    src="/placeholder.svg"
-                    alt="No Photo"
-                    className="w-32 h-40 object-cover border border-border rounded-lg"
-                  />
-                )}
+          {/* University Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-lg font-bold text-blue-900 mb-1">Gautam Buddha University</h1>
+            <h2 className="text-md font-semibold text-blue-800 mb-2">National Service Scheme (NSS)</h2>
+            <h3 className="text-lg font-bold">VOLUNTEER REGISTRATION FORM</h3>
+          </div>
+
+          {/* Academic Year and Form Number */}
+          <div className="mb-6 text-sm text-gray-600">
+            Academic Year: 2025-26 | Form No: {formData.formNo || "N/A"}
+          </div>
+
+          {/* Institution Details */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">Institution Details</h3>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Institution Name:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.institutionName}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Programme Coordinator:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.programOfficerName}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Unit Number:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.unitNo}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Enrollment:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.enrollment === "first-year" ? "First Year" : "Second Year"}
+                </div>
               </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Name (English)</p>
-              <p className="font-medium text-foreground">{formData.nameEnglish}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">Father's Name</p>
-              <p className="font-medium text-foreground">{formData.fatherName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Mother's Name</p>
-              <p className="font-medium text-foreground">{formData.motherName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Date of Birth</p>
-              <p className="font-medium text-foreground">{formatDate(formData.dateOfBirth)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Mobile Number</p>
-              <p className="font-medium text-foreground">{formData.mobileNo}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Email ID</p>
-              <p className="font-medium text-foreground">{formData.emailId}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Department</p>
-              <p className="font-medium text-foreground">{formData.departmentName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Gender</p>
-              <p className="font-medium text-foreground">
-                {formData.gender === "male"
-                  ? "Male / पुरुष"
-                  : formData.gender === "female"
-                    ? "Female / महिला"
-                    : "Other / अन्य"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Category</p>
-              <p className="font-medium text-foreground">
-                {formData.category === "general"
-                  ? "General / सामान्य"
-                  : formData.category === "obc"
-                    ? "OBC / अन्य पिछड़ा वर्ग"
-                    : formData.category === "st"
-                      ? "ST / अनुसूचित जनजाति"
-                      : "SC / अनुसूचित जाति"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Institutional I-Card Number</p>
-              <p className="font-medium text-foreground">{formData.institutionalIdCard}</p>
-            </div>
           </div>
-        </div>
 
-        {/* Educational Details */}
-        <div className="bg-background border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-            Educational Details / शैक्षणिक विवरण
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">High School Roll Number</p>
-              <p className="font-medium text-foreground">{formData.highSchoolRollNo}</p>
+          {/* Personal Details */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">Personal Details</h3>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Class/Semester</p>
-              <p className="font-medium text-foreground">{formData.classSemester}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* NSS Enrollment & Additional Details */}
-        <div className="bg-background border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <svg className="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            NSS & Additional Details / एनएसएस और अतिरिक्त विवरण
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">NSS Enrollment Year</p>
-              <p className="font-medium text-foreground">
-                {formData.nssEnrollmentYear === "first-year" ? "First Year / प्रथम वर्ष" : "Second Year / द्वितीय वर्ष"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Attended 07-Day Special Camp</p>
-              <p className="font-medium text-foreground">{formData.attendedSpecialCamp ? "Yes / हाँ" : "No / नहीं"}</p>
-            </div>
-            {formData.attendedSpecialCamp && formData.specialCampDetails && (
-              <>
-                <div>
-                  <p className="text-sm text-muted-foreground">Village/Urban Slum Name</p>
-                  <p className="font-medium text-foreground">{formData.specialCampDetails.villageName}</p>
+            
+            <div className="flex gap-6">
+              {/* Left side - Personal fields */}
+              <div className="flex-1 space-y-3">
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Name:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.nameEnglish}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Camp Date</p>
-                  <p className="font-medium text-foreground">{formatDate(formData.specialCampDetails.date)}</p>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Father's Name:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.fatherName}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Camp Venue</p>
-                  <p className="font-medium text-foreground">{formData.specialCampDetails.venue}</p>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Mother's Name:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.motherName}
+                  </div>
                 </div>
-              </>
-            )}
-            <div>
-              <p className="text-sm text-muted-foreground">My Bharat Portal Registration</p>
-              <p className="font-medium text-foreground">{formData.myBharatPortalRegistered ? "Yes / हाँ" : "No / नहीं"}</p>
-            </div>
-            {formData.specialNSSAchievements && (
-              <div className="md:col-span-2">
-                <p className="text-sm text-muted-foreground">Special NSS Achievements</p>
-                <p className="font-medium text-foreground">{formData.specialNSSAchievements}</p>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Date of Birth:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formatDate(formData.dateOfBirth)}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Mobile Number:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.mobileNo}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Email ID:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.emailId}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Department:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.departmentName}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Gender:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.gender === "male" ? "Male" : formData.gender === "female" ? "Female" : "Other"}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Category:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.category?.toUpperCase()}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Institution I-Card No.:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.institutionalIdCard}
+                  </div>
+                </div>
               </div>
-            )}
-            <div>
-              <p className="text-sm text-muted-foreground">Attended ELP (Experiential Learning Programme)</p>
-              <p className="font-medium text-foreground">{formData.attendedELP ? "Yes / हाँ" : "No / नहीं"}</p>
-            </div>
-            {formData.otherAchievements && (
-              <div className="md:col-span-2">
-                <p className="text-sm text-muted-foreground">Other Achievements</p>
-                <p className="font-medium text-foreground">{formData.otherAchievements}</p>
+
+              {/* Right side - Photo and Signature */}
+              <div className="w-32 space-y-4">
+                {/* Photo */}
+                <div>
+                  <div className="w-28 h-32 border border-gray-400 bg-gray-50 flex items-center justify-center">
+                    {formData.photo ? (
+                      <img
+                        src={typeof formData.photo === "string" ? formData.photo : "/placeholder.svg"}
+                        alt="Student Photo"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-400">Photo</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Signature */}
+                <div>
+                  <div className="w-28 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
+                    {formData.signature ? (
+                      <img
+                        src={typeof formData.signature === "string" ? formData.signature : "/placeholder.svg"}
+                        alt="Student Signature"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-400">Signature</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1 text-center">Student Signature</p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
-        {/* Declaration */}
-        <div className="bg-muted/50 border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Declaration / घोषणा</h3>
-          <div className="space-y-4 text-sm text-foreground">
-            <p className="leading-relaxed">
-              मैं घोषणा करता / करती हूँ कि मेरे द्वारा दी गई उपरोक्त जानकारी मेरी जानकारी और विश्वास के अनुसार सही है। मैं यह भी समझता
-              / समझती हूँ कि यदि मेरे द्वारा दी गई कोई जानकारी गलत पाई जाती है, तो मेरा नामांकन रद्द कर दिया जाएगा।
-            </p>
-            <p className="leading-relaxed">
-              I hereby declare that the information furnished above is true to the best of my knowledge and belief. I
-              also understand that if any information furnished by me is found to be incorrect, my enrolment shall be
-              cancelled.
-            </p>
+        {/* Page 2 */}
+        <div className="pdf-page bg-white shadow-lg mx-auto" style={{ width: '210mm', minHeight: '297mm', padding: '20mm' }}>
+          {/* Educational Details */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">Educational Details</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex">
+                <span className="w-40 text-sm text-gray-600">High School Roll No.:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.highSchoolRollNo}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-40 text-sm text-gray-600">Class/Semester:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.classSemester}
+                </div>
+              </div>
+            </div>
           </div>
 
-        {/* Student Signature Box below Declaration */}
-        <div className="mt-8 flex flex-col items-start">
-          <div className="flex flex-col items-center">
-            <span className="text-sm text-muted-foreground mb-1">Student Signature / छात्र के हस्ताक्षर</span>
-            <div className="border border-border rounded-lg bg-white w-48 h-20 flex items-center justify-center">
-              {formData.signature ? (
-                <img
-                  src={typeof formData.signature === "string" ? formData.signature : "/placeholder.svg"}
-                  alt="Student Signature"
-                  className="max-h-16 max-w-full object-contain"
-                />
-              ) : (
-                <span className="text-xs text-muted-foreground">No signature uploaded</span>
+          {/* NSS Enrollment Details */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">NSS Enrollment Details</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">NSS Enrollment Year:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.nssEnrollmentYear === "first-year" ? "First Year" : "Second Year"}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Attended 7-Day Camp:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.attendedSpecialCamp ? "Yes" : "No"}
+                </div>
+              </div>
+              
+              {formData.attendedSpecialCamp && formData.specialCampDetails && (
+                <div className="ml-4 space-y-2">
+                  <p className="text-sm font-medium text-blue-700">Special Camp Details:</p>
+                  <div className="flex">
+                    <span className="w-48 text-sm text-gray-600">Village/Urban Slum Name:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formData.specialCampDetails.villageName}
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <span className="w-48 text-sm text-gray-600">Date:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formatDate(formData.specialCampDetails.date)}
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <span className="w-48 text-sm text-gray-600">Venue:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formData.specialCampDetails.venue}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
-        </div>
 
-          <div className="mt-6">
-            <label className="flex items-start space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-1 w-4 h-4 text-primary bg-input border-border rounded focus:ring-ring focus:ring-2"
-              />
-              <span className="text-sm text-foreground">
-                I agree to the above declaration and confirm that all information provided is accurate and complete.
-                <br />
-                <span className="text-muted-foreground">
-                  मैं उपरोक्त घोषणा से सहमत हूँ और पुष्टि करता हूँ कि दी गई सभी जानकारी सटीक और पूर्ण है।
-                </span>
-              </span>
-            </label>
+          {/* My Bharat Portal Registration */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">My Bharat Portal Registration</h3>
+            </div>
+            <div className="flex">
+              <span className="w-48 text-sm text-gray-600">Registered on My Bharat Portal:</span>
+              <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                {formData.myBharatPortalRegistered ? "Yes" : "No"}
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Achievements */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">Additional Achievements</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">NSS Achievements:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.specialNSSAchievements}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Attended ELP:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.attendedELP ? "Yes" : "No"}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Other Achievements:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.otherAchievements}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Address Details */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">Address Details</h3>
+            </div>
+            {/* <div className="space-y-3">
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Permanent Add.:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.permanentAddress}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Correspondence Add.:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.correspondenceAddress}
+                </div>
+              </div>
+            </div> */}
+          </div>
+
+          {/* Emergency Contact */}
+          <div className="mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">Emergency Contact</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Contact Person:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {/* {formData.emergencyPerson} */}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Relation:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {/* {formData.emergencyRelation} */}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Contact Number:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {/* {formData.emergencyContact} */}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Self Declaration */}
+          <div className="mb-8">
+            <div className="border-b-2 border-blue-600 pb-1 mb-4">
+              <h3 className="text-md font-bold text-blue-600">Self Declaration</h3>
+            </div>
+            <p className="text-sm text-gray-700 leading-relaxed mb-6">
+              I hereby declare that all the information provided above is true to the best of my knowledge.
+            </p>
+            
+            {/* Signatures */}
+            <div className="flex justify-between items-end">
+              <div className="text-center">
+                <div className="w-36 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
+                  {formData.signature ? (
+                    <img
+                      src={typeof formData.signature === "string" ? formData.signature : "/placeholder.svg"}
+                      alt="Student Signature"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-400">Signature</span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600">Signature of Volunteer</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-36 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
+                  <img src="/coordinatorSign.png" alt="Coordinator Signature" className="w-full h-full object-contain" />
+                </div>
+                <p className="text-sm text-gray-600">Signature of Programme Coordinator</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-between mt-8">
+      {/* Declaration and Submit Section - Only visible on screen */}
+      <div className="no-print bg-muted/50 border border-border rounded-lg p-6 mt-8">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Final Declaration / अंतिम घोषणा</h3>
+        <div className="space-y-4 text-sm text-foreground">
+          <p className="leading-relaxed">
+            मैं घोषणा करता / करती हूँ कि मेरे द्वारा दी गई उपरोक्त जानकारी मेरी जानकारी और विश्वास के अनुसार सही है। मैं यह भी समझता
+            / समझती हूँ कि यदि मेरे द्वारा दी गई कोई जानकारी गलत पाई जाती है, तो मेरा नामांकन रद्द कर दिया जाएगा।
+          </p>
+          <p className="leading-relaxed">
+            I hereby declare that the information furnished above is true to the best of my knowledge and belief. I
+            also understand that if any information furnished by me is found to be incorrect, my enrolment shall be
+            cancelled.
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <label className="flex items-start space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-1 w-4 h-4 text-primary bg-input border-border rounded focus:ring-ring focus:ring-2"
+            />
+            <span className="text-sm text-foreground">
+              I agree to the above declaration and confirm that all information provided is accurate and complete.
+              <br />
+              <span className="text-muted-foreground">
+                मैं उपरोक्त घोषणा से सहमत हूँ और पुष्टि करता हूँ कि दी गई सभी जानकारी सटीक और पूर्ण है।
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {/* Action Buttons - Only visible on screen */}
+      <div className="flex justify-between mt-8 no-print">
         <button onClick={onPrevious} className="nss-button-outline" disabled={isSubmitting}>
-          <svg className="w-4 h-4 mr-2 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Edit / संपादित करें
         </button>
 
-        <div className="flex space-x-3">
-          <button onClick={() => window.print()} className="nss-button-secondary" disabled={isSubmitting}>
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-              />
-            </svg>
-            Print Preview / प्रिंट पूर्वावलोकन
-          </button>
-
-          <button
-            onClick={handleSubmit}
-            disabled={!agreed || isSubmitting}
-            className={`nss-button-primary ${!agreed || isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            {isSubmitting ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Submitting...
-              </>
-            ) : (
-              <>
-                Submit Application / आवेदन जमा करें
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              </>
-            )}
-          </button>
-        </div>
+        <button
+          onClick={handleSubmit}
+          disabled={!agreed || isSubmitting}
+          className={`nss-button-primary ${!agreed || isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          {isSubmitting ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Submitting...
+            </>
+          ) : (
+            <>
+              Submit Application / आवेदन जमा करें
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </>
+          )}
+        </button>
       </div>
+
+      <style jsx>{`
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          .pdf-preview-container {
+            background: white !important;
+            padding: 0 !important;
+          }
+          .pdf-page {
+            box-shadow: none !important;
+            margin: 0 !important;
+            page-break-after: always;
+          }
+          body {
+            background: white !important;
+          }
+        }
+        
+        .pdf-page:last-child {
+          page-break-after: auto;
+        }
+      `}</style>
     </div>
   )
 }
