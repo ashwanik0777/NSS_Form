@@ -1,5 +1,5 @@
 export interface FormData {
-  specialCampProof: any
+  [x: string]: any
   highSchoolCertificate: string | null
   schoolName: string
   // Institution Details
@@ -32,6 +32,7 @@ export interface FormData {
   nssEnrollmentYear: "first-year" | "second-year"
   attendedSpecialCamp: boolean
   specialCampDetails?: {
+    proof: any
     villageName: string
     date: string
     venue: string

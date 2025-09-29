@@ -103,13 +103,13 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
         <div className="pdf-page bg-white shadow-lg mx-auto mb-8" style={{ width: '210mm', minHeight: '297mm', padding: '20mm' }}>
           {/* Header with logos */}
           <div className="flex justify-between items-center mb-6">
-            <div className="w-16 h-16  rounded flex items-center justify-center">
+            <div className="w-16 h-16 rounded flex items-center justify-center">
               <img src="/1.png" alt="Logo 1" className="w-16 h-16 object-contain" />
             </div>
             <div className="w-32 h-32 rounded flex items-center justify-center">
               <img src="/myBharatLogo.png" alt="My Bharat Logo" className="w-28 h-28 object-contain" />
             </div>
-            <div className="w-16 h-16  rounded flex items-center justify-center">
+            <div className="w-16 h-16 rounded flex items-center justify-center">
               <img src="/nssLogo.png" alt="NSS Logo" className="w-14 h-14 object-contain" />
             </div>
           </div>
@@ -135,11 +135,11 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               <div className="flex">
                 <span className="w-32 text-sm text-gray-600">Institution Name:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {formData.institutionName}
+                  {formData.institutionName || "Gautam Buddha University"}
                 </div>
               </div>
               <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Programme Coordinator:</span>
+                <span className="w-32 text-sm text-gray-600">Programme Officer:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                   {formData.programOfficerName}
                 </div>
@@ -147,13 +147,16 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               <div className="flex">
                 <span className="w-32 text-sm text-gray-600">Unit Number:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {formData.unitNo}
+                  Unit {formData.unitNo}
                 </div>
               </div>
               <div className="flex">
                 <span className="w-32 text-sm text-gray-600">Enrollment:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {formData.enrollment === "first-year" ? "First Year" : "Second Year"}
+                  {formData.enrollment === "first-year" ? "First Year" : 
+                   formData.enrollment === "second-year" ? "Second Year" :
+                   formData.enrollment === "third-year" ? "Third Year" :
+                   formData.enrollment === "fourth-year" ? "Fourth Year" : formData.enrollment}
                 </div>
               </div>
             </div>
@@ -205,6 +208,12 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   </div>
                 </div>
                 <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">School:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px] text-xs">
+                    {formData.schoolName}
+                  </div>
+                </div>
+                <div className="flex">
                   <span className="w-24 text-sm text-gray-600">Department:</span>
                   <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                     {formData.departmentName}
@@ -223,7 +232,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   </div>
                 </div>
                 <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Institution I-Card No.:</span>
+                  <span className="w-24 text-sm text-gray-600">Institution I-Card:</span>
                   <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                     {formData.institutionalIdCard}
                   </div>
@@ -287,6 +296,12 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   {formData.classSemester}
                 </div>
               </div>
+              <div className="flex">
+                <span className="w-40 text-sm text-gray-600">High School Certificate:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.highSchoolCertificate ? "✓ Uploaded" : "Not Uploaded"}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -313,7 +328,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                 <div className="ml-4 space-y-2">
                   <p className="text-sm font-medium text-blue-700">Special Camp Details:</p>
                   <div className="flex">
-                    <span className="w-48 text-sm text-gray-600">Village/Urban Slum Name:</span>
+                    <span className="w-48 text-sm text-gray-600">Village/Urban Slum:</span>
                     <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                       {formData.specialCampDetails.villageName}
                     </div>
@@ -321,13 +336,19 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   <div className="flex">
                     <span className="w-48 text-sm text-gray-600">Date:</span>
                     <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                      {formatDate(formData.specialCampDetails.date)}
+                      {formatDate(formData.specialCampDetails.date || "")}
                     </div>
                   </div>
                   <div className="flex">
                     <span className="w-48 text-sm text-gray-600">Venue:</span>
                     <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                       {formData.specialCampDetails.venue}
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <span className="w-48 text-sm text-gray-600">Proof Certificate:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formData.specialCampDetails.proof ? "✓ Uploaded" : "Not Uploaded"}
                     </div>
                   </div>
                 </div>
@@ -340,11 +361,30 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
             <div className="border-b-2 border-blue-600 pb-1 mb-4">
               <h3 className="text-md font-bold text-blue-600">My Bharat Portal Registration</h3>
             </div>
-            <div className="flex">
-              <span className="w-48 text-sm text-gray-600">Registered on My Bharat Portal:</span>
-              <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                {formData.myBharatPortalRegistered ? "Yes" : "No"}
+            <div className="space-y-3">
+              <div className="flex">
+                <span className="w-48 text-sm text-gray-600">Registered on My Bharat Portal:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.myBharatPortalRegistered ? "Yes" : "No"}
+                </div>
               </div>
+              
+              {formData.myBharatPortalRegistered && (
+                <>
+                  <div className="flex">
+                    <span className="w-48 text-sm text-gray-600">My Bharat Portal ID:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formData.myBharatPortalId}
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <span className="w-48 text-sm text-gray-600">Portal Screenshot:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formData.myBharatPortalScreenshot ? "✓ Uploaded" : "Not Uploaded"}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -355,9 +395,15 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
             </div>
             <div className="space-y-3">
               <div className="flex">
-                <span className="w-32 text-sm text-gray-600">NSS Achievements:</span>
+                <span className="w-32 text-sm text-gray-600">Special NSS Achievements:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {formData.specialNSSAchievements}
+                  {formData.specialNSSAchievements || "None"}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Achievement Proof:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.specialNSSAchievementsProof ? "✓ Uploaded" : "Not Uploaded"}
                 </div>
               </div>
               <div className="flex">
@@ -366,59 +412,80 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   {formData.attendedELP ? "Yes" : "No"}
                 </div>
               </div>
+              {formData.attendedELP && (
+                <div className="flex">
+                  <span className="w-32 text-sm text-gray-600">ELP Proof:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.elpProof ? "✓ Uploaded" : "Not Uploaded"}
+                  </div>
+                </div>
+              )}
               <div className="flex">
                 <span className="w-32 text-sm text-gray-600">Other Achievements:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {formData.otherAchievements}
+                  {formData.otherAchievements || "None"}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-sm text-gray-600">Other Certificates:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.otherAchievementsCertificates ? "✓ Uploaded" : "Not Uploaded"}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Address Details */}
+          {/* Document Upload Status */}
           <div className="mb-6">
             <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Address Details</h3>
+              <h3 className="text-md font-bold text-blue-600">Document Upload Status</h3>
             </div>
-            {/* <div className="space-y-3">
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Permanent Add.:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {formData.permanentAddress}
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Student Photo:</span>
+                  <span className={formData.photo ? "text-green-600" : "text-red-600"}>
+                    {formData.photo ? "✓ Uploaded" : "✗ Missing"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Student Signature:</span>
+                  <span className={formData.signature ? "text-green-600" : "text-red-600"}>
+                    {formData.signature ? "✓ Uploaded" : "✗ Missing"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>High School Certificate:</span>
+                  <span className={formData.highSchoolCertificate ? "text-green-600" : "text-red-600"}>
+                    {formData.highSchoolCertificate ? "✓ Uploaded" : "✗ Missing"}
+                  </span>
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Correspondence Add.:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {formData.correspondenceAddress}
-                </div>
-              </div>
-            </div> */}
-          </div>
-
-          {/* Emergency Contact */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Emergency Contact</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Contact Person:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {/* {formData.emergencyPerson} */}
-                </div>
-              </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Relation:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {/* {formData.emergencyRelation} */}
-                </div>
-              </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Contact Number:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                  {/* {formData.emergencyContact} */}
-                </div>
+              <div className="space-y-2">
+                {formData.myBharatPortalRegistered && (
+                  <div className="flex justify-between">
+                    <span>Portal Screenshot:</span>
+                    <span className={formData.myBharatPortalScreenshot ? "text-green-600" : "text-red-600"}>
+                      {formData.myBharatPortalScreenshot ? "✓ Uploaded" : "✗ Missing"}
+                    </span>
+                  </div>
+                )}
+                {formData.attendedSpecialCamp && (
+                  <div className="flex justify-between">
+                    <span>Camp Proof:</span>
+                    <span className={formData.specialCampDetails?.proof ? "text-green-600" : "text-red-600"}>
+                      {formData.specialCampDetails?.proof ? "✓ Uploaded" : "✗ Missing"}
+                    </span>
+                  </div>
+                )}
+                {formData.attendedELP && (
+                  <div className="flex justify-between">
+                    <span>ELP Proof:</span>
+                    <span className={formData.elpProof ? "text-green-600" : "text-red-600"}>
+                      {formData.elpProof ? "✓ Uploaded" : "✗ Missing"}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -429,7 +496,8 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               <h3 className="text-md font-bold text-blue-600">Self Declaration</h3>
             </div>
             <p className="text-sm text-gray-700 leading-relaxed mb-6">
-              I hereby declare that all the information provided above is true to the best of my knowledge.
+              I hereby declare that all the information provided above is true to the best of my knowledge and belief.
+              I understand that if any information is found to be incorrect, my enrollment may be cancelled.
             </p>
             
             {/* Signatures */}
@@ -447,13 +515,15 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   )}
                 </div>
                 <p className="text-sm text-gray-600">Signature of Volunteer</p>
+                <p className="text-xs text-gray-500 mt-1">Date: {new Date().toLocaleDateString("en-IN")}</p>
               </div>
               
               <div className="text-center">
                 <div className="w-36 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
                   <img src="/coordinatorSign.png" alt="Coordinator Signature" className="w-full h-full object-contain" />
                 </div>
-                <p className="text-sm text-gray-600">Signature of Programme Coordinator</p>
+                <p className="text-sm text-gray-600">Signature of Programme Officer</p>
+                <p className="text-xs text-gray-500 mt-1">{formData.programOfficerName}</p>
               </div>
             </div>
           </div>
