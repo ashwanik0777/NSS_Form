@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Create NSS application with formNo set
     const application = new NSSApplication({
-      ...formData,
+      ...formData, // This will include schoolName and highSchoolCertificate
       formNo: nextFormNo,
       userId: user._id,
       status: "submitted",

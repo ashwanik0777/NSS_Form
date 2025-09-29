@@ -57,6 +57,16 @@ export interface INSSApplication extends Document {
   submittedAt?: Date
   createdAt: Date
   updatedAt: Date
+
+  // Additional Fields
+  schoolName: string
+  highSchoolCertificate?: string
+  myBharatPortalId?: string
+  // permanentAddress?: string
+  // correspondenceAddress?: string
+  // emergencyPerson?: string
+  // emergencyRelation?: string
+  // emergencyContact?: string
 }
 
 const NSSApplicationSchema = new Schema<INSSApplication>(
@@ -199,6 +209,10 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       required: true,
       default: false,
     },
+    myBharatPortalId: {
+      type: String,
+      trim: true,
+    },
     myBharatPortalScreenshot: {
       type: String, // File URL
       trim: true,
@@ -213,7 +227,6 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     },
     attendedELP: {
       type: Boolean,
-      required: true,
       default: false,
     },
     elpProof: {
@@ -228,6 +241,26 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       type: String, // File URL
       trim: true,
     },
+    // permanentAddress: {
+    //   type: String,
+    //   trim: true,
+    // },
+    // correspondenceAddress: {
+    //   type: String,
+    //   trim: true,
+    // },
+    // emergencyPerson: {
+    //   type: String,
+    //   trim: true,
+    // },
+    // emergencyRelation: {
+    //   type: String,
+    //   trim: true,
+    // },
+    // emergencyContact: {
+    //   type: String,
+    //   trim: true,
+    // },
 
     // Application Status
     status: {
