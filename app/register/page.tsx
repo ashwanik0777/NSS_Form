@@ -25,9 +25,11 @@ const initialFormData: FormData = {
   category: "general",
   // categoryProof: null,
   institutionalIdCard: "",
-  institutionalIdProof: null,
+  // institutionalIdProof: null,
   // admissionFeesReceipt: null,
   highSchoolRollNo: "",
+  highSchoolCertificate: null,
+
   classSemester: "",
   nssEnrollmentYear: "first-year",
   attendedSpecialCamp: false,

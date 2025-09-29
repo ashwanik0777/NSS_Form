@@ -1,6 +1,7 @@
 "use client"
 
 import type { StepProps } from "@/lib/types"
+import { useState } from "react"
 
 export default function Step4AdditionalDetails({
   formData,
@@ -10,6 +11,9 @@ export default function Step4AdditionalDetails({
   onNext,
   onPrevious,
 }: StepProps) {
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({})
+  const [uploadError, setUploadError] = useState<{ [key: string]: string }>({})
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData({ ...formData, [field]: value })
     if (errors[field]) {
@@ -17,8 +21,51 @@ export default function Step4AdditionalDetails({
     }
   }
 
-  const handleFileChange = (field: string, file: File | null) => {
-    setFormData({ ...formData, [field]: file })
+  const handleFileChange = async (field: string, file: File | null) => {
+    setUploadError((prev) => ({ ...prev, [field]: "" }))
+    if (!file) {
+      setFormData({ ...formData, [field]: null })
+      return
+    }
+    
+    // Validate file type (only PDF, JPG, PNG allowed)
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError((prev) => ({ ...prev, [field]: "Only PDF, JPG, and PNG files are allowed" }))
+      return
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError((prev) => ({ ...prev, [field]: "File size must be less than 5MB" }))
+      return
+    }
+    
+    setUploading((prev) => ({ ...prev, [field]: true }))
+    try {
+      const data = new FormData()
+      data.append("file", file)
+      data.append("folder", "nss-documents")
+      
+      const res = await fetch("/api/upload/cloudinary", {
+        method: "POST",
+        body: data,
+      })
+      
+      const result = await res.json()
+      
+      if (result.success && result.url) {
+        setFormData({ ...formData, [field]: result.url })
+      } else {
+        setUploadError((prev) => ({ ...prev, [field]: result.message || "Upload failed" }))
+      }
+    } catch (e) {
+      console.error(`Upload error for ${field}:`, e)
+      setUploadError((prev) => ({ ...prev, [field]: "Upload failed. Please try again." }))
+    } finally {
+      setUploading((prev) => ({ ...prev, [field]: false }))
+    }
+    
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" })
     }
@@ -34,10 +81,52 @@ export default function Step4AdditionalDetails({
     })
   }
 
+  const openMyBharatPortal = () => {
+    window.open("https://www.mybharat.gov.in/", "_blank")
+  }
+
   const handleNext = () => {
     const stepErrors: any = {}
 
-    // Validation logic can be added here if needed
+    // Validate NSS Enrollment Year
+    if (!formData.nssEnrollmentYear) {
+      stepErrors.nssEnrollmentYear = "NSS Enrollment Year is required"
+    }
+
+    // Validate Special Camp Details if attended
+    if (formData.attendedSpecialCamp === true) {
+      if (!formData.specialCampDetails?.villageName?.trim()) {
+        stepErrors.specialCampVillage = "Village/Urban Slum name is required"
+      }
+      if (!formData.specialCampDetails?.date) {
+        stepErrors.specialCampDate = "Camp date is required"
+      }
+      if (!formData.specialCampDetails?.venue?.trim()) {
+        stepErrors.specialCampVenue = "Camp venue is required"
+      }
+      if (!formData.specialCampProof) {
+        stepErrors.specialCampProof = "Camp proof certificate is required"
+      }
+    }
+
+    // Validate My Bharat Portal Registration
+    if (formData.myBharatPortalRegistered === undefined || formData.myBharatPortalRegistered === null) {
+      stepErrors.myBharatPortalRegistered = "Please select My Bharat Portal registration status"
+    }
+
+    if (formData.myBharatPortalRegistered === true) {
+      if (!formData.myBharatPortalId?.trim()) {
+        stepErrors.myBharatPortalId = "My Bharat Portal ID is required"
+      }
+      if (!formData.myBharatPortalScreenshot) {
+        stepErrors.myBharatPortalScreenshot = "My Bharat Portal screenshot is required"
+      }
+    }
+
+    // Validate ELP Proof if attended
+    if (formData.attendedELP === true && !formData.elpProof) {
+      stepErrors.elpProof = "ELP proof is required"
+    }
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors({ ...errors, ...stepErrors })
@@ -77,13 +166,15 @@ export default function Step4AdditionalDetails({
                 NSS Enrollment Year / एनएसएस नामांकन वर्ष <span className="text-destructive">*</span>
               </label>
               <select
-                className="nss-form-select"
+                className={`nss-form-select ${errors.nssEnrollmentYear ? "border-destructive" : ""}`}
                 value={formData.nssEnrollmentYear}
                 onChange={(e) => handleInputChange("nssEnrollmentYear", e.target.value)}
               >
+                <option value="">Select Enrollment Year / वर्ष चुनें</option>
                 <option value="first-year">First Year / प्रथम वर्ष</option>
                 <option value="second-year">Second Year / द्वितीय वर्ष</option>
               </select>
+              {errors.nssEnrollmentYear && <p className="text-sm text-destructive">{errors.nssEnrollmentYear}</p>}
             </div>
 
             <div className="nss-form-group">
@@ -115,45 +206,60 @@ export default function Step4AdditionalDetails({
 
           {formData.attendedSpecialCamp && (
             <div className="mt-6 p-4 bg-background rounded-lg border border-border">
-              <h4 className="font-medium text-foreground mb-4">Special Camp Details / विशेष शिविर विवर���</h4>
+              <h4 className="font-medium text-foreground mb-4">Special Camp Details / विशेष शिविर विवरण</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="nss-form-group">
-                  <label className="nss-form-label">Village/Urban Slum Name / गाँव/शहरी मलिन बस्ती का नाम</label>
+                  <label className="nss-form-label">
+                    Village/Urban Slum Name / गाँव/शहरी मलिन बस्ती का नाम <span className="text-destructive">*</span>
+                  </label>
                   <input
                     type="text"
-                    className="nss-form-input"
+                    className={`nss-form-input ${errors.specialCampVillage ? "border-destructive" : ""}`}
                     value={formData.specialCampDetails?.villageName || ""}
                     onChange={(e) => handleSpecialCampChange("villageName", e.target.value)}
                     placeholder="Enter village/slum name"
                   />
+                  {errors.specialCampVillage && <p className="text-sm text-destructive">{errors.specialCampVillage}</p>}
                 </div>
                 <div className="nss-form-group">
-                  <label className="nss-form-label">Date / तिथि</label>
+                  <label className="nss-form-label">
+                    Date / तिथि <span className="text-destructive">*</span>
+                  </label>
                   <input
                     type="date"
-                    className="nss-form-input"
+                    className={`nss-form-input ${errors.specialCampDate ? "border-destructive" : ""}`}
                     value={formData.specialCampDetails?.date || ""}
                     onChange={(e) => handleSpecialCampChange("date", e.target.value)}
                   />
+                  {errors.specialCampDate && <p className="text-sm text-destructive">{errors.specialCampDate}</p>}
                 </div>
                 <div className="nss-form-group">
-                  <label className="nss-form-label">Venue / स्थान</label>
+                  <label className="nss-form-label">
+                    Venue / स्थान <span className="text-destructive">*</span>
+                  </label>
                   <input
                     type="text"
-                    className="nss-form-input"
+                    className={`nss-form-input ${errors.specialCampVenue ? "border-destructive" : ""}`}
                     value={formData.specialCampDetails?.venue || ""}
                     onChange={(e) => handleSpecialCampChange("venue", e.target.value)}
                     placeholder="Enter venue"
                   />
+                  {errors.specialCampVenue && <p className="text-sm text-destructive">{errors.specialCampVenue}</p>}
                 </div>
                 <div className="nss-form-group">
-                  <label className="nss-form-label">Proof Certificate / प्रमाण पत्र</label>
+                  <label className="nss-form-label">
+                    Proof Certificate / प्रमाण पत्र <span className="text-destructive">*</span>
+                  </label>
                   <input
                     type="file"
-                    className="nss-form-input"
+                    className={`nss-form-input ${errors.specialCampProof ? "border-destructive" : ""}`}
                     accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleSpecialCampChange("proof", e.target.files?.[0] || null)}
+                    onChange={(e) => handleFileChange("specialCampProof", e.target.files?.[0] || null)}
+                    disabled={uploading.specialCampProof}
                   />
+                  {uploading.specialCampProof && <p className="text-xs text-muted-foreground">Uploading...</p>}
+                  {uploadError.specialCampProof && <p className="text-xs text-destructive">{uploadError.specialCampProof}</p>}
+                  {errors.specialCampProof && <p className="text-sm text-destructive">{errors.specialCampProof}</p>}
                 </div>
               </div>
             </div>
@@ -162,11 +268,15 @@ export default function Step4AdditionalDetails({
 
         {/* My Bharat Portal */}
         <div className="bg-muted/30 rounded-lg p-6 border border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">My Bharat Portal Registration</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            My Bharat Portal Registration <span className="text-destructive">*</span>
+          </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
             <div className="nss-form-group">
-              <label className="nss-form-label">Registered on My Bharat Portal / माई भारत पोर्टल पर पंजीकृत</label>
+              <label className="nss-form-label">
+                Registered on My Bharat Portal / माई भारत पोर्टल पर पंजीकृत <span className="text-destructive">*</span>
+              </label>
               <div className="flex items-center space-x-4">
                 <label className="flex items-center">
                   <input
@@ -189,18 +299,93 @@ export default function Step4AdditionalDetails({
                   No / नहीं
                 </label>
               </div>
+              {errors.myBharatPortalRegistered && <p className="text-sm text-destructive">{errors.myBharatPortalRegistered}</p>}
             </div>
 
-            {formData.myBharatPortalRegistered && (
-              <div className="nss-form-group">
-                <label className="nss-form-label">Screenshot / स्क्रीनशॉट</label>
-                <input
-                  type="file"
-                  className="nss-form-input"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileChange("myBharatPortalScreenshot", e.target.files?.[0] || null)}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Attach screenshot</p>
+            {formData.myBharatPortalRegistered === true && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="nss-form-group">
+                  <label className="nss-form-label">
+                    My Bharat Portal ID / माई भारत पोर्टल आईडी <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={`nss-form-input ${errors.myBharatPortalId ? "border-destructive" : ""}`}
+                    value={formData.myBharatPortalId || ""}
+                    onChange={(e) => handleInputChange("myBharatPortalId", e.target.value)}
+                    placeholder="Enter My Bharat Portal ID"
+                  />
+                  {errors.myBharatPortalId && <p className="text-sm text-destructive">{errors.myBharatPortalId}</p>}
+                </div>
+
+                <div className="nss-form-group">
+                  <label className="nss-form-label">
+                    Screenshot / स्क्रीनशॉट <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    className={`nss-form-input ${errors.myBharatPortalScreenshot ? "border-destructive" : ""}`}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileChange("myBharatPortalScreenshot", e.target.files?.[0] || null)}
+                    disabled={uploading.myBharatPortalScreenshot}
+                  />
+                  {uploading.myBharatPortalScreenshot && <p className="text-xs text-muted-foreground">Uploading...</p>}
+                  {uploadError.myBharatPortalScreenshot && <p className="text-xs text-destructive">{uploadError.myBharatPortalScreenshot}</p>}
+                  {errors.myBharatPortalScreenshot && <p className="text-sm text-destructive">{errors.myBharatPortalScreenshot}</p>}
+                  
+                  {formData.myBharatPortalScreenshot && (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-sm text-green-800 font-medium">Screenshot uploaded successfully!</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Attach screenshot of your My Bharat Portal profile / अपने माई भारत पोर्टल प्रोफाइल का स्क्रीनशॉट संलग्न करें
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {formData.myBharatPortalRegistered === false && (
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-orange-800 font-medium mb-2">Registration Required / पंजीकरण आवश्यक</h4>
+                    <p className="text-sm text-orange-700 mb-3">
+                      You must register on My Bharat Portal to proceed with NSS enrollment. 
+                      <br />
+                      एनएसएस नामांकन के लिए आपको माई भारत पोर्टल पर पंजीकरण करना होगा।
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openMyBharatPortal}
+                    className="nss-button-primary flex items-center whitespace-nowrap"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Register Now / अभी पंजीकरण करें
+                  </button>
+                </div>
+                <div className="mt-3 p-3 bg-white rounded border border-orange-200">
+                  <p className="text-xs text-orange-600">
+                    <strong>Instructions / निर्देश:</strong>
+                    <br />
+                    1. Click "Register Now" to open My Bharat Portal / "अभी पंजीकरण करें" पर क्लिक करके माई भारत पोर्टल खोलें
+                    <br />
+                    2. Complete your registration / अपना पंजीकरण पूरा करें
+                    <br />
+                    3. Take a screenshot of your profile / अपने प्रोफाइल का स्क्रीनशॉट लें
+                    <br />
+                    4. Come back and select "Yes" with your ID and screenshot / वापस आकर "हाँ" का चयन करें और अपनी आईडी व स्क्रीनशॉट अपलोड करें
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -228,7 +413,9 @@ export default function Step4AdditionalDetails({
                   className="nss-form-input"
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={(e) => handleFileChange("specialNSSAchievementsProof", e.target.files?.[0] || null)}
+                  disabled={uploading.specialNSSAchievementsProof}
                 />
+                {uploading.specialNSSAchievementsProof && <p className="text-xs text-muted-foreground">Uploading...</p>}
                 <p className="text-xs text-muted-foreground mt-1">प्रत्येक शिविर का प्रमाण पत्र संलग्न करें</p>
               </div>
             </div>
@@ -264,13 +451,18 @@ export default function Step4AdditionalDetails({
 
               {formData.attendedELP && (
                 <div className="nss-form-group">
-                  <label className="nss-form-label">ELP Proof / ईएलपी प्रमाण</label>
+                  <label className="nss-form-label">
+                    ELP Proof / ईएलपी प्रमाण <span className="text-destructive">*</span>
+                  </label>
                   <input
                     type="file"
-                    className="nss-form-input"
+                    className={`nss-form-input ${errors.elpProof ? "border-destructive" : ""}`}
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => handleFileChange("elpProof", e.target.files?.[0] || null)}
+                    disabled={uploading.elpProof}
                   />
+                  {uploading.elpProof && <p className="text-xs text-muted-foreground">Uploading...</p>}
+                  {errors.elpProof && <p className="text-sm text-destructive">{errors.elpProof}</p>}
                   <p className="text-xs text-muted-foreground mt-1">Attach proof</p>
                 </div>
               )}
@@ -293,7 +485,9 @@ export default function Step4AdditionalDetails({
                   className="nss-form-input"
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={(e) => handleFileChange("otherAchievementsCertificates", e.target.files?.[0] || null)}
+                  disabled={uploading.otherAchievementsCertificates}
                 />
+                {uploading.otherAchievementsCertificates && <p className="text-xs text-muted-foreground">Uploading...</p>}
                 <p className="text-xs text-muted-foreground mt-1">प्रमाणपत्र संलग्न करें</p>
               </div>
             </div>

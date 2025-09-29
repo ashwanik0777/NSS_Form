@@ -1,4 +1,6 @@
 export interface FormData {
+  specialCampProof: any
+  highSchoolCertificate: string | null
   schoolName: string
   // Institution Details
   institutionName: string
@@ -35,6 +37,7 @@ export interface FormData {
     venue: string
   }
   myBharatPortalRegistered: boolean
+  myBharatPortalId: string | null
   myBharatPortalScreenshot?: File | null
 
   // Additional achievements section

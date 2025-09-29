@@ -104,10 +104,10 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           {/* Header with logos */}
           <div className="flex justify-between items-center mb-6">
             <div className="w-16 h-16  rounded flex items-center justify-center">
-              <img src="/1.png" alt="Logo 1" className="w-14 h-14 object-contain" />
+              <img src="/1.png" alt="Logo 1" className="w-16 h-16 object-contain" />
             </div>
-            <div className="w-16 h-16 rounded flex items-center justify-center">
-              <img src="/myBharatLogo.png" alt="My Bharat Logo" className="w-14 h-14 object-contain" />
+            <div className="w-32 h-32 rounded flex items-center justify-center">
+              <img src="/myBharatLogo.png" alt="My Bharat Logo" className="w-28 h-28 object-contain" />
             </div>
             <div className="w-16 h-16  rounded flex items-center justify-center">
               <img src="/nssLogo.png" alt="NSS Logo" className="w-14 h-14 object-contain" />
