@@ -10,7 +10,7 @@ import Step4Preview from "@/components/nss/Step5Preview"
 import Step4AdditionalDetails from "@/components/nss/Step4AdditionalDetails"
 
 const initialFormData: FormData = {
-  institutionName: "",
+  institutionName: "Gautam Buddha University",
   enrollment: "first-year",
   programOfficerName: "",
   unitNo: "",
