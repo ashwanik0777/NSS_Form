@@ -1,4 +1,5 @@
 export interface FormData {
+  schoolName: string
   // Institution Details
   institutionName: string
   formNo?: string // Set on server only
