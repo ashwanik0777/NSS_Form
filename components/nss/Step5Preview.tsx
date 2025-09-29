@@ -209,7 +209,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                 </div>
                 <div className="flex">
                   <span className="w-24 text-sm text-gray-600">School:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px] text-xs">
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                     {formData.schoolName}
                   </div>
                 </div>
