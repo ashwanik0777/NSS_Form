@@ -10,6 +10,8 @@ interface SpecialCampDetails {
 }
 
 interface FormData {
+  schoolName?: string
+  highSchoolCertificate: any
   formNo?: string
   institutionName?: string
   programOfficerName?: string
@@ -188,12 +190,12 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   const page1 = pdfDoc.addPage([595, 842])
   let currentY = 800
 
-  // Top logos - exact same spacing as preview
+  // Top logos
   if (logo1) page1.drawImage(logo1, { x: 55, y: 760, width: 40, height: 40 })
   if (logo2) page1.drawImage(logo2, { x: 277, y: 760, width: 40, height: 40 })
   if (logo3) page1.drawImage(logo3, { x: 500, y: 760, width: 40, height: 40 })
 
-  // Header text - exactly matching preview spacing
+  // Header text
   drawCenteredText(page1, "Gautam Buddha University", 745, 14, { color: rgb(0.1, 0.1, 0.4) })
   drawCenteredText(page1, "National Service Scheme (NSS)", 725, 13, { color: rgb(0.1, 0.1, 0.4)})
   drawCenteredText(page1, "VOLUNTEER REGISTRATION FORM", 705, 16, { color: rgb(0, 0, 0) })
@@ -214,6 +216,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   currentY -= 30
 
   currentY = drawFormField(page1, "Institution Name", formData.institutionName, 55, currentY, 120, 350)
+  currentY = drawFormField(page1, "School Name", formData.schoolName, 55, currentY, 120, 350)
   currentY = drawFormField(page1, "Programme Coordinator", formData.programOfficerName, 55, currentY, 120, 350)
   currentY = drawFormField(page1, "Unit Number", formData.unitNo, 55, currentY, 120, 350)
   currentY = drawFormField(page1, "Enrollment", formatEnrollment(formData.enrollment), 55, currentY, 120, 350)
@@ -223,7 +226,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   drawSectionHeader(page1, "Personal Details", currentY)
   currentY -= 30
 
-  // Photo placement (right side) - exact same position as preview
+  // Photo placement (right side)
   const photoX = 420
   const photoY = currentY - 120
   const photoWidth = 100
@@ -290,7 +293,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
     drawText(page1, "Photo", photoX + 35, photoY + 55, 10, { color: rgb(0.5, 0.5, 0.5) })
   }
 
-  // Personal fields (left side) - exact same spacing as preview
+  // Personal fields (left side)
   currentY = drawFormField(page1, "Name", formData.nameEnglish, 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Father's Name", formData.fatherName, 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Mother's Name", formData.motherName, 55, currentY, 90, 250)
@@ -302,7 +305,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   currentY = drawFormField(page1, "Category", formData.category?.toUpperCase(), 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Institution I-Card No.", formData.institutionalIdCard, 55, currentY, 90, 250)
 
-  // Signature placement (right side, below photo) - exact same position as preview
+  // Signature placement (right side, below photo)
   const signatureX = 420
   const signatureY = photoY - 60
   const signatureWidth = 100
@@ -380,6 +383,16 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   y2 -= 30
   y2 = drawFormField(page2, "High School Roll No.", formData.highSchoolRollNo, 55, y2, 140, 300)
   y2 = drawFormField(page2, "Class/Semester", formData.classSemester, 55, y2, 140, 300)
+  // Add High School Certificate status
+  y2 = drawFormField(
+    page2,
+    "High School Certificate",
+    formData.highSchoolCertificate ? "✓ Uploaded" : "Not Uploaded",
+    55,
+    y2,
+    140,
+    300
+  )
 
   // NSS Enrollment Details Section
   y2 -= 15
@@ -439,33 +452,26 @@ export async function generateNSSApplicationPDF(formData: FormData) {
     { color: rgb(0.2, 0.2, 0.2) }
   )
 
-  // Signature section at bottom - exact same layout as preview
+  // Signature section at bottom
   y2 -= 80
-  
+
   // Volunteer Signature (left)
   const volSignX = 55
   const volSignY = y2
   const volSignWidth = 140
   const volSignHeight = 40
 
+  // Student signature rendering (same as above, always show frame and image/text)
   if (formData.signature) {
     try {
       const signatureBuffer = await processImageForPDF(formData.signature)
-      
       if (signatureBuffer) {
         let signatureImg
         try {
           signatureImg = await pdfDoc.embedPng(signatureBuffer)
         } catch {
-          try {
-            signatureImg = await pdfDoc.embedJpg(signatureBuffer)
-          } catch (err) {
-            console.error("Failed to embed signature on page 2:", err)
-            throw err
-          }
+          signatureImg = await pdfDoc.embedJpg(signatureBuffer)
         }
-        
-        // Signature frame
         page2.drawRectangle({
           x: volSignX,
           y: volSignY,
@@ -474,8 +480,6 @@ export async function generateNSSApplicationPDF(formData: FormData) {
           borderWidth: 1,
           borderColor: rgb(0.6, 0.6, 0.6),
         })
-        
-        // Signature image
         page2.drawImage(signatureImg, { 
           x: volSignX + 2, 
           y: volSignY + 2, 
@@ -484,8 +488,6 @@ export async function generateNSSApplicationPDF(formData: FormData) {
         })
       }
     } catch (err) {
-      console.error("Signature embed error on page 2:", err)
-      // Empty signature frame
       page2.drawRectangle({
         x: volSignX,
         y: volSignY,
@@ -494,9 +496,9 @@ export async function generateNSSApplicationPDF(formData: FormData) {
         borderWidth: 1,
         borderColor: rgb(0.6, 0.6, 0.6),
       })
+      drawText(page2, "Signature", volSignX + 40, volSignY + 15, 11, { color: rgb(0.5, 0.5, 0.5) })
     }
   } else {
-    // Empty signature frame
     page2.drawRectangle({
       x: volSignX,
       y: volSignY,
@@ -505,11 +507,11 @@ export async function generateNSSApplicationPDF(formData: FormData) {
       borderWidth: 1,
       borderColor: rgb(0.6, 0.6, 0.6),
     })
+    drawText(page2, "Signature", volSignX + 40, volSignY + 15, 11, { color: rgb(0.5, 0.5, 0.5) })
   }
-  
   drawText(page2, "Signature of Volunteer", volSignX, volSignY - 15, 11, { color: rgb(0.3, 0.3, 0.3) })
-  
-  // Programme Coordinator Signature (right)
+
+  // Coordinator Signature (right)
   const coordSignX = 360
   const coordSignY = y2
   const coordSignWidth = 140
@@ -523,8 +525,6 @@ export async function generateNSSApplicationPDF(formData: FormData) {
     borderWidth: 1,
     borderColor: rgb(0.6, 0.6, 0.6),
   })
-  
-  // Load coordinator signature
   try {
     const coordinatorSignImg = await pdfDoc.embedPng(loadImage("public/coordinatorSign.png"))
     page2.drawImage(coordinatorSignImg, { 
@@ -534,9 +534,8 @@ export async function generateNSSApplicationPDF(formData: FormData) {
       height: coordSignHeight - 4 
     })
   } catch (err) {
-    console.error("Coordinator signature embed error:", err)
+    drawText(page2, "Signature", coordSignX + 40, coordSignY + 15, 11, { color: rgb(0.5, 0.5, 0.5) })
   }
-  
   drawText(page2, "Signature of Programme Coordinator", coordSignX - 25, coordSignY - 15, 11, { color: rgb(0.3, 0.3, 0.3) })
 
   return await pdfDoc.save()
