@@ -291,6 +291,16 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     submittedAt: {
       type: Date,
     },
+    schoolName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    highSchoolCertificate: {
+      type: String, // This should be a string URL
+      required: false,
+      trim: true,
+    },
   },
   {
     timestamps: true,

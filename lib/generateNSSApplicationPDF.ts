@@ -385,14 +385,14 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   y2 = drawFormField(page2, "Class/Semester", formData.classSemester, 55, y2, 140, 300)
   // Add High School Certificate status
   y2 = drawFormField(
-    page2,
-    "High School Certificate",
-    formData.highSchoolCertificate ? "✓ Uploaded" : "Not Uploaded",
-    55,
-    y2,
-    140,
-    300
-  )
+  page2,
+  "High School Certificate",
+  formData.highSchoolCertificate ? "Uploaded" : "Not Uploaded",
+  55,
+  y2,
+  140,
+  300
+)
 
   // NSS Enrollment Details Section
   y2 -= 15

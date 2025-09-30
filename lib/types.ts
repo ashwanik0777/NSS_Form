@@ -1,7 +1,6 @@
 export interface FormData {
   [x: string]: any
-  highSchoolCertificate: string | null
-  schoolName: string
+
   // Institution Details
   institutionName: string
   formNo?: string // Set on server only
@@ -16,6 +15,7 @@ export interface FormData {
   dateOfBirth: string
   mobileNo: string
   emailId: string
+  schoolName: string
   departmentName: string
   gender: "male" | "female" | "other"
   category: "general" | "obc" | "st" | "sc"
@@ -26,6 +26,7 @@ export interface FormData {
 
   // Educational Details
   highSchoolRollNo: string
+    highSchoolCertificate: string | null
   classSemester: string
 
   // NSS enrollment details
