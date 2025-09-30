@@ -3,6 +3,13 @@
 import { useState, useEffect } from "react"
 
 interface Application {
+  schoolName: string
+  signature: any
+  highSchoolCertificate: any
+  myBharatPortalId: string
+  myBharatPortalScreenshot: any
+  elpProof: any
+  otherAchievementsCertificates: any
   _id: string
   // Institution Details
   institutionName: string
@@ -33,6 +40,7 @@ interface Application {
   nssEnrollmentYear: "first-year" | "second-year"
   attendedSpecialCamp: boolean
   specialCampDetails?: {
+    proof: any
     villageName: string
     date: string
     venue: string
@@ -266,6 +274,10 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                     <p className="text-foreground">{viewingApp.institutionName}</p>
                   </div>
                   <div>
+                    <label className="text-sm font-medium text-muted-foreground">School Name</label>
+                    <p className="text-foreground">{viewingApp.schoolName || "—"}</p>
+                  </div>
+                  <div>
                     <label className="text-sm font-medium text-muted-foreground">Form Number</label>
                     <p className="text-foreground">{viewingApp.formNo}</p>
                   </div>
@@ -293,10 +305,6 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                     <p className="text-foreground">{viewingApp.nameEnglish}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Name (Hindi)</label>
-                    <p className="text-foreground">{viewingApp.nameHindi}</p>
-                  </div>
-                  <div>
                     <label className="text-sm font-medium text-muted-foreground">Father's Name</label>
                     <p className="text-foreground">{viewingApp.fatherName}</p>
                   </div>
@@ -316,6 +324,44 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                     <label className="text-sm font-medium text-muted-foreground">Email ID</label>
                     <p className="text-foreground">{viewingApp.emailId}</p>
                   </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Department</label>
+                    <p className="text-foreground">{viewingApp.departmentName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Gender</label>
+                    <p className="text-foreground">{viewingApp.gender}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Category</label>
+                    <p className="text-foreground">{viewingApp.category}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Institution I-Card No.</label>
+                    <p className="text-foreground">{viewingApp.institutionalIdCard}</p>
+                  </div>
+                </div>
+                <div className="flex gap-8 mt-6">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Student Photo</label>
+                    <div className="w-32 h-40 border border-border rounded bg-muted flex items-center justify-center overflow-hidden">
+                      {viewingApp.photo ? (
+                        <img src={viewingApp.photo} alt="Student Photo" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No Photo</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Student Signature</label>
+                    <div className="w-32 h-16 border border-border rounded bg-muted flex items-center justify-center overflow-hidden">
+                      {viewingApp.signature ? (
+                        <img src={viewingApp.signature} alt="Student Signature" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No Signature</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -330,6 +376,23 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Class/Semester</label>
                     <p className="text-foreground">{viewingApp.classSemester}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">High School Certificate/Marksheet</label>
+                    <div>
+                      {viewingApp.highSchoolCertificate ? (
+                        <a
+                          href={viewingApp.highSchoolCertificate}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+                        >
+                          View Document
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not Uploaded</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -360,12 +423,50 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                         <label className="text-sm font-medium text-muted-foreground">Camp Venue</label>
                         <p className="text-foreground">{viewingApp.specialCampDetails.venue}</p>
                       </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Camp Proof Certificate</label>
+                        {viewingApp.specialCampDetails.proof ? (
+                          <a
+                            href={viewingApp.specialCampDetails.proof}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+                          >
+                            View Certificate
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Not Uploaded</span>
+                        )}
+                      </div>
                     </>
                   )}
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">My Bharat Portal Registration</label>
                     <p className="text-foreground">{viewingApp.myBharatPortalRegistered ? "Yes / हाँ" : "No / नहीं"}</p>
                   </div>
+                  {viewingApp.myBharatPortalRegistered && (
+                    <>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">My Bharat Portal ID</label>
+                        <p className="text-foreground">{viewingApp.myBharatPortalId || "—"}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">My Bharat Portal Screenshot</label>
+                        {viewingApp.myBharatPortalScreenshot ? (
+                          <a
+                            href={viewingApp.myBharatPortalScreenshot}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+                          >
+                            View Screenshot
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Not Uploaded</span>
+                        )}
+                      </div>
+                    </>
+                  )}
                   {viewingApp.specialNSSAchievements && (
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-muted-foreground">Special NSS Achievements</label>
@@ -376,10 +477,36 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                     <label className="text-sm font-medium text-muted-foreground">Attended ELP (Experiential Learning Programme)</label>
                     <p className="text-foreground">{viewingApp.attendedELP ? "Yes / हाँ" : "No / नहीं"}</p>
                   </div>
+                  {viewingApp.elpProof && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">ELP Proof</label>
+                      <a
+                        href={viewingApp.elpProof}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+                      >
+                        View ELP Proof
+                      </a>
+                    </div>
+                  )}
                   {viewingApp.otherAchievements && (
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-muted-foreground">Other Achievements</label>
                       <p className="text-foreground">{viewingApp.otherAchievements}</p>
+                    </div>
+                  )}
+                  {viewingApp.otherAchievementsCertificates && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Other Achievement Certificates</label>
+                      <a
+                        href={viewingApp.otherAchievementsCertificates}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+                      >
+                        View Certificate
+                      </a>
                     </div>
                   )}
                 </div>
