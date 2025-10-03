@@ -79,9 +79,6 @@ export default function Step3EducationalDetails({
     if (!formData.highSchoolRollNo.trim()) {
       stepErrors.highSchoolRollNo = "High school roll number is required"
     }
-    if (!formData.classSemester.trim()) {
-      stepErrors.classSemester = "Class/Semester is required"
-    }
     if (!formData.highSchoolCertificate) {
       stepErrors.highSchoolCertificate = "High school certificate/marksheet is required"
     }
@@ -127,25 +124,6 @@ export default function Step3EducationalDetails({
             placeholder="Enter high school roll number"
           />
           {errors.highSchoolRollNo && <p className="text-sm text-destructive">{errors.highSchoolRollNo}</p>}
-        </div>
-
-        <div className="nss-form-group">
-          <label className="nss-form-label">
-            Class/Semester / कक्षा/सेमेस्टर <span className="text-destructive">*</span>
-          </label>
-          <select
-            className={`nss-form-select ${errors.classSemester ? "border-destructive" : ""}`}
-            value={formData.classSemester}
-            onChange={(e) => handleInputChange("classSemester", e.target.value)}
-          >
-            <option value="">Select Class/Semester</option>
-            <option value="1st Year / 1st & 2nd Semester">1st Year / 1st & 2nd Semester</option>
-            <option value="2nd Year / 3rd & 4th Semester">2nd Year / 3rd & 4th Semester</option>
-            <option value="3rd Year / 5th & 6th Semester">3rd Year / 5th & 6th Semester</option>
-            <option value="4th Year / 7th & 8th Semester">4th Year / 7th & 8th Semester</option>
-            <option value="5th Year / 9th & 10th Semester">5th Year / 9th & 10th Semester</option>
-          </select>
-          {errors.classSemester && <p className="text-sm text-destructive">{errors.classSemester}</p>}
         </div>
 
         <div className="nss-form-group md:col-span-2">
