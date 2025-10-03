@@ -196,6 +196,18 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   </div>
                 </div>
                 <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Gender:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.gender === "male" ? "Male" : formData.gender === "female" ? "Female" : "Other"}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Category:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.category?.toUpperCase()}
+                  </div>
+                </div>
+                <div className="flex">
                   <span className="w-24 text-sm text-gray-600">Mobile Number:</span>
                   <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                     {formData.mobileNo}
@@ -219,24 +231,55 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                     {formData.departmentName}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Gender:</span>
+                 <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Course Name:</span>
                   <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                    {formData.gender === "male" ? "Male" : formData.gender === "female" ? "Female" : "Other"}
+                    {formData.courseName}
                   </div>
                 </div>
                 <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Category:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
-                    {formData.category?.toUpperCase()}
-                  </div>
+                <span className="w-24 text-sm text-gray-600">Class/
+                  Semester:
+                </span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  {formData.classSemester}
                 </div>
+              </div>
                 <div className="flex">
                   <span className="w-24 text-sm text-gray-600">Institution I-Card:</span>
                   <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                     {formData.institutionalIdCard}
                   </div>
                 </div>
+               
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Blood Group:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.bloodGroup}
+                  </div>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-sm text-gray-600">Hostler/Day Scholar:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                    {formData.addressType === "hostler" ? "Hostler" : formData.addressType === "dayscholar" ? "Day Scholar" : ""}
+                  </div>
+                </div>
+                {formData.addressType === "hostler" && (
+                  <div className="flex">
+                    <span className="w-24 text-sm text-gray-600">Hostel Address:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formData.hostelAddress}
+                    </div>
+                  </div>
+                )}
+                {formData.addressType === "dayscholar" && (
+                  <div className="flex">
+                    <span className="w-24 text-sm text-gray-600">Home Address:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                      {formData.homeAddress}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right side - Photo and Signature */}
@@ -290,12 +333,12 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   {formData.highSchoolRollNo}
                 </div>
               </div>
-              <div className="flex">
+              {/* <div className="flex">
                 <span className="w-40 text-sm text-gray-600">Class/Semester:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
                   {formData.classSemester}
                 </div>
-              </div>
+              </div> */}
               <div className="flex">
                 <span className="w-40 text-sm text-gray-600">High School Certificate:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
