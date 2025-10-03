@@ -281,10 +281,10 @@ export default function Step2PersonalDetails({
 		if (!formData.addressType) {
 			stepErrors.addressType = "Please select Hostler or Day Scholar"
 		}
-		if (formData.addressType === "hostler" && !formData.hostelAddress.trim()) {
+		if (formData.addressType === "hostler" && !(formData.hostelAddress?.trim() ?? "")) {
 			stepErrors.hostelAddress = "Hostel address is required"
 		}
-		if (formData.addressType === "dayscholar" && !formData.homeAddress.trim()) {
+		if (formData.addressType === "dayscholar" && !(formData.homeAddress?.trim() ?? "")) {
 			stepErrors.homeAddress = "Home address is required"
 		}
 		if (!formData.classSemester.trim()) {

@@ -17,17 +17,21 @@ export interface FormData {
   emailId: string
   schoolName: string
   departmentName: string
-  gender: "male" | "female" | "other"
-  category: "general" | "obc" | "st" | "sc"
+  courseName: string
+  classSemester: string
   institutionalIdCard: string
-  institutionalIdProof?: File | null
+  gender: string
+  category: string
+  bloodGroup: string
   photo: string | null
   signature: string | null
+  addressType: "hostler" | "dayscholar" | ""
+  hostelAddress?: string
+  homeAddress?: string
 
   // Educational Details
   highSchoolRollNo: string
     highSchoolCertificate: string | null
-  classSemester: string
 
   // NSS enrollment details
   nssEnrollmentYear: "first-year" | "second-year"

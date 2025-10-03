@@ -562,7 +562,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               </div>
               
               <div className="text-center">
-                <div className="w-36 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
+                <div className="w-36 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center ml-5 mb-2">
                   <img src="/coordinatorSign.png" alt="Coordinator Signature" className="w-full h-full object-contain" />
                 </div>
                 <p className="text-sm text-gray-600">Signature of Programme Officer</p>
