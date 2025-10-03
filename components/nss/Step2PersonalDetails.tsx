@@ -1,7 +1,7 @@
 "use client"
 
 import type { StepProps } from "@/lib/types"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 // GBU Schools and their departments
 const schoolDepartmentData = [
@@ -144,6 +144,14 @@ export default function Step2PersonalDetails({
 		}
 	}
 
+	// Persist email verification status in localStorage
+	useEffect(() => {
+		const verifiedEmail = localStorage.getItem("nss_verified_email")
+		if (verifiedEmail && verifiedEmail === formData.emailId) {
+			setIsEmailVerified(true)
+		}
+	}, [formData.emailId])
+
 	const verifyEmailCode = async () => {
 		if (!verificationCode.trim()) {
 			alert("Please enter the verification code")
@@ -167,6 +175,7 @@ export default function Step2PersonalDetails({
 
 			if (result.success) {
 				setIsEmailVerified(true)
+				localStorage.setItem("nss_verified_email", formData.emailId)
 				alert("Email verified successfully!")
 			} else {
 				alert(result.message || "Invalid verification code")
@@ -268,6 +277,24 @@ export default function Step2PersonalDetails({
 		}
 		if (!formData.signature) {
 			stepErrors.signature = "Student signature is required"
+		}
+		if (!formData.addressType) {
+			stepErrors.addressType = "Please select Hostler or Day Scholar"
+		}
+		if (formData.addressType === "hostler" && !formData.hostelAddress.trim()) {
+			stepErrors.hostelAddress = "Hostel address is required"
+		}
+		if (formData.addressType === "dayscholar" && !formData.homeAddress.trim()) {
+			stepErrors.homeAddress = "Home address is required"
+		}
+		if (!formData.classSemester.trim()) {
+			stepErrors.classSemester = "Class/Semester is required"
+		}
+		if (!formData.bloodGroup) {
+			stepErrors.bloodGroup = "Blood group is required"
+		}
+		if (!formData.courseName.trim()) {
+			stepErrors.courseName = "Course name is required"
 		}
 
 		if (Object.keys(stepErrors).length > 0) {
@@ -460,9 +487,7 @@ export default function Step2PersonalDetails({
 					{errors.dateOfBirth && (
 						<p className="text-sm text-destructive">{errors.dateOfBirth}</p>
 					)}
-					<p className="text-xs text-muted-foreground mt-1">
-						Please attach Aadhaar Card / आधार कार्ड संलग्न करें
-					</p>
+					
 				</div>
 
 				<div className="nss-form-group">
@@ -611,19 +636,66 @@ export default function Step2PersonalDetails({
 					)}
 				</div>
 
+				{/* Course Name and Class/Semester side by side */}
 				<div className="nss-form-group">
 					<label className="nss-form-label">
-						Gender / लिंग{" "}
-						<span className="text-destructive">*</span>
+						Course Name / कोर्स का नाम <span className="text-destructive">*</span>
+					</label>
+					<input
+						type="text"
+						className={`nss-form-input ${errors.courseName ? "border-destructive" : ""}`}
+						value={formData.courseName}
+						onChange={(e) => handleInputChange("courseName", e.target.value)}
+						placeholder="Enter your course name"
+					/>
+					{errors.courseName && <p className="text-sm text-destructive">{errors.courseName}</p>}
+				</div>
+				<div className="nss-form-group">
+					<label className="nss-form-label">
+						Class/Semester / कक्षा/सेमेस्टर <span className="text-destructive">*</span>
 					</label>
 					<select
-						className={`nss-form-select ${
-							errors.gender ? "border-destructive" : ""
-						}`}
+						className={`nss-form-select ${errors.classSemester ? "border-destructive" : ""}`}
+						value={formData.classSemester}
+						onChange={(e) => handleInputChange("classSemester", e.target.value)}
+					>
+						<option value="">Select Class/Semester</option>
+						<option value="1st Year / 1st & 2nd Semester">1st Year / 1st & 2nd Semester</option>
+						<option value="2nd Year / 3rd & 4th Semester">2nd Year / 3rd & 4th Semester</option>
+						<option value="3rd Year / 5th & 6th Semester">3rd Year / 5th & 6th Semester</option>
+						<option value="4th Year / 7th & 8th Semester">4th Year / 7th & 8th Semester</option>
+						<option value="5th Year / 9th & 10th Semester">5th Year / 9th & 10th Semester</option>
+					</select>
+					{errors.classSemester && <p className="text-sm text-destructive">{errors.classSemester}</p>}
+				</div>
+
+				{/* Institutional I-Card Number */}
+				<div className="nss-form-group">
+					<label className="nss-form-label">
+						Institutional I-Card Number / संस्थागत आई-कार्ड नंबर{" "}
+						<span className="text-destructive">*</span>
+					</label>
+					<input
+						type="text"
+						className={`nss-form-input ${errors.institutionalIdCard ? "border-destructive" : ""}`}
+						value={formData.institutionalIdCard}
+						onChange={(e) => handleInputChange("institutionalIdCard", e.target.value)}
+						placeholder="Enter Institutional I-Card Number"
+					/>
+					{errors.institutionalIdCard && <p className="text-sm text-destructive">{errors.institutionalIdCard}</p>}
+				</div>
+
+				{/* Gender */}
+				<div className="nss-form-group">
+					<label className="nss-form-label">
+						Gender / लिंग <span className="text-destructive">*</span>
+					</label>
+					<select
+						className={`nss-form-select ${errors.gender ? "border-destructive" : ""}`}
 						value={formData.gender}
 						onChange={(e) => handleInputChange("gender", e.target.value)}
 					>
-						<option value="">Select Gender / लिंग चुनें</option>
+						<option value="">Select Gender</option>
 						<option value="male">Male / पुरुष</option>
 						<option value="female">Female / महिला</option>
 						<option value="other">Other / अन्य</option>
@@ -631,43 +703,79 @@ export default function Step2PersonalDetails({
 					{errors.gender && <p className="text-sm text-destructive">{errors.gender}</p>}
 				</div>
 
+				{/* Blood Group Dropdown */}
 				<div className="nss-form-group">
 					<label className="nss-form-label">
-						Category / वर्ग{" "}
-						<span className="text-destructive">*</span>
+						Blood Group / रक्त समूह <span className="text-destructive">*</span>
 					</label>
 					<select
-						className={`nss-form-select ${
-							errors.category ? "border-destructive" : ""
-						}`}
-						value={formData.category}
-						onChange={(e) => handleInputChange("category", e.target.value)}
+						className={`nss-form-select ${errors.bloodGroup ? "border-destructive" : ""}`}
+						value={formData.bloodGroup}
+						onChange={(e) => handleInputChange("bloodGroup", e.target.value)}
 					>
-						<option value="">Select Category / वर्ग चुनें</option>
-						<option value="general">General / सामान्य</option>
-						<option value="obc">OBC / अन्य पिछड़ा वर्ग</option>
-						<option value="st">ST / अनुसूचित जनजाति</option>
-						<option value="sc">SC / अनुसूचित जाति</option>
+						<option value="">Select Blood Group</option>
+						<option value="A+">A+</option>
+						<option value="A-">A-</option>
+						<option value="B+">B+</option>
+						<option value="B-">B-</option>
+						<option value="O+">O+</option>
+						<option value="O-">O-</option>
+						<option value="AB+">AB+</option>
+						<option value="AB-">AB-</option>
 					</select>
-					{errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
+					{errors.bloodGroup && <p className="text-sm text-destructive">{errors.bloodGroup}</p>}
 				</div>
 
-				<div className="nss-form-group">
+				{/* Address Section */}
+				<div className="nss-form-group md:col-span-2">
 					<label className="nss-form-label">
-						Institutional I-Card Number / संस्थान का पहचान पत्र संख्या{" "}
+						Are you a Hostler or Day Scholar? / क्या आप होस्टलर हैं या डे स्कॉलर?
 						<span className="text-destructive">*</span>
 					</label>
-					<input
-						type="text"
-						className={`nss-form-input ${
-							errors.institutionalIdCard ? "border-destructive" : ""
-						}`}
-						value={formData.institutionalIdCard}
-						onChange={(e) => handleInputChange("institutionalIdCard", e.target.value)}
-						placeholder="Enter I-Card number"
-					/>
-					{errors.institutionalIdCard && (
-						<p className="text-sm text-destructive">{errors.institutionalIdCard}</p>
+					<div className="flex gap-4 mt-2">
+						<label>
+							<input
+								type="radio"
+								name="addressType"
+								value="hostler"
+								checked={formData.addressType === "hostler"}
+								onChange={() => handleInputChange("addressType", "hostler")}
+							/> Hostler / होस्टलर
+						</label>
+						<label>
+							<input
+								type="radio"
+								name="addressType"
+								value="dayscholar"
+								checked={formData.addressType === "dayscholar"}
+								onChange={() => handleInputChange("addressType", "dayscholar")}
+							/> Day Scholar / डे स्कॉलर
+						</label>
+					</div>
+					{errors.addressType && <p className="text-sm text-destructive">{errors.addressType}</p>}
+					{formData.addressType === "hostler" && (
+						<div className="mt-2">
+							<input
+								type="text"
+								className={`nss-form-input ${errors.hostelAddress ? "border-destructive" : ""}`}
+								value={formData.hostelAddress}
+								onChange={(e) => handleInputChange("hostelAddress", e.target.value)}
+								placeholder="Enter hostel address"
+							/>
+							{errors.hostelAddress && <p className="text-sm text-destructive">{errors.hostelAddress}</p>}
+						</div>
+					)}
+					{formData.addressType === "dayscholar" && (
+						<div className="mt-2">
+							<input
+								type="text"
+								className={`nss-form-input ${errors.homeAddress ? "border-destructive" : ""}`}
+								value={formData.homeAddress}
+								onChange={(e) => handleInputChange("homeAddress", e.target.value)}
+								placeholder="Enter home address"
+							/>
+							{errors.homeAddress && <p className="text-sm text-destructive">{errors.homeAddress}</p>}
+						</div>
 					)}
 				</div>
 			</div>
