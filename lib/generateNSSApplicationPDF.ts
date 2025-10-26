@@ -46,14 +46,8 @@ interface FormData {
   addressType?: "hostler" | "dayscholar" | string
   hostelAddress?: string
   homeAddress?: string
-  permanentAddress?: string
-  correspondenceAddress?: string
-  emergencyPerson?: string
-  emergencyRelation?: string
-  emergencyContact?: string
 }
 
-// Simple helpers
 function loadLocalFile(relPath: string) {
   return fs.readFileSync(path.join(process.cwd(), relPath))
 }
@@ -128,7 +122,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   let y = 800
 
   if (logo1) page1.drawImage(logo1, { x: 55, y: 760, width: 40, height: 40 })
-  if (logo2) page1.drawImage(logo2, { x: 277, y: 760, width: 40, height: 40 })
+  if (logo2) page1.drawImage(logo2, { x: 277, y: 760, width: 48, height: 48 })
   if (logo3) page1.drawImage(logo3, { x: 500, y: 760, width: 40, height: 40 })
 
   page1.drawText("Gautam Buddha University", { x: 170, y: 745, size: 14, color: rgb(0.08, 0.08, 0.2) })
@@ -265,15 +259,6 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   y2 = drawField(page2, "Address Type", addrTypeText, 55, y2, 120, 420)
   if (formData.addressType === "hostler") y2 = drawField(page2, "Hostel Address", formData.hostelAddress, 55, y2, 120, 420)
   if (formData.addressType === "dayscholar") y2 = drawField(page2, "Home Address", formData.homeAddress, 55, y2, 120, 420)
-  y2 = drawField(page2, "Permanent Add.", formData.permanentAddress, 55, y2, 120, 420)
-  y2 = drawField(page2, "Correspondence Add.", formData.correspondenceAddress, 55, y2, 120, 420)
-
-  y2 -= 6
-  drawHeaderLine(page2, "Emergency Contact", y2)
-  y2 -= 28
-  y2 = drawField(page2, "Contact Person", formData.emergencyPerson, 55, y2, 120, 300)
-  y2 = drawField(page2, "Relation", formData.emergencyRelation, 55, y2, 120, 300)
-  y2 = drawField(page2, "Contact Number", formData.emergencyContact, 55, y2, 120, 300)
 
   y2 -= 20
   drawHeaderLine(page2, "Self Declaration", y2)
