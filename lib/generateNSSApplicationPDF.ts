@@ -295,14 +295,14 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   }
   page2.drawText("Signature of Volunteer", { x: volX, y: volY - 15, size: 10, color: rgb(0.3, 0.3, 0.3) })
 
-  const coordX = 360, coordY = volY, coordW = 140, coordH = 40
+  const coordX = 380, coordY = volY, coordW = 140, coordH = 40
   page2.drawRectangle({ x: coordX, y: coordY, width: coordW, height: coordH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
   try {
     const coordBuf = loadLocalFile("public/coordinatorSign.png")
     const coordImg = await pdfDoc.embedPng(coordBuf)
     page2.drawImage(coordImg, { x: coordX + 2, y: coordY + 2, width: coordW - 4, height: coordH - 4 })
   } catch {}
-  page2.drawText("Signature of Programme Coordinator", { x: coordX - 25, y: coordY - 15, size: 10, color: rgb(0.3, 0.3, 0.3) })
+  page2.drawText("Signature of Programme Coordinator", { x: coordX - 12, y: coordY - 15, size: 10, color: rgb(0.3, 0.3, 0.3) })
 
   return pdfDoc.save()
 }
