@@ -122,7 +122,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   let y = 800
 
   if (logo1) page1.drawImage(logo1, { x: 55, y: 760, width: 40, height: 40 })
-  if (logo2) page1.drawImage(logo2, { x: 277, y: 760, width: 48, height: 48 })
+  if (logo2) page1.drawImage(logo2, { x: 277, y: 760, width: 56, height: 48 })
   if (logo3) page1.drawImage(logo3, { x: 500, y: 760, width: 40, height: 40 })
 
   page1.drawText("Gautam Buddha University", { x: 170, y: 745, size: 14, color: rgb(0.08, 0.08, 0.2) })
