@@ -125,9 +125,9 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   if (logo2) page1.drawImage(logo2, { x: 277, y: 760, width: 56, height: 48 })
   if (logo3) page1.drawImage(logo3, { x: 500, y: 760, width: 40, height: 40 })
 
-  page1.drawText("Gautam Buddha University", { x: 170, y: 745, size: 14, color: rgb(0.08, 0.08, 0.2) })
-  page1.drawText("National Service Scheme (NSS)", { x: 170, y: 726, size: 12, color: rgb(0.08, 0.08, 0.2) })
-  page1.drawText("VOLUNTEER REGISTRATION FORM", { x: 170, y: 705, size: 14, color: rgb(0, 0, 0) })
+  page1.drawText("Gautam Buddha University", { x: 160, y: 740, size: 24, color: rgb(0.08, 0.08, 0.2) })
+  page1.drawText("National Service Scheme (NSS)", { x: 170, y: 717, size: 18, color: rgb(0.08, 0.08, 0.2) })
+  page1.drawText("VOLUNTEER REGISTRATION FORM", { x: 185, y: 696, size: 12, color: rgb(0, 0, 0) })
   page1.drawText(`Academic Year: 2025-26 | Form No: ${formData.formNo || "N/A"}`, { x: 55, y: 680, size: 10, color: rgb(0.35, 0.35, 0.35) })
 
   // Institution details
