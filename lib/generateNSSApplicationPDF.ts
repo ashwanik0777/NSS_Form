@@ -44,9 +44,9 @@ interface FormData {
   otherAchievementsCertificates?: Buffer
   permanentAddress?: string
   correspondenceAddress?: string
-  // emergencyPerson?: string
-  // emergencyRelation?: string
-  // emergencyContact?: string
+  emergencyPerson?: string
+  emergencyRelation?: string
+  emergencyContact?: string
 
   // New/updated fields from Step2/Step3
   courseName?: string
