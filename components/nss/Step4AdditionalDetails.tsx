@@ -320,7 +320,7 @@ export default function Step4AdditionalDetails({
 
                 <div className="nss-form-group">
                   <label className="nss-form-label">
-                    Screenshot / स्क्रीनशॉट <span className="text-destructive">*</span>
+                    Certificate / प्रमाणपत्र <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="file"
@@ -339,13 +339,13 @@ export default function Step4AdditionalDetails({
                         <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="text-sm text-green-800 font-medium">Screenshot uploaded successfully!</span>
+                        <span className="text-sm text-green-800 font-medium">Certificate uploaded successfully!</span>
                       </div>
                     </div>
                   )}
                   
                   <p className="text-xs text-muted-foreground mt-1">
-                    Attach screenshot of your My Bharat Portal profile / अपने माई भारत पोर्टल प्रोफाइल का स्क्रीनशॉट संलग्न करें
+                    Attach certificate of your My Bharat Portal profile / अपने माई भारत पोर्टल प्रोफाइल का प्रमाणपत्र संलग्न करें
                   </p>
                 </div>
               </div>

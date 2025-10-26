@@ -44,9 +44,17 @@ interface FormData {
   otherAchievementsCertificates?: Buffer
   permanentAddress?: string
   correspondenceAddress?: string
-  emergencyPerson?: string
-  emergencyRelation?: string
-  emergencyContact?: string
+  // emergencyPerson?: string
+  // emergencyRelation?: string
+  // emergencyContact?: string
+
+  // New/updated fields from Step2/Step3
+  courseName?: string
+  bloodGroup?: string
+  addressType?: "hostler" | "dayscholar" | string
+  hostelAddress?: string
+  homeAddress?: string
+  // keep existing fields in use (do not remove)
 }
 
 // Helper functions
@@ -293,7 +301,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
     drawText(page1, "Photo", photoX + 35, photoY + 55, 10, { color: rgb(0.5, 0.5, 0.5) })
   }
 
-  // Personal fields (left side)
+  // Personal fields (left side) - include new fields to match preview
   currentY = drawFormField(page1, "Name", formData.nameEnglish, 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Father's Name", formData.fatherName, 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Mother's Name", formData.motherName, 55, currentY, 90, 250)
@@ -301,6 +309,12 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   currentY = drawFormField(page1, "Mobile Number", formData.mobileNo, 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Email ID", formData.emailId, 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Department", formData.departmentName, 55, currentY, 90, 250)
+
+  // New fields: Course Name and Class/Semester and Blood Group
+  currentY = drawFormField(page1, "Course Name", formData.courseName, 55, currentY, 90, 250)
+  currentY = drawFormField(page1, "Class/Semester", formData.classSemester, 55, currentY, 90, 250)
+  currentY = drawFormField(page1, "Blood Group", formData.bloodGroup, 55, currentY, 90, 250)
+
   currentY = drawFormField(page1, "Gender", formatGender(formData.gender), 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Category", formData.category?.toUpperCase(), 55, currentY, 90, 250)
   currentY = drawFormField(page1, "Institution I-Card No.", formData.institutionalIdCard, 55, currentY, 90, 250)
@@ -385,14 +399,14 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   y2 = drawFormField(page2, "Class/Semester", formData.classSemester, 55, y2, 140, 300)
   // Add High School Certificate status
   y2 = drawFormField(
-  page2,
-  "High School Certificate",
-  formData.highSchoolCertificate ? "Uploaded" : "Not Uploaded",
-  55,
-  y2,
-  140,
-  300
-)
+    page2,
+    "High School Certificate",
+    formData.highSchoolCertificate ? "Uploaded" : "Not Uploaded",
+    55,
+    y2,
+    140,
+    300
+  )
 
   // NSS Enrollment Details Section
   y2 -= 15
@@ -424,10 +438,17 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   y2 = drawFormField(page2, "Attended ELP", formData.attendedELP ? "Yes" : "No", 55, y2, 120, 350)
   y2 = drawFormField(page2, "Other Achievements", formData.otherAchievements, 55, y2, 120, 350)
 
-  // Address Details Section
+  // Address Details Section - include addressType and conditional hostel/home address
   y2 -= 15
   drawSectionHeader(page2, "Address Details", y2)
   y2 -= 30
+  y2 = drawFormField(page2, "Address Type", formData.addressType ? (formData.addressType === "hostler" ? "Hostler" : formData.addressType === "dayscholar" ? "Day Scholar" : formData.addressType) : "", 55, y2, 120, 400)
+  if (formData.addressType === "hostler") {
+    y2 = drawFormField(page2, "Hostel Address", formData.hostelAddress, 55, y2, 120, 400)
+  } else if (formData.addressType === "dayscholar") {
+    y2 = drawFormField(page2, "Home Address", formData.homeAddress, 55, y2, 120, 400)
+  }
+  // keep permanent and correspondence as well (if present)
   y2 = drawFormField(page2, "Permanent Add.", formData.permanentAddress, 55, y2, 120, 400)
   y2 = drawFormField(page2, "Correspondence Add.", formData.correspondenceAddress, 55, y2, 120, 400)
 
