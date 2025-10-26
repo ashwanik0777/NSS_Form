@@ -156,22 +156,33 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   const sigY = photoY - sigH - 18
 
   // draw photo frame first (so left fields can be aware of reserved space)
-  page1.drawRectangle({ x: photoX, y: photoY, width: photoW, height: photoH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
+  // page1.drawRectangle({ x: photoX, y: photoY, width: photoW, height: photoH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
+  
+  const pageWidth = (page1.getWidth && typeof page1.getWidth === "function") ? page1.getWidth() : 595
+  const shiftFromRight = 20 + 12 
+  const newPhotoX = pageWidth - shiftFromRight - photoW
+
+  // erase the earlier frame (draw a white filled rectangle over it) so it appears moved
+  page1.drawRectangle({ x: photoX, y: photoY, width: photoW, height: photoH, color: rgb(1, 1, 1), borderWidth: 0 })
+
+  // draw frame at new position
+  page1.drawRectangle({ x: newPhotoX, y: photoY, width: photoW, height: photoH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
+
   if (formData.photo) {
     try {
       const buf = await imageToBuffer(formData.photo)
       if (buf) {
         let img
         try { img = await pdfDoc.embedPng(buf) } catch { img = await pdfDoc.embedJpg(buf) }
-        page1.drawImage(img, { x: photoX + 2, y: photoY + 2, width: photoW - 4, height: photoH - 4 })
+        page1.drawImage(img, { x: newPhotoX + 2, y: photoY + 2, width: photoW - 4, height: photoH - 4 })
       } else {
-        page1.drawText("Photo", { x: photoX + 35, y: photoY + 55, size: 10, color: rgb(0.5, 0.5, 0.5) })
+        page1.drawText("Photo", { x: newPhotoX + (photoW / 2) - 10, y: photoY + (photoH / 2) - 5, size: 10, color: rgb(0.5, 0.5, 0.5) })
       }
     } catch (e) {
-      page1.drawText("Photo", { x: photoX + 35, y: photoY + 55, size: 10, color: rgb(0.5, 0.5, 0.5) })
+      page1.drawText("Photo", { x: newPhotoX + (photoW / 2) - 10, y: photoY + (photoH / 2) - 5, size: 10, color: rgb(0.5, 0.5, 0.5) })
     }
   } else {
-    page1.drawText("Photo", { x: photoX + 35, y: photoY + 55, size: 10, color: rgb(0.5, 0.5, 0.5) })
+    page1.drawText("Photo", { x: newPhotoX + (photoW / 2) - 10, y: photoY + (photoH / 2) - 5, size: 10, color: rgb(0.5, 0.5, 0.5) })
   }
 
   // Now draw left column fields. After each field y decreases.
@@ -196,23 +207,26 @@ export async function generateNSSApplicationPDF(formData: FormData) {
     y = minYForLeftColumn
   }
 
+  const shiftRight = 42
+  const sigXShifted = sigX + shiftRight
+
   // Draw signature box (right column below photo) — will not overlap left column now
-  page1.drawRectangle({ x: sigX, y: sigY, width: sigW, height: sigH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
+  page1.drawRectangle({ x: sigXShifted, y: sigY, width: sigW, height: sigH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
   if (formData.signature) {
     try {
       const buf = await imageToBuffer(formData.signature)
       if (buf) {
         let sImg
         try { sImg = await pdfDoc.embedPng(buf) } catch { sImg = await pdfDoc.embedJpg(buf) }
-        page1.drawImage(sImg, { x: sigX + 2, y: sigY + 2, width: sigW - 4, height: sigH - 4 })
+        page1.drawImage(sImg, { x: sigXShifted + 2, y: sigY + 2, width: sigW - 4, height: sigH - 4 })
       } else {
-        page1.drawText("Student Signature", { x: sigX + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
+        page1.drawText("Student Signature", { x: sigXShifted + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
       }
     } catch (e) {
-      page1.drawText("Student Signature", { x: sigX + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
+      page1.drawText("Student Signature", { x: sigXShifted + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
     }
   } else {
-    page1.drawText("Student Signature", { x: sigX + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
+    page1.drawText("Student Signature", { x: sigXShifted + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
   }
 
   // PAGE 2
