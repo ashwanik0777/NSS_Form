@@ -153,28 +153,28 @@ export default function HomePage() {
               <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Users className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">50,000+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
               <div className="text-muted-foreground">Active Volunteers</div>
             </div>
             <div className="text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Globe className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">1,200+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
               <div className="text-muted-foreground">Projects Completed</div>
             </div>
             <div className="text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-accent to-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Award className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">500+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
               <div className="text-muted-foreground">Institutions</div>
             </div>
             <div className="text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-primary via-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">25+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
               <div className="text-muted-foreground">Years of Service</div>
             </div>
           </div>

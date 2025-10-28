@@ -1,4 +1,4 @@
-import NextAuth from "next-auth"
+import NextAuth from "next-auth/next"
 import CredentialsProvider from "next-auth/providers/credentials"
 
 export const authOptions = {
@@ -30,20 +30,20 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: any; user?: any }) {
       if (user) {
         // copy role from user into token
         ;(token as any).role = (user as any).role
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       // expose role on session.user
       ;(session.user as any).role = (token as any).role
       return session
     },
   },
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt" as const },
   secret: process.env.NEXTAUTH_SECRET,
 }
 
