@@ -33,7 +33,8 @@ export default function LoginForm() {
       } else {
         // Get session to check user role
         const session = await getSession()
-        if (session?.user?.role === "admin" || session?.user?.role === "sub-admin") {
+        const userRole = (session?.user as any)?.role ?? "user"
+        if (userRole === "admin" || userRole === "sub-admin") {
           router.push("/admin")
         } else {
           router.push("/dashboard")

@@ -169,10 +169,10 @@ export default function UserManagement() {
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <div>
+        {/* <div>
           <h2 className="text-2xl font-bold text-foreground">User Management</h2>
           <p className="text-muted-foreground">Manage admin users and their permissions</p>
-        </div>
+        </div> */}
         <button
           onClick={() => setShowCreateModal(true)}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
