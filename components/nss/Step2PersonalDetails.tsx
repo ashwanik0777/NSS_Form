@@ -40,6 +40,7 @@ const schoolDepartmentData = [
 			"Political Science",
 			"Sociology",
 			"History",
+			"Education",
 		],
 	},
 	{
