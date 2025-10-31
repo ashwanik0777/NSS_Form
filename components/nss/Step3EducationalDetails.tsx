@@ -191,9 +191,9 @@ export default function Step3EducationalDetails({
           )}
           
           <p className="text-xs text-muted-foreground mt-1">
-            Upload your 10th class certificate or marksheet (PDF, JPG, PNG format, max 5MB)
+            Upload your 10th class certificate or marksheet (PDF, JPG, PNG format, max 2MB)
             <br />
-            अपना 10वीं कक्षा का प्रमाण पत्र या अंकसूची अपलोड करें (PDF, JPG, PNG प्रारूप, अधिकतम 5MB)
+            अपना 10वीं कक्षा का प्रमाण पत्र या अंकसूची अपलोड करें (PDF, JPG, PNG प्रारूप, अधिकतम 2MB)
           </p>
         </div>
       </div>
