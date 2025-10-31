@@ -37,7 +37,7 @@ export default function Step3EducationalDetails({
     
     // Validate file size (max 5MB for documents)
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError((prev) => ({ ...prev, [field]: "File size must be less than 5MB" }))
+      setUploadError((prev) => ({ ...prev, [field]: "File size must be less than 2MB" }))
       return
     }
     
