@@ -29,6 +29,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
             permissions: user.permissions,
+            mustChangePassword: user.mustChangePassword,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -45,6 +46,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.permissions = user.permissions
+        token.mustChangePassword = (user as any).mustChangePassword
       }
       return token
     },
@@ -53,6 +55,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!
         session.user.role = token.role as string
         session.user.permissions = token.permissions as string[]
+        ;(session.user as any).mustChangePassword = token.mustChangePassword as boolean
       }
       return session
     },

@@ -85,6 +85,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           enrollment: application.enrollment,
           programOfficerName: application.programOfficerName,
           unitNo: application.unitNo,
+          schoolName: (application as any).schoolName || '',
           nameEnglish: application.nameEnglish,
           nameHindi: application.nameHindi,
           fatherName: application.fatherName,
@@ -93,39 +94,54 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           mobileNo: application.mobileNo,
           emailId: application.emailId,
           departmentName: application.departmentName || '',
+          courseName: (application as any).courseName || '',
           gender: application.gender || '',
           category: application.category || '',
           institutionalIdCard: application.institutionalIdCard || '',
           photo: application.photo || '',
+          signature: (application as any).signature || '',
           highSchoolRollNo: application.highSchoolRollNo,
           classSemester: application.classSemester,
+          bloodGroup: application.bloodGroup || '',
           nssEnrollmentYear: application.nssEnrollmentYear || '',
           attendedSpecialCamp: application.attendedSpecialCamp || false,
           specialCampDetails: application.specialCampDetails || undefined,
           myBharatPortalRegistered: application.myBharatPortalRegistered || false,
-          specialNSSAchievements: application.specialNSSAchievements || '',
+          myBharatPortalId: (application as any).myBharatPortalId || '',
+          myBharatPortalScreenshot: (application as any).myBharatPortalScreenshot || '',
+          specialNSSAchievements: application.specialNSSAchievements || 'No',
           attendedELP: application.attendedELP || false,
-          otherAchievements: application.otherAchievements || '',
+          elpProof: (application as any).elpProof || '',
+          otherAchievements: application.otherAchievements || 'No',
+          otherAchievementsCertificates: (application as any).otherAchievementsCertificates || 'Na',
+          addressType: (application as any).addressType || '',
+          hostelAddress: (application as any).hostelAddress || '',
+          homeAddress: (application as any).homeAddress || '',
         };
 
-        // --- Volunteer Account Creation Logic ---
-        // 1. Check if user already exists
+        // --- Volunteer Account Creation / Reset Logic ---
+        // Always generate first-login password: nameEnglish + birth year
+        const name = application.nameEnglish.replace(/\s+/g, "");
+        const birthYear = application.dateOfBirth ? new Date(application.dateOfBirth).getFullYear() : "1234";
+        const generatedPassword = `${name}${birthYear}`;
+
+        // Check if user exists; create or reset password for first login
         let volunteerUser = await User.findOne({ email: application.emailId });
-        let generatedPassword = "";
+        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
         if (!volunteerUser) {
-          // 2. Generate password: nameEnglish + birth year
-          const name = application.nameEnglish.replace(/\s+/g, "");
-          const birthYear = application.dateOfBirth ? new Date(application.dateOfBirth).getFullYear() : "1234";
-          generatedPassword = `${name}${birthYear}`;
-          // 3. Hash password
-          const hashedPassword = await bcrypt.hash(generatedPassword, 10);
-          // 4. Create user
           volunteerUser = new User({
             name: application.nameEnglish,
             email: application.emailId,
             password: hashedPassword,
             role: "volunteer",
+            mustChangePassword: true,
           });
+          await volunteerUser.save();
+        } else {
+          // Reset password for first login and ensure role is volunteer
+          volunteerUser.password = hashedPassword;
+          volunteerUser.role = "volunteer" as any;
+          volunteerUser.mustChangePassword = true;
           await volunteerUser.save();
         }
 
@@ -135,13 +151,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           applicationId: application._id.toString(),
           institutionName: application.institutionName,
           formData,
-          // Add credentials if account was just created
-          credentials: !generatedPassword
-            ? undefined
-            : {
-                email: application.emailId,
-                password: generatedPassword,
-              },
+          // Always include first-login credentials
+          credentials: {
+            email: application.emailId,
+            password: generatedPassword,
+          },
         })
       } else if (status === "rejected") {
         await sendApplicationRejectedEmail(application.emailId, {

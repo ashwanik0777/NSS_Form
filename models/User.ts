@@ -4,8 +4,9 @@ export interface IUser extends Document {
   name: string
   email: string
   password: string
-  role: "admin" | "sub-admin" | "user"
+  role: "admin" | "sub-admin" | "user" | "volunteer"
   permissions?: string[]
+  mustChangePassword?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -31,8 +32,12 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["admin", "sub-admin", "user"],
+      enum: ["admin", "sub-admin", "user", "volunteer"],
       default: "user",
+    },
+    mustChangePassword: {
+      type: Boolean,
+      default: false,
     },
     permissions: [
       {

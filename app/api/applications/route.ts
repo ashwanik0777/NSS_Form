@@ -80,22 +80,27 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
+    // Remove default limit of 10, fetch all applications if limit not provided
     const page = Number.parseInt(searchParams.get("page") || "1")
-    const limit = Number.parseInt(searchParams.get("limit") || "10")
-    const skip = (page - 1) * limit
+    const limitParam = searchParams.get("limit")
+    const limit = limitParam ? Number.parseInt(limitParam) : 0 // 0 means no limit
+    const skip = (page - 1) * (limit || 1)
 
     let query = {}
     if (status && status !== "all") {
       query = { status }
     }
 
-    const applications = await NSSApplication.find(query)
+    let applicationsQuery = NSSApplication.find(query)
       .populate("userId", "name email")
       .populate("reviewedBy", "name")
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
 
+    if (limit) {
+      applicationsQuery = applicationsQuery.skip(skip).limit(limit)
+    }
+
+    const applications = await applicationsQuery
     const total = await NSSApplication.countDocuments(query)
 
     return NextResponse.json({
@@ -103,9 +108,9 @@ export async function GET(request: NextRequest) {
       applications,
       pagination: {
         page,
-        limit,
+        limit: limit || total,
         total,
-        pages: Math.ceil(total / limit),
+        pages: limit ? Math.ceil(total / limit) : 1,
       },
     })
   } catch (error) {

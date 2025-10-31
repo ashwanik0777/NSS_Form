@@ -72,9 +72,15 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
   const [viewingApp, setViewingApp] = useState<Application | null>(null)
   const [reviewAction, setReviewAction] = useState<"approve" | "reject">("approve")
   const [rejectionReason, setRejectionReason] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [processingId, setProcessingId] = useState<string | null>(null)
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const applicationsPerPage = 10
 
   useEffect(() => {
     fetchApplications()
+    setCurrentPage(1) // Reset to first page on filter change
   }, [statusFilter])
 
   const fetchApplications = async () => {
@@ -108,6 +114,8 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
     if (!selectedApp) return
 
     try {
+      setIsSubmitting(true)
+      setProcessingId(selectedApp._id)
       const response = await fetch(`/api/applications/${selectedApp._id}`, {
         method: "PATCH",
         headers: {
@@ -129,6 +137,9 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
       }
     } catch (error) {
       console.error("Error reviewing application:", error)
+    } finally {
+      setIsSubmitting(false)
+      setProcessingId(null)
     }
   }
 
@@ -148,6 +159,12 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
       </span>
     )
   }
+
+  // Pagination logic
+  const indexOfLastApp = currentPage * applicationsPerPage
+  const indexOfFirstApp = indexOfLastApp - applicationsPerPage
+  const currentApplications = applications.slice(indexOfFirstApp, indexOfLastApp)
+  const totalPages = Math.ceil(applications.length / applicationsPerPage)
 
   if (loading) {
     return (
@@ -182,7 +199,7 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {applications.map((app) => (
+              {currentApplications.map((app) => (
                 <tr key={app._id} className="hover:bg-muted/25">
                   <td className="px-6 py-4">
                     <div>
@@ -206,12 +223,14 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                       {app.status === "submitted" && (
                         <button
                           onClick={() => {
+                            if (processingId) return
                             setSelectedApp(app)
                             setShowReviewModal(true)
                           }}
-                          className="text-secondary hover:text-secondary/80 text-sm font-medium transition-colors"
+                          disabled={!!processingId}
+                          className={`text-sm font-medium transition-colors ${processingId ? "text-muted-foreground cursor-not-allowed" : "text-secondary hover:text-secondary/80"}`}
                         >
-                          Review
+                          {processingId === app._id ? "Processing..." : "Review"}
                         </button>
                       )}
                     </div>
@@ -221,6 +240,29 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {applications.length > 0 && (
+          <div className="flex justify-between items-center px-6 py-4 border-t border-border bg-muted/50">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
 
         {applications.length === 0 && (
           <div className="text-center py-12">
@@ -605,16 +647,17 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
                   setSelectedApp(null)
                   setRejectionReason("")
                 }}
-                className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-muted"
+                disabled={isSubmitting}
+                className={`px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-muted"}`}
               >
                 Cancel
               </button>
               <button
                 onClick={handleReview}
-                disabled={reviewAction === "reject" && !rejectionReason.trim()}
-                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting || (reviewAction === "reject" && !rejectionReason.trim())}
+                className={`px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/90"}`}
               >
-                Submit Review
+                {isSubmitting ? "Submitting..." : "Submit Review"}
               </button>
             </div>
           </div>
