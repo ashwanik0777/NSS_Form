@@ -1,10 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
+import User from "@/models/User" 
 import { sendApplicationApprovedEmail, sendApplicationRejectedEmail } from "@/lib/email"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import mongoose from "mongoose"
+
+import bcrypt from "bcryptjs"   
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -95,11 +98,41 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
           attendedELP: application.attendedELP || false,
           otherAchievements: application.otherAchievements || '',
         };
+
+        // --- Volunteer Account Creation Logic ---
+        // 1. Check if user already exists
+        let volunteerUser = await User.findOne({ email: application.emailId });
+        let generatedPassword = "";
+        if (!volunteerUser) {
+          // 2. Generate password: nameEnglish + birth year
+          const name = application.nameEnglish.replace(/\s+/g, "");
+          const birthYear = application.dateOfBirth ? new Date(application.dateOfBirth).getFullYear() : "1234";
+          generatedPassword = `${name}${birthYear}`;
+          // 3. Hash password
+          const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+          // 4. Create user
+          volunteerUser = new User({
+            name: application.nameEnglish,
+            email: application.emailId,
+            password: hashedPassword,
+            role: "volunteer",
+          });
+          await volunteerUser.save();
+        }
+
+        // 5. Send acceptance email with credentials
         await sendApplicationApprovedEmail(application.emailId, {
           name: application.nameEnglish,
           applicationId: application._id.toString(),
           institutionName: application.institutionName,
           formData,
+          // Add credentials if account was just created
+          credentials: !generatedPassword
+            ? undefined
+            : {
+                email: application.emailId,
+                password: generatedPassword,
+              },
         })
       } else if (status === "rejected") {
         await sendApplicationRejectedEmail(application.emailId, {

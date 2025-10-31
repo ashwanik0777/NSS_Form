@@ -33,6 +33,7 @@ interface ApplicationApprovedData {
   applicationId: string
   institutionName: string
   formData?: any // For PDF generation
+  credentials?: { email: string; password: string } // <-- add this
 }
 
 interface ApplicationRejectedData {
@@ -79,19 +80,47 @@ export async function sendApplicationSubmittedEmail(to: string, data: Applicatio
   await transporter.sendMail(mailOptions)
 }
 
-export async function sendApplicationApprovedEmail(to: string, data: ApplicationApprovedData) {
+export async function sendApplicationApprovedEmail(
+  to: string,
+  {
+    name,
+    applicationId,
+    institutionName,
+    formData,
+    credentials, // <-- add this
+  }: {
+    name: string
+    applicationId: string
+    institutionName: string
+    formData: any
+    credentials?: { email: string; password: string } // <-- add this
+  },
+) {
   let attachments = [];
-  if (data.formData) {
+  if (formData) {
     try {
-      const pdfBytes = await generateNSSApplicationPDF(data.formData);
+      const pdfBytes = await generateNSSApplicationPDF(formData);
       attachments.push({
-        filename: `NSS_Application_${data.applicationId}.pdf`,
+        filename: `NSS_Application_${applicationId}.pdf`,
         content: Buffer.from(pdfBytes),
         contentType: 'application/pdf',
       });
     } catch (err) {
       console.error("Failed to generate PDF for approval email", err);
     }
+  }
+
+  let credentialsSection = "";
+  if (credentials) {
+    credentialsSection = `
+      <h3>Your Volunteer Account Details</h3>
+      <p>
+        <b>Login Email:</b> ${credentials.email}<br/>
+        <b>Password:</b> ${credentials.password}<br/>
+        <i>Please change your password after first login.</i>
+      </p>
+      <hr/>
+    `;
   }
 
   const mailOptions = {
@@ -105,15 +134,17 @@ export async function sendApplicationApprovedEmail(to: string, data: Application
         </div>
         <div style="padding: 20px; background-color: white;">
           <h2 style="color: #059669;">🎉 Congratulations! Your Application is Approved</h2>
-          <p>Dear ${data.name},</p>
+          <p>Dear ${name},</p>
           <p>We are pleased to inform you that your NSS volunteer application has been <strong>approved</strong>!</p>
           
           <div style="background-color: #ecfdf5; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #059669;">
             <h3 style="margin: 0 0 10px 0; color: #065f46;">Application Details:</h3>
-            <p style="margin: 5px 0;"><strong>Application ID:</strong> ${data.applicationId}</p>
-            <p style="margin: 5px 0;"><strong>Institution:</strong> ${data.institutionName}</p>
+            <p style="margin: 5px 0;"><strong>Application ID:</strong> ${applicationId}</p>
+            <p style="margin: 5px 0;"><strong>Institution:</strong> ${institutionName}</p>
             <p style="margin: 5px 0;"><strong>Status:</strong> ✅ Approved</p>
           </div>
+          
+          ${credentialsSection}
           
           <p>Welcome to the NSS family! You are now officially registered as an NSS volunteer.</p>
           

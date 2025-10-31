@@ -308,10 +308,10 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
 )
 
 // Indexes for efficient queries
-NSSApplicationSchema.index({ userId: 1, status: 1 })
-NSSApplicationSchema.index({ status: 1, createdAt: -1 })
-NSSApplicationSchema.index({ formNo: 1 }, { unique: true })
-NSSApplicationSchema.index({ emailId: 1 })
+// NSSApplicationSchema.index({ userId: 1, status: 1 })
+// NSSApplicationSchema.index({ status: 1, createdAt: -1 })
+// NSSApplicationSchema.index({ formNo: 1 }, { unique: true })
+// NSSApplicationSchema.index({ emailId: 1 })
 
 // Pre-save middleware to ensure required fields for submitted applications
 NSSApplicationSchema.pre('save', function(next) {
