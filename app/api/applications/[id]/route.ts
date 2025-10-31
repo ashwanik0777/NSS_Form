@@ -3,7 +3,7 @@ import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 import User from "@/models/User" 
 import { sendApplicationApprovedEmail, sendApplicationRejectedEmail } from "@/lib/email"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import mongoose from "mongoose"
 
@@ -31,27 +31,36 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  console.log("PATCH /api/applications/:id called, id =", params.id)
   try {
+    const id = params.id
+    const body = await req.json()
+
     await dbConnect()
 
-    const session = await getServerSession(authOptions)
+    const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.json()
     const { status, rejectionReason } = body
 
-    const adminUser = await mongoose.model("User").findOne({ email: session.user.email })
-    if (!adminUser) {
-      return NextResponse.json({ success: false, message: "Admin user not found" }, { status: 404 })
+    // Derive reviewer ObjectId from the session when possible; fall back to email lookup.
+    let reviewerObjectId: mongoose.Types.ObjectId | undefined
+    if (session.user.id && mongoose.Types.ObjectId.isValid(session.user.id)) {
+      reviewerObjectId = new mongoose.Types.ObjectId(session.user.id)
+    } else if (session.user.email) {
+      const adminUser = await mongoose.model("User").findOne({ email: session.user.email })
+      if (adminUser?._id) {
+        reviewerObjectId = adminUser._id as mongoose.Types.ObjectId
+      }
     }
 
     const updateData: any = {
       status,
       reviewedAt: new Date(),
-      reviewedBy: adminUser._id, // Use the actual ObjectId from database
+      ...(reviewerObjectId ? { reviewedBy: reviewerObjectId } : {}),
     }
 
     if (status === "rejected" && rejectionReason) {
