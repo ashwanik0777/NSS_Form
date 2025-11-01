@@ -61,27 +61,6 @@ export default function VolunteerDashboard() {
   const [showNotifications, setShowNotifications] = useState(false)
   
   // Refresh function to refetch data
-  // (removed duplicate fetchDashboardData declaration)
-
-  useEffect(() => {
-    if (status === "loading") return
-    const user = session?.user as any
-    if (!user) {
-      router.replace("/login")
-      return
-    }
-    if (user.role !== "volunteer" && user.role !== "user") {
-      router.replace("/")
-      return
-    }
-    if (user.mustChangePassword) {
-      router.replace("/set-password")
-      return
-    }
-
-    fetchDashboardData()
-  }, [session, status, router])
-
   const fetchDashboardData = async () => {
     try {
       const [profileRes, appRes, projectRes, eventsRes, statsRes, announcementsRes] = await Promise.all([
@@ -147,6 +126,25 @@ export default function VolunteerDashboard() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (status === "loading") return
+    const user = session?.user as any
+    if (!user) {
+      router.replace("/login")
+      return
+    }
+    if (user.role !== "volunteer" && user.role !== "user") {
+      router.replace("/")
+      return
+    }
+    if (user.mustChangePassword) {
+      router.replace("/set-password")
+      return
+    }
+
+    fetchDashboardData()
+  }, [session, status, router])
 
   if (status === "loading" || loading) {
     return (
@@ -431,11 +429,10 @@ export default function VolunteerDashboard() {
                         if (!notif.isRead) {
                           try {
                             // Optimistically update UI
-                            setNotifications((prev) =>
-                              prev.map((n) =>
-                                n._id === notif._id ? { ...n, isRead: true } : n
-                              )
+                            const updatedNotifications = notifications.map((n) =>
+                              n._id === notif._id ? { ...n, isRead: true } : n
                             )
+                            setNotifications(updatedNotifications)
                             
                             // Mark as read on server
                             const res = await fetch("/api/volunteer/notifications/read", {
@@ -451,6 +448,17 @@ export default function VolunteerDashboard() {
                                   n._id === notif._id ? { ...n, isRead: false } : n
                                 )
                               )
+                            } else {
+                              // Refresh notifications from server to ensure sync
+                              try {
+                                const refreshRes = await fetch("/api/volunteer/announcements")
+                                const refreshData = await refreshRes.json()
+                                if (refreshData.success) {
+                                  setNotifications(refreshData.notifications || [])
+                                }
+                              } catch (refreshError) {
+                                console.error("Error refreshing notifications:", refreshError)
+                              }
                             }
                           } catch (error) {
                             console.error("Error marking notification as read:", error)

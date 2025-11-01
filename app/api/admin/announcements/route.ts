@@ -72,66 +72,78 @@ export async function POST(request: NextRequest) {
 
     // Send emails if requested
     if (sendEmail) {
-      // Get all approved volunteers only
-      const approvedApplications = await NSSApplication.find({ status: "approved" })
-        .select("userId emailId nameEnglish")
-        .lean()
-
-      if (!approvedApplications || approvedApplications.length === 0) {
-        console.log("No approved applications found for email sending")
-      } else {
-        const approvedUserIds = approvedApplications.map((app) => app.userId)
-
-        const volunteers = await User.find({
-          _id: { $in: approvedUserIds },
-          role: { $in: ["volunteer", "user"] },
-        })
-          .select("_id email name")
+      try {
+        // Get all approved volunteers only
+        const approvedApplications = await NSSApplication.find({ status: "approved" })
+          .select("userId emailId nameEnglish")
           .lean()
 
-        if (!volunteers || volunteers.length === 0) {
-          console.log("No volunteers found for email sending")
+        if (!approvedApplications || approvedApplications.length === 0) {
+          console.log("⚠️ No approved applications found for email sending")
         } else {
-          const applicationMap = new Map(
-            approvedApplications.map((app: any) => [app.userId.toString(), app])
-          )
+          console.log(`📧 Found ${approvedApplications.length} approved applications`)
+          
+          const approvedUserIds = approvedApplications.map((app: any) => app.userId).filter(Boolean)
 
-          // Send emails to all approved volunteers
-          let successCount = 0
-          let failCount = 0
+          if (approvedUserIds.length === 0) {
+            console.log("⚠️ No valid user IDs found in approved applications")
+          } else {
+            const volunteers = await User.find({
+              _id: { $in: approvedUserIds },
+              role: { $in: ["volunteer", "user"] },
+            })
+              .select("_id email name")
+              .lean()
 
-          const emailPromises = volunteers.map(async (volunteer: any) => {
-            const application = applicationMap.get(volunteer._id.toString())
-            // Use emailId from application first, then fallback to user email
-            const volunteerEmail = application?.emailId || volunteer.email
-            
-            if (!volunteerEmail) {
-              console.error(`No email found for volunteer ${volunteer._id}`)
-              failCount++
-              return
-            }
-
-            const volunteerName = application?.nameEnglish || volunteer.name || "Volunteer"
-
-            try {
-              await sendCustomEmail(
-                volunteerEmail,
-                `NSS Announcement: ${title}`,
-                `<h2 style="color: #1e40af; margin-bottom: 15px;">${title}</h2><p>Dear ${volunteerName},</p><p style="line-height: 1.6;">${content.replace(/\n/g, "<br>")}</p><p style="margin-top: 20px;">Best regards,<br>NSS Team</p>`
+            if (!volunteers || volunteers.length === 0) {
+              console.log("⚠️ No volunteers found with matching user IDs")
+            } else {
+              console.log(`📧 Found ${volunteers.length} volunteers to send emails to`)
+              
+              const applicationMap = new Map(
+                approvedApplications.map((app: any) => [app.userId?.toString(), app])
               )
-              console.log(`✓ Email sent successfully to ${volunteerEmail}`)
-              successCount++
-            } catch (error: any) {
-              console.error(`✗ Failed to send email to ${volunteerEmail}:`, error?.message || error)
-              failCount++
-            }
-          })
 
-          await Promise.allSettled(emailPromises)
-          console.log(
-            `Email sending completed: ${successCount} successful, ${failCount} failed out of ${volunteers.length} total volunteers`
-          )
+              // Send emails to all approved volunteers
+              let successCount = 0
+              let failCount = 0
+
+              const emailPromises = volunteers.map(async (volunteer: any) => {
+                const application = applicationMap.get(volunteer._id.toString())
+                // Use emailId from application first, then fallback to user email
+                const volunteerEmail = application?.emailId || volunteer.email
+                
+                if (!volunteerEmail || !volunteerEmail.includes("@")) {
+                  console.error(`❌ Invalid email for volunteer ${volunteer._id}: ${volunteerEmail}`)
+                  failCount++
+                  return
+                }
+
+                const volunteerName = application?.nameEnglish || volunteer.name || "Volunteer"
+
+                try {
+                  await sendCustomEmail(
+                    volunteerEmail,
+                    `NSS Announcement: ${title}`,
+                    `<h2 style="color: #1e40af; margin-bottom: 15px;">${title}</h2><p>Dear ${volunteerName},</p><p style="line-height: 1.6;">${content.replace(/\n/g, "<br>")}</p><p style="margin-top: 20px;">Best regards,<br>NSS Team</p>`
+                  )
+                  console.log(`✓ Email sent successfully to ${volunteerEmail} (${volunteerName})`)
+                  successCount++
+                } catch (error: any) {
+                  console.error(`✗ Failed to send email to ${volunteerEmail}:`, error?.message || error)
+                  failCount++
+                }
+              })
+
+              await Promise.allSettled(emailPromises)
+              console.log(
+                `📊 Email sending completed: ${successCount} successful, ${failCount} failed out of ${volunteers.length} total volunteers`
+              )
+            }
+          }
         }
+      } catch (error: any) {
+        console.error("❌ Error in email sending process:", error?.message || error)
       }
     }
 
