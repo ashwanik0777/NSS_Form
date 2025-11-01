@@ -145,12 +145,13 @@ export default function UserManagement() {
     const roleStyles = {
       admin: "bg-red-100 text-red-800 border-red-200",
       "sub-admin": "bg-blue-100 text-blue-800 border-blue-200",
+      volunteer: "bg-green-100 text-green-800 border-green-200",
       user: "bg-gray-100 text-gray-800 border-gray-200",
     }
 
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full border ${roleStyles[role as keyof typeof roleStyles]}`}
+        className={`px-2 py-1 text-xs font-medium rounded-full border ${roleStyles[role as keyof typeof roleStyles] || roleStyles.user}`}
       >
         {role.charAt(0).toUpperCase() + role.slice(1).replace("-", " ")}
       </span>
@@ -159,8 +160,8 @@ export default function UserManagement() {
 
   const permissionsByCategory = getPermissionsByCategory()
 
-  // Filter only accepted users
-  const acceptedUsers = users.filter((user) => user.status === "accepted")
+  // Users are already filtered by API (excluding role "user")
+  const acceptedUsers = users
 
   if (loading) {
     return (

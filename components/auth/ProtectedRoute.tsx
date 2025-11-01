@@ -9,7 +9,7 @@ import { hasPermission, type PermissionKey } from "@/lib/permissions"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  requiredRole?: "admin" | "sub-admin" | "user"
+  requiredRole?: "admin" | "sub-admin" | "volunteer" | "user"
   requiredPermission?: PermissionKey
   fallbackUrl?: string
 }
@@ -34,13 +34,21 @@ export default function ProtectedRoute({
     // Check role requirement
     if (requiredRole) {
       const userRole = session.user.role
-      const allowedRoles = ["admin", "sub-admin", "user"]
-      const requiredRoleIndex = allowedRoles.indexOf(requiredRole)
-      const userRoleIndex = allowedRoles.indexOf(userRole)
+      if (requiredRole === "volunteer") {
+        // For volunteer route, user must be volunteer
+        if (userRole !== "volunteer" && userRole !== "user") {
+          router.push("/unauthorized")
+          return
+        }
+      } else {
+        const allowedRoles = ["admin", "sub-admin", "user"]
+        const requiredRoleIndex = allowedRoles.indexOf(requiredRole)
+        const userRoleIndex = allowedRoles.indexOf(userRole)
 
-      if (userRoleIndex > requiredRoleIndex) {
-        router.push("/unauthorized")
-        return
+        if (userRoleIndex > requiredRoleIndex) {
+          router.push("/unauthorized")
+          return
+        }
       }
     }
 
@@ -72,12 +80,19 @@ export default function ProtectedRoute({
   // Check role and permission again before rendering
   if (requiredRole) {
     const userRole = session.user.role
-    const allowedRoles = ["admin", "sub-admin", "user"]
-    const requiredRoleIndex = allowedRoles.indexOf(requiredRole)
-    const userRoleIndex = allowedRoles.indexOf(userRole)
+    if (requiredRole === "volunteer") {
+      // For volunteer route, user must be volunteer
+      if (userRole !== "volunteer" && userRole !== "user") {
+        return null // Will redirect
+      }
+    } else {
+      const allowedRoles = ["admin", "sub-admin", "user"]
+      const requiredRoleIndex = allowedRoles.indexOf(requiredRole)
+      const userRoleIndex = allowedRoles.indexOf(userRole)
 
-    if (userRoleIndex > requiredRoleIndex) {
-      return null // Will redirect
+      if (userRoleIndex > requiredRoleIndex) {
+        return null // Will redirect
+      }
     }
   }
 

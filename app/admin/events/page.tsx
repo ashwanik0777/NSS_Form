@@ -1,285 +1,180 @@
 "use client"
 
-import { useState } from "react"
-import AdminHeader from "@/components/admin/AdminHeader"
-import { Calendar, Plus, MapPin, Users, Clock } from "lucide-react"
-
-interface Event {
-  id: string
-  title: string
-  description: string
-  date: string
-  time: string
-  location: string
-  participants: number
-  maxParticipants: number
-  status: "upcoming" | "ongoing" | "completed" | "cancelled"
-}
+import { useEffect, useState } from "react"
+import { Calendar, Plus, Edit, Trash2, Users, Loader2, X, Save, Clock } from "lucide-react"
 
 export default function EventsPage() {
-  const [events] = useState<Event[]>([
-    {
-      id: "1",
-      title: "Community Cleanliness Drive",
-      description: "Join us for a community-wide cleanliness initiative in the local park area.",
-      date: "2024-01-15",
-      time: "09:00",
-      location: "Central Park, Lucknow",
-      participants: 45,
-      maxParticipants: 100,
-      status: "upcoming",
-    },
-    {
-      id: "2",
-      title: "Blood Donation Camp",
-      description: "Annual blood donation camp in collaboration with local hospitals.",
-      date: "2024-01-20",
-      time: "10:00",
-      location: "Medical College, Lucknow",
-      participants: 78,
-      maxParticipants: 150,
-      status: "upcoming",
-    },
-    {
-      id: "3",
-      title: "Tree Plantation Drive",
-      description: "Environmental conservation activity - planting trees in rural areas.",
-      date: "2024-01-10",
-      time: "08:00",
-      location: "Village Mohanlalganj",
-      participants: 120,
-      maxParticipants: 120,
-      status: "completed",
-    },
-  ])
+  const [events, setEvents] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<any>(null)
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    projectId: "",
+    eventDate: "",
+    location: "",
+    startTime: "",
+    endTime: "",
+    coordinator: "",
+    maxParticipants: "",
+    status: "upcoming",
+  })
+  const [projects, setProjects] = useState<any[]>([])
 
-  const [showCreateModal, setShowCreateModal] = useState(false)
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-  const getStatusBadge = (status: string) => {
-    const statusStyles = {
-      upcoming: "bg-blue-100 text-blue-800 border-blue-200",
-      ongoing: "bg-green-100 text-green-800 border-green-200",
-      completed: "bg-gray-100 text-gray-800 border-gray-200",
-      cancelled: "bg-red-100 text-red-800 border-red-200",
+  const fetchData = async () => {
+    try {
+      // Fetch projects for dropdown
+      const projectsRes = await fetch("/api/admin/projects")
+      const projectsData = await projectsRes.json()
+      if (projectsData.success) {
+        setProjects(projectsData.projects || [])
+      }
+
+      // TODO: Fetch events when API is ready
+      // For now, set empty array
+      setEvents([])
+    } catch (error) {
+      console.error("Error fetching data:", error)
+    } finally {
+      setLoading(false)
     }
+  }
 
+  if (loading) {
     return (
-      <span
-        className={`px-2 py-1 text-xs font-medium rounded-full border ${statusStyles[status as keyof typeof statusStyles]}`}
-      >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin w-8 h-8 text-primary" />
+      </div>
     )
   }
 
   return (
-    <>
-      <AdminHeader title="Events" subtitle="Manage NSS events and activities" />
-
-      <div className="p-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <Calendar className="w-8 h-8 text-blue-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-bold text-foreground">{events.length}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <Clock className="w-8 h-8 text-green-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Upcoming</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {events.filter((e) => e.status === "upcoming").length}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <Users className="w-8 h-8 text-orange-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Participants</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {events.reduce((sum, e) => sum + e.participants, 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <Calendar className="w-8 h-8 text-purple-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {events.filter((e) => e.status === "completed").length}
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground flex items-center">
+            <Calendar className="w-8 h-8 mr-3 text-primary" />
+            Event Management
+          </h1>
+          <p className="text-muted-foreground mt-2">Create and manage NSS events</p>
         </div>
-
-        {/* Header Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">All Events</h2>
-            <p className="text-muted-foreground">Manage and organize NSS events</p>
-          </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Event
-          </button>
-        </div>
-
-        {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="bg-card rounded-lg border border-border p-6 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-foreground">{event.title}</h3>
-                {getStatusBadge(event.status)}
-              </div>
-
-              <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{event.description}</p>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  {new Date(event.date).toLocaleDateString("en-IN")} at {event.time}
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {event.location}
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Users className="w-4 h-4 mr-2" />
-                  {event.participants}/{event.maxParticipants} participants
-                </div>
-              </div>
-
-              <div className="w-full bg-muted rounded-full h-2 mb-4">
-                <div
-                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(event.participants / event.maxParticipants) * 100}%` }}
-                ></div>
-              </div>
-
-              <div className="flex space-x-2">
-                <button className="flex-1 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                  View Details
-                </button>
-                <button className="px-3 py-2 text-sm border border-border rounded-lg hover:bg-muted transition-colors">
-                  Edit
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Create Event Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-border">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-foreground">Create New Event</h3>
-                  <button
-                    onClick={() => setShowCreateModal(false)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Event Title</label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter event title"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Description</label>
-                    <textarea
-                      rows={3}
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter event description"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Date</label>
-                      <input
-                        type="date"
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Time</label>
-                      <input
-                        type="time"
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Location</label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter event location"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Max Participants</label>
-                    <input
-                      type="number"
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter maximum participants"
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-                    >
-                      Create Event
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <button
+          onClick={() => {
+            setEditingEvent(null)
+            setFormData({
+              title: "",
+              description: "",
+              projectId: "",
+              eventDate: "",
+              location: "",
+              startTime: "",
+              endTime: "",
+              coordinator: "",
+              maxParticipants: "",
+              status: "upcoming",
+            })
+            setShowModal(true)
+          }}
+          className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Add Event
+        </button>
       </div>
-    </>
+
+      {events.length === 0 ? (
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No Events</h3>
+          <p className="text-muted-foreground">Start by creating your first event</p>
+        </div>
+      ) : (
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Title</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Project</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Participants</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {events.map((event) => (
+                  <tr key={event._id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-medium text-foreground">{event.title}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{event.description}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{event.projectId?.title || "N/A"}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">
+                      {new Date(event.eventDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                        {event.currentParticipants} / {event.maxParticipants || "∞"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          event.status === "upcoming"
+                            ? "bg-blue-100 text-blue-800"
+                            : event.status === "ongoing"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : event.status === "completed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {event.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Modal - Placeholder */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-xl border border-border p-6 max-w-2xl w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Add Event</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-muted-foreground">Event management form will be implemented here</p>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect()
 
-    const users = await User.find({ status: "accepted" }).select("-password").sort({ createdAt: -1 })
+    // Fetch all users except those with role "user" (temp users), exclude password field
+    const users = await User.find({ role: { $ne: "user" } })
+      .select("-password")
+      .sort({ createdAt: -1 })
 
     return NextResponse.json({
       success: true,

@@ -19,7 +19,10 @@ export const authOptions: NextAuthOptions = {
         try {
           await dbConnect();
           // Only check DB, do not use .env
-          const user = await User.findOne({ email: credentials.email });
+          // Case-insensitive email lookup
+          const user = await User.findOne({ 
+            email: { $regex: new RegExp(`^${credentials.email}$`, "i") } 
+          });
           if (!user) return null;
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
           if (!isPasswordValid) return null;

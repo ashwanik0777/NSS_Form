@@ -126,8 +126,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
         // --- Volunteer Account Creation / Reset Logic ---
         // Always generate first-login password: nameEnglish + birth year
-        const name = application.nameEnglish.replace(/\s+/g, "");
-        const birthYear = application.dateOfBirth ? new Date(application.dateOfBirth).getFullYear() : "1234";
+        // Remove all spaces and convert to consistent case
+        const name = application.nameEnglish.replace(/\s+/g, "").replace(/[^a-zA-Z]/g, "");
+        const birthYear = application.dateOfBirth ? new Date(application.dateOfBirth).getFullYear().toString() : "1234";
         const generatedPassword = `${name}${birthYear}`;
 
         // Check if user exists; create or reset password for first login

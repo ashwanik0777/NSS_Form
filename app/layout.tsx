@@ -4,6 +4,7 @@ export const revalidate = 0;
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
+import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper"
 import "./globals.css"
 
 const inter = Inter({
@@ -28,8 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
-      <body>{children}
-        
+      <body>
+        <SessionProviderWrapper>
+          {children}
+        </SessionProviderWrapper>
       </body>
     </html>
   )

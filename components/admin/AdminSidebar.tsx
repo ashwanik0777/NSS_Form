@@ -16,6 +16,8 @@ import {
   UserCheck,
   Calendar,
   Award,
+  FolderKanban,
+  TrendingUp,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -46,17 +48,23 @@ const sidebarItems: SidebarItem[] = [
     icon: <Users className="w-5 h-5" />,
   },
   {
-    id: "volunteers",
-    label: "Volunteers",
-    href: "/admin/volunteers",
+    id: "projects",
+    label: "Project Management",
+    href: "/admin/projects",
+    icon: <FolderKanban className="w-5 h-5" />,
+  },
+  {
+    id: "volunteer-management",
+    label: "Volunteer Management",
+    href: "/admin/volunteer-management",
     icon: <UserCheck className="w-5 h-5" />,
   },
-  // {
-  //   id: "events",
-  //   label: "Events",
-  //   href: "/admin/events",
-  //   icon: <Calendar className="w-5 h-5" />,
-  // },
+  {
+    id: "events",
+    label: "Events",
+    href: "/admin/events",
+    icon: <Calendar className="w-5 h-5" />,
+  },
   // {
   //   id: "certificates",
   //   label: "Certificates",

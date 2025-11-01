@@ -29,13 +29,37 @@ export default function LoginForm() {
       })
 
       if (result?.error) {
-        setError("Invalid email or password")
+        // More specific error messages
+        if (result.error === "CredentialsSignin") {
+          setError("Invalid email or password. Please check your credentials and try again.")
+        } else {
+          setError("Invalid email or password")
+        }
       } else {
+        // Small delay to ensure session is updated
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
         // Get session to check user role
         const session = await getSession()
-        const userRole = (session?.user as any)?.role ?? "user"
+        const user = session?.user as any
+        
+        if (!user) {
+          setError("Failed to get user session. Please try again.")
+          return
+        }
+        
+        const userRole = user?.role ?? "user"
+        const mustChangePassword = user?.mustChangePassword ?? false
+        
         if (userRole === "admin" || userRole === "sub-admin") {
           router.push("/admin")
+        } else if (userRole === "volunteer" || userRole === "user") {
+          // If volunteer must change password, redirect to set-password page
+          if (mustChangePassword) {
+            router.push("/set-password")
+          } else {
+            router.push("/dashboard")
+          }
         } else {
           router.push("/dashboard")
         }
@@ -57,9 +81,10 @@ export default function LoginForm() {
           <div className="w-24 h-24 bg-gradient-to-br from-primary via-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl hover-lift">
             <Shield className="w-14 h-14 text-white" />
           </div>
-          <h2 className="text-4xl font-bold text-foreground mb-2">NSS Admin Login</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-2">NSS Login</h2>
           <p className="text-lg text-muted-foreground mb-1">National Service Scheme - Uttar Pradesh</p>
           <p className="text-sm text-muted-foreground">राष्ट्रीय सेवा योजना - उत्तर प्रदेश</p>
+          <p className="text-xs text-muted-foreground mt-2">For Admin, Sub-Admin & Volunteers</p>
         </div>
 
         <div className="bg-card/80 backdrop-blur-md rounded-2xl shadow-2xl border border-border/50 p-8">
@@ -78,7 +103,7 @@ export default function LoginForm() {
                   value={formData.email}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   className="w-full px-4 py-3 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
-                  placeholder="Enter your admin email"
+                  placeholder="Enter your email (Admin/Volunteer)"
                 />
               </div>
 
@@ -128,7 +153,7 @@ export default function LoginForm() {
               ) : (
                 <>
                   <Shield className="w-5 h-5 mr-2" />
-                  Sign in to Admin Panel
+                  Sign in
                 </>
               )}
             </button>

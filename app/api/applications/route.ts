@@ -41,9 +41,62 @@ export async function POST(request: NextRequest) {
       nextFormNo = String(Number(lastApp.formNo) + 1)
     }
 
-    // Create NSS application with formNo set
+    // Create NSS application with formNo set - explicitly map all fields
     const application = new NSSApplication({
-      ...formData, // This will include schoolName and highSchoolCertificate
+      // Institution Details
+      institutionName: formData.institutionName,
+      enrollment: formData.enrollment,
+      programOfficerName: formData.programOfficerName,
+      unitNo: formData.unitNo,
+      schoolName: formData.schoolName || '',
+      
+      // Personal Details
+      nameEnglish: formData.nameEnglish,
+      nameHindi: formData.nameHindi || formData.nameEnglish,
+      fatherName: formData.fatherName,
+      motherName: formData.motherName,
+      dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : new Date(),
+      mobileNo: formData.mobileNo,
+      emailId: formData.emailId,
+      departmentName: formData.departmentName,
+      courseName: formData.courseName || '',
+      gender: formData.gender,
+      category: formData.category,
+      bloodGroup: formData.bloodGroup || '',
+      institutionalIdCard: formData.institutionalIdCard,
+      institutionalIdProof: formData.institutionalIdProof || undefined,
+      photo: formData.photo || '',
+      signature: formData.signature || '',
+      
+      // Address Details
+      addressType: formData.addressType || '',
+      hostelAddress: formData.hostelAddress || '',
+      homeAddress: formData.homeAddress || '',
+      
+      // Educational Details
+      highSchoolRollNo: formData.highSchoolRollNo,
+      classSemester: formData.classSemester,
+      highSchoolCertificate: formData.highSchoolCertificate || undefined,
+      
+      // NSS Enrollment Details
+      nssEnrollmentYear: formData.nssEnrollmentYear,
+      attendedSpecialCamp: formData.attendedSpecialCamp || false,
+      specialCampDetails: formData.specialCampDetails || undefined,
+      
+      // My Bharat Portal
+      myBharatPortalRegistered: formData.myBharatPortalRegistered || false,
+      myBharatPortalId: formData.myBharatPortalId || undefined,
+      myBharatPortalScreenshot: formData.myBharatPortalScreenshot || undefined,
+      
+      // Additional Achievements
+      specialNSSAchievements: formData.specialNSSAchievements || undefined,
+      specialNSSAchievementsProof: formData.specialNSSAchievementsProof || undefined,
+      attendedELP: formData.attendedELP || false,
+      elpProof: formData.elpProof || undefined,
+      otherAchievements: formData.otherAchievements || undefined,
+      otherAchievementsCertificates: formData.otherAchievementsCertificates || undefined,
+      
+      // Application Metadata
       formNo: nextFormNo,
       userId: user._id,
       status: "submitted",
