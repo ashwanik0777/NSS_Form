@@ -84,7 +84,7 @@ export default function LoginForm() {
           <h2 className="text-4xl font-bold text-foreground mb-2">NSS Login</h2>
           <p className="text-lg text-muted-foreground mb-1">National Service Scheme - Uttar Pradesh</p>
           <p className="text-sm text-muted-foreground">राष्ट्रीय सेवा योजना - उत्तर प्रदेश</p>
-          <p className="text-xs text-muted-foreground mt-2">For Admin, Sub-Admin & Volunteers</p>
+          {/* <p className="text-xs text-muted-foreground mt-2">For Admin, Sub-Admin & Volunteers</p> */}
         </div>
 
         <div className="bg-card/80 backdrop-blur-md rounded-2xl shadow-2xl border border-border/50 p-8">
@@ -103,7 +103,7 @@ export default function LoginForm() {
                   value={formData.email}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   className="w-full px-4 py-3 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
-                  placeholder="Enter your email (Admin/Volunteer)"
+                  placeholder="Enter your email"
                 />
               </div>
 
