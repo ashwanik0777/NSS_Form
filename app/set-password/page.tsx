@@ -5,15 +5,16 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 export default function SetPasswordPage() {
-  const { data: session, status } = useSession()
+  const sessionData = useSession()
+  const data = sessionData?.data
   const router = useRouter()
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
   useEffect(() => {
-    if (status === "loading") return
-    const user = session?.user as any
+    if (sessionData.status === "loading") return
+    const user = data?.user as any
     if (!user) {
       router.replace("/login")
       return
@@ -21,7 +22,7 @@ export default function SetPasswordPage() {
     if (!user.mustChangePassword) {
       router.replace("/dashboard")
     }
-  }, [session, status, router])
+  }, [data, sessionData.status, router])
 
   const submit = async () => {
     setLoading(true)
@@ -43,7 +44,7 @@ export default function SetPasswordPage() {
     }
   }
 
-  if (status === "loading") return null
+  if (sessionData.status === "loading") return null
 
   return (
     <div className="max-w-md mx-auto p-6">
