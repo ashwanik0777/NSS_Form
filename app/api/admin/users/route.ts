@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect()
 
-    const users = await User.find({}).select("-password").sort({ createdAt: -1 })
+    const users = await User.find({ status: "accepted" }).select("-password").sort({ createdAt: -1 })
 
     return NextResponse.json({
       success: true,

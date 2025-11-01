@@ -7,6 +7,7 @@ export interface IUser extends Document {
   role: "admin" | "sub-admin" | "user" | "volunteer"
   permissions?: string[]
   mustChangePassword?: boolean
+  status: "pending" | "accepted" | "rejected"
   createdAt: Date
   updatedAt: Date
 }
@@ -44,6 +45,11 @@ const UserSchema = new Schema<IUser>(
         type: String,
       },
     ],
+    status: {
+      type: String,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
+    },
   },
   {
     timestamps: true,

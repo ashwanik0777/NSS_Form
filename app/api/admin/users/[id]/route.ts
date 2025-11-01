@@ -16,6 +16,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         email,
         role,
         permissions: permissions || [],
+        status: "accepted", // Accept karte waqt status update karein
       },
       { new: true },
     ).select("-password")

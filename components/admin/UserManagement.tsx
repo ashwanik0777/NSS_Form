@@ -11,6 +11,7 @@ interface User {
   permissions: string[]
   createdAt: string
   updatedAt: string
+  status?: string 
 }
 
 export default function UserManagement() {
@@ -158,6 +159,9 @@ export default function UserManagement() {
 
   const permissionsByCategory = getPermissionsByCategory()
 
+  // Filter only accepted users
+  const acceptedUsers = users.filter((user) => user.status === "accepted")
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -205,7 +209,7 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {users.map((user) => (
+              {acceptedUsers.map((user) => (
                 <tr key={user._id} className="hover:bg-muted/25">
                   <td className="px-6 py-4">
                     <div>

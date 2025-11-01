@@ -282,14 +282,14 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   y2 -= 6
   drawHeaderLine(page2, "Address Details", y2)
   y2 -= 28
-  const addrTypeText = formData.addressType ? (formData.addressType === "hostler" ? "Hostler" : formData.addressType === "dayscholar" ? "Day Scholar" : formData.addressType) : "Not Specified"
-  y2 = drawField(page2, "Address Type", addrTypeText, 55, y2, 120, 420)
+  const addrTypeText = formData.addressType ? (formData.addressType === "hostler" ? "Hostler" : formData.addressType === "dayscholar" ? "Day Scholar" : formData.addressType) : ""
+  y2 = drawField(page2, "Address Type", addrTypeText, 55, y2, 120, 400)
   if (formData.addressType === "hostler") {
-    y2 = drawField(page2, "Hostel Address", formData.hostelAddress || "", 55, y2, 120, 420)
+    y2 = drawField(page2, "Hostel Address", formData.hostelAddress || "", 55, y2, 120, 400)
   } else if (formData.addressType === "dayscholar") {
-    y2 = drawField(page2, "Home Address", formData.homeAddress || "", 55, y2, 120, 420)
+    y2 = drawField(page2, "Home Address", formData.homeAddress || "", 55, y2, 120, 400)
   } else {
-    y2 = drawField(page2, "Address", "Not Specified", 55, y2, 120, 420)
+    y2 = drawField(page2, "Address", "", 55, y2, 120, 400)
   }
 
   y2 -= 20
