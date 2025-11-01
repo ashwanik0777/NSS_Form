@@ -258,21 +258,39 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   drawHeaderLine(page2, "My Bharat Portal Registration", y2)
   y2 -= 28
   y2 = drawField(page2, "Registered on My Bharat Portal", formData.myBharatPortalRegistered ? "Yes" : "No", 55, y2, 220, 240)
+  if (formData.myBharatPortalRegistered) {
+    y2 = drawField(page2, "My Bharat Portal ID", (formData as any).myBharatPortalId || "", 55, y2, 220, 240)
+    const mScreenshot = (formData as any).myBharatPortalScreenshot ? "Uploaded" : "Not Uploaded"
+    y2 = drawField(page2, "Portal Screenshot", mScreenshot, 55, y2, 220, 240)
+  }
 
   y2 -= 6
   drawHeaderLine(page2, "Additional Achievements", y2)
   y2 -= 28
-  y2 = drawField(page2, "NSS Achievements", formData.specialNSSAchievements, 55, y2, 120, 400)
+  y2 = drawField(page2, "NSS Achievements", formData.specialNSSAchievements || "None", 55, y2, 120, 400)
+  const achProof = (formData as any).specialNSSAchievementsProof && (formData as any).specialNSSAchievementsProof !== null ? "Uploaded" : "Not Uploaded"
+  y2 = drawField(page2, "Achievement Proof", achProof, 55, y2, 120, 400)
   y2 = drawField(page2, "Attended ELP", formData.attendedELP ? "Yes" : "No", 55, y2, 120, 400)
-  y2 = drawField(page2, "Other Achievements", formData.otherAchievements, 55, y2, 120, 400)
+  if (formData.attendedELP) {
+    const elpProof = (formData as any).elpProof && (formData as any).elpProof !== null ? "Uploaded" : "Not Uploaded"
+    y2 = drawField(page2, "ELP Proof", elpProof, 55, y2, 120, 400)
+  }
+  y2 = drawField(page2, "Other Achievements", formData.otherAchievements || "None", 55, y2, 120, 400)
+  const otherCerts = (formData as any).otherAchievementsCertificates && (formData as any).otherAchievementsCertificates !== null ? "Uploaded" : "Not Uploaded"
+  y2 = drawField(page2, "Other Certificates", otherCerts, 55, y2, 120, 400)
 
   y2 -= 6
   drawHeaderLine(page2, "Address Details", y2)
   y2 -= 28
-  const addrTypeText = formData.addressType ? (formData.addressType === "hostler" ? "Hostler" : formData.addressType === "dayscholar" ? "Day Scholar" : formData.addressType) : ""
+  const addrTypeText = formData.addressType ? (formData.addressType === "hostler" ? "Hostler" : formData.addressType === "dayscholar" ? "Day Scholar" : formData.addressType) : "Not Specified"
   y2 = drawField(page2, "Address Type", addrTypeText, 55, y2, 120, 420)
-  if (formData.addressType === "hostler") y2 = drawField(page2, "Hostel Address", formData.hostelAddress, 55, y2, 120, 420)
-  if (formData.addressType === "dayscholar") y2 = drawField(page2, "Home Address", formData.homeAddress, 55, y2, 120, 420)
+  if (formData.addressType === "hostler") {
+    y2 = drawField(page2, "Hostel Address", formData.hostelAddress || "", 55, y2, 120, 420)
+  } else if (formData.addressType === "dayscholar") {
+    y2 = drawField(page2, "Home Address", formData.homeAddress || "", 55, y2, 120, 420)
+  } else {
+    y2 = drawField(page2, "Address", "Not Specified", 55, y2, 120, 420)
+  }
 
   y2 -= 20
   drawHeaderLine(page2, "Self Declaration", y2)
@@ -298,7 +316,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   const coordX = 380, coordY = volY, coordW = 140, coordH = 40
   page2.drawRectangle({ x: coordX, y: coordY, width: coordW, height: coordH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
   try {
-    const coordBuf = loadLocalFile("public/coordinatorSign.png")
+    const coordBuf = loadLocalFile("")
     const coordImg = await pdfDoc.embedPng(coordBuf)
     page2.drawImage(coordImg, { x: coordX + 2, y: coordY + 2, width: coordW - 4, height: coordH - 4 })
   } catch {}

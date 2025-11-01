@@ -10,14 +10,17 @@ export interface INSSApplication extends Document {
 
   // Personal Details (Step 2)
   nameEnglish: string
+  nameHindi?: string
   fatherName: string
   motherName: string
   dateOfBirth: Date
   mobileNo: string
   emailId: string
   departmentName: string
+  courseName?: string
   gender: "male" | "female" | "other"
   category: "general" | "obc" | "st" | "sc"
+  bloodGroup?: string
   institutionalIdCard: string
   institutionalIdProof?: string
   photo: string
@@ -62,6 +65,9 @@ export interface INSSApplication extends Document {
   schoolName: string
   highSchoolCertificate?: string
   myBharatPortalId?: string
+  addressType?: "hostler" | "dayscholar" | string
+  hostelAddress?: string
+  homeAddress?: string
   // permanentAddress?: string
   // correspondenceAddress?: string
   // emergencyPerson?: string
@@ -137,6 +143,10 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       required: true,
       trim: true,
     },
+    courseName: {
+      type: String,
+      trim: true,
+    },
     gender: {
       type: String,
       enum: ["male", "female", "other"],
@@ -146,6 +156,10 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       type: String,
       enum: ["general", "obc", "st", "sc"],
       required: true,
+    },
+    bloodGroup: {
+      type: String,
+      trim: true,
     },
     institutionalIdCard: {
       type: String,
@@ -299,6 +313,22 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     highSchoolCertificate: {
       type: String, // This should be a string URL
       required: false,
+      trim: true,
+    },
+    nameHindi: {
+      type: String,
+      trim: true,
+    },
+    addressType: {
+      type: String,
+      trim: true,
+    },
+    hostelAddress: {
+      type: String,
+      trim: true,
+    },
+    homeAddress: {
+      type: String,
       trim: true,
     },
   },

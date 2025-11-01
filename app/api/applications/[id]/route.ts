@@ -76,47 +76,52 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
     }
 
+    // Convert to plain object to access all fields, including those not in schema
+    const appPlain = application.toObject ? application.toObject() : application
+    const appData = appPlain as any
+
     try {
       if (status === "approved") {
-        // Prepare formData for PDF
+        // Prepare formData for PDF - include all fields including courseName, bloodGroup, and address details
         const formData = {
           institutionName: application.institutionName,
           formNo: application.formNo,
           enrollment: application.enrollment,
           programOfficerName: application.programOfficerName,
           unitNo: application.unitNo,
-          schoolName: (application as any).schoolName || '',
+          schoolName: appData.schoolName || '',
           nameEnglish: application.nameEnglish,
-          nameHindi: application.nameHindi,
+          nameHindi: appData.nameHindi || application.nameEnglish,
           fatherName: application.fatherName,
           motherName: application.motherName,
           dateOfBirth: application.dateOfBirth?.toISOString().split('T')[0] || '',
           mobileNo: application.mobileNo,
           emailId: application.emailId,
           departmentName: application.departmentName || '',
-          courseName: (application as any).courseName || '',
+          courseName: appData.courseName || '',
           gender: application.gender || '',
           category: application.category || '',
           institutionalIdCard: application.institutionalIdCard || '',
           photo: application.photo || '',
-          signature: (application as any).signature || '',
+          signature: application.signature || '',
           highSchoolRollNo: application.highSchoolRollNo,
           classSemester: application.classSemester,
-          bloodGroup: application.bloodGroup || '',
+          bloodGroup: appData.bloodGroup || '',
           nssEnrollmentYear: application.nssEnrollmentYear || '',
           attendedSpecialCamp: application.attendedSpecialCamp || false,
           specialCampDetails: application.specialCampDetails || undefined,
           myBharatPortalRegistered: application.myBharatPortalRegistered || false,
-          myBharatPortalId: (application as any).myBharatPortalId || '',
-          myBharatPortalScreenshot: (application as any).myBharatPortalScreenshot || '',
-          specialNSSAchievements: application.specialNSSAchievements || 'No',
+          myBharatPortalId: appData.myBharatPortalId || '',
+          myBharatPortalScreenshot: appData.myBharatPortalScreenshot || '',
+          specialNSSAchievements: appData.specialNSSAchievements || 'No',
+          specialNSSAchievementsProof: appData.specialNSSAchievementsProof || null,
           attendedELP: application.attendedELP || false,
-          elpProof: (application as any).elpProof || '',
-          otherAchievements: application.otherAchievements || 'No',
-          otherAchievementsCertificates: (application as any).otherAchievementsCertificates || 'Na',
-          addressType: (application as any).addressType || '',
-          hostelAddress: (application as any).hostelAddress || '',
-          homeAddress: (application as any).homeAddress || '',
+          elpProof: appData.elpProof || null,
+          otherAchievements: appData.otherAchievements || 'No',
+          otherAchievementsCertificates: appData.otherAchievementsCertificates || null,
+          addressType: appData.addressType || '',
+          hostelAddress: appData.hostelAddress || '',
+          homeAddress: appData.homeAddress || '',
         };
 
         // --- Volunteer Account Creation / Reset Logic ---
