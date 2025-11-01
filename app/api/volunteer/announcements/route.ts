@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import Announcement from "@/models/Announcement"
 import NSSApplication from "@/models/NSSApplication"
+import NotificationRead from "@/models/NotificationRead"
 
 export async function GET(_request: NextRequest) {
   try {
@@ -43,6 +44,19 @@ export async function GET(_request: NextRequest) {
       .limit(5)
       .lean()
 
+    // Get read status for notifications
+    const notificationIds = notifications.map((n: any) => n._id)
+    const readNotifications = await NotificationRead.find({
+      volunteerId: session.user.id,
+      announcementId: { $in: notificationIds },
+    })
+      .select("announcementId")
+      .lean()
+
+    const readNotificationIds = new Set(
+      readNotifications.map((r: any) => r.announcementId.toString())
+    )
+
     return NextResponse.json({
       success: true,
       announcements: announcements.map((a: any) => ({
@@ -59,6 +73,7 @@ export async function GET(_request: NextRequest) {
         content: n.content,
         createdAt: n.createdAt,
         createdBy: n.createdBy?.name || "Admin",
+        isRead: readNotificationIds.has(n._id.toString()),
       })),
     })
   } catch (error) {

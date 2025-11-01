@@ -59,6 +59,9 @@ export default function VolunteerDashboard() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [showNotifications, setShowNotifications] = useState(false)
+  
+  // Refresh function to refetch data
+  // (removed duplicate fetchDashboardData declaration)
 
   useEffect(() => {
     if (status === "loading") return
@@ -373,9 +376,9 @@ export default function VolunteerDashboard() {
                 title="Notifications"
               >
                 <Bell className="w-5 h-5 text-foreground" />
-                {notifications.length > 0 && (
+                {notifications.filter((n) => !n.isRead).length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {notifications.length}
+                    {notifications.filter((n) => !n.isRead).length}
                   </span>
                 )}
               </button>
@@ -418,7 +421,48 @@ export default function VolunteerDashboard() {
                   {notifications.map((notif) => (
                     <div
                       key={notif._id}
-                      className="p-3 bg-muted/50 rounded-lg border border-border/50"
+                      className={`p-3 rounded-lg border ${
+                        notif.isRead
+                          ? "bg-muted/30 border-border/30 opacity-70"
+                          : "bg-muted/50 border-border/50"
+                      }`}
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        if (!notif.isRead) {
+                          try {
+                            // Optimistically update UI
+                            setNotifications((prev) =>
+                              prev.map((n) =>
+                                n._id === notif._id ? { ...n, isRead: true } : n
+                              )
+                            )
+                            
+                            // Mark as read on server
+                            const res = await fetch("/api/volunteer/notifications/read", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ announcementId: notif._id }),
+                            })
+                            
+                            if (!res.ok) {
+                              // Revert on error
+                              setNotifications((prev) =>
+                                prev.map((n) =>
+                                  n._id === notif._id ? { ...n, isRead: false } : n
+                                )
+                              )
+                            }
+                          } catch (error) {
+                            console.error("Error marking notification as read:", error)
+                            // Revert on error
+                            setNotifications((prev) =>
+                              prev.map((n) =>
+                                n._id === notif._id ? { ...n, isRead: false } : n
+                              )
+                            )
+                          }
+                        }
+                      }}
                     >
                       <p className="font-medium text-sm text-foreground mb-1">{notif.title}</p>
                       <p className="text-xs text-muted-foreground line-clamp-2">{notif.content}</p>
