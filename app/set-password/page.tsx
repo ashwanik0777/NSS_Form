@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function SetPasswordPage() {
