@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   Calendar,
+  CreditCard,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -49,6 +50,12 @@ const sidebarItems: SidebarItem[] = [
     label: "My Application",
     href: "/dashboard/application",
     icon: <FileText className="w-5 h-5" />,
+  },
+  {
+    id: "id-card",
+    label: "ID Card",
+    href: "/dashboard/id-card",
+    icon: <CreditCard className="w-5 h-5" />,
   },
   {
     id: "events",
