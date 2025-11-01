@@ -490,8 +490,8 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
   const qrY = contentStartY
   
   try {
-    // Generate QR code with volunteer information
-    const qrData = JSON.stringify({
+    // Generate QR code with volunteer information as URL
+    const volunteerData = {
       name: data.name,
       email: data.email || "",
       mobile: data.mobileNo || "",
@@ -501,9 +501,14 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
       project: data.projectName || "",
       role: data.role || "Volunteer",
       id: data.volunteerId || "",
-    })
+    }
     
-    const qrBuffer = await generateQRCode(qrData)
+    // Create URL with encoded JSON data
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    const encodedData = encodeURIComponent(JSON.stringify(volunteerData))
+    const qrUrl = `${baseUrl}/qr/${encodedData}`
+    
+    const qrBuffer = await generateQRCode(qrUrl)
     const qrImage = await pdfDoc.embedPng(qrBuffer)
     
     // QR code border

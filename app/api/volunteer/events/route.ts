@@ -67,6 +67,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Calculate distance between two coordinates using Haversine formula (in meters)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000 // Earth's radius in meters
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any
@@ -110,6 +125,28 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Check location if event has coordinates
+      if (event.locationCoordinates && event.locationCoordinates.latitude && event.locationCoordinates.longitude) {
+        const distance = calculateDistance(
+          event.locationCoordinates.latitude,
+          event.locationCoordinates.longitude,
+          location.latitude,
+          location.longitude
+        )
+
+        if (distance > 50) {
+          // More than 50 meters away
+          return NextResponse.json(
+            {
+              success: false,
+              message: "You are not at the event location. Please be within 50 meters of the event location to start.",
+              distance: Math.round(distance),
+            },
+            { status: 400 }
+          )
+        }
+      }
+
       if (!volunteerEvent) {
         volunteerEvent = new VolunteerEvent({
           volunteerId: session.user.id,
@@ -146,6 +183,53 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: "Event not started" }, { status: 400 })
       }
 
+      // Check if volunteer is still at event location (for ending)
+      let distance = 0
+      if (event.locationCoordinates && event.locationCoordinates.latitude && event.locationCoordinates.longitude) {
+        distance = calculateDistance(
+          event.locationCoordinates.latitude,
+          event.locationCoordinates.longitude,
+          location.latitude,
+          location.longitude
+        )
+
+        if (distance > 50) {
+          // More than 50 meters away - they already left
+          // Still allow ending but mark appropriately
+          volunteerEvent.endPhoto = photo
+          volunteerEvent.endLocation = {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            address: location.address,
+          }
+          volunteerEvent.endTime = new Date()
+          volunteerEvent.status = "completed"
+
+          // Calculate hours worked based on actual time attended
+          if (volunteerEvent.startTime && volunteerEvent.endTime) {
+            const hours =
+              (new Date(volunteerEvent.endTime).getTime() - new Date(volunteerEvent.startTime).getTime()) /
+              (1000 * 60 * 60)
+            volunteerEvent.hoursWorked = Math.max(0, Math.round(hours * 10) / 10) // Ensure non-negative
+          }
+
+          if (workDescription) {
+            volunteerEvent.workDescription = workDescription
+          }
+
+          await volunteerEvent.save()
+
+          return NextResponse.json({
+            success: true,
+            message: "You have already left the event. Event participation recorded based on your attendance time.",
+            volunteerEvent,
+            leftEarly: true,
+            distance: Math.round(distance),
+          })
+        }
+      }
+
+      // Volunteer is still at location - normal end
       volunteerEvent.endPhoto = photo
       volunteerEvent.endLocation = {
         latitude: location.latitude,
@@ -155,12 +239,21 @@ export async function POST(request: NextRequest) {
       volunteerEvent.endTime = new Date()
       volunteerEvent.status = "completed"
 
-      // Calculate hours worked
+      // Calculate hours worked - actual attendance time, capped at event duration
       if (volunteerEvent.startTime && volunteerEvent.endTime) {
-        const hours =
+        const actualHours =
           (new Date(volunteerEvent.endTime).getTime() - new Date(volunteerEvent.startTime).getTime()) /
           (1000 * 60 * 60)
-        volunteerEvent.hoursWorked = Math.round(hours * 10) / 10
+
+        // Calculate max hours from event duration
+        let maxHours = actualHours
+        if (event.startTime && event.endTime) {
+          maxHours =
+            (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60 * 60)
+        }
+
+        // Hours worked is minimum of actual attendance and max event duration
+        volunteerEvent.hoursWorked = Math.min(Math.max(0, Math.round(actualHours * 10) / 10), maxHours)
       }
 
       if (workDescription) {

@@ -18,6 +18,10 @@ import {
   Calendar,
   MapPin,
   ArrowRight,
+  Clock,
+  Bell,
+  Megaphone,
+  X,
 } from "lucide-react"
 
 interface ApplicationData {
@@ -50,6 +54,11 @@ export default function VolunteerDashboard() {
   const [completion, setCompletion] = useState<ProfileCompletion | null>(null)
   const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null)
   const [loading, setLoading] = useState(true)
+  const [totalHours, setTotalHours] = useState(0)
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [announcements, setAnnouncements] = useState<any[]>([])
+  const [showNotifications, setShowNotifications] = useState(false)
 
   useEffect(() => {
     if (status === "loading") return
@@ -72,17 +81,21 @@ export default function VolunteerDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [profileRes, appRes, projectRes, eventsRes] = await Promise.all([
+      const [profileRes, appRes, projectRes, eventsRes, statsRes, announcementsRes] = await Promise.all([
         fetch("/api/volunteer/profile"),
         fetch("/api/volunteer/application"),
         fetch("/api/volunteer/projects"),
         fetch("/api/volunteer/events"),
+        fetch("/api/volunteer/stats"),
+        fetch("/api/volunteer/announcements"),
       ])
 
       const profileData = await profileRes.json()
       const appData = await appRes.json()
       const projectData = await projectRes.json()
       const eventsData = await eventsRes.json()
+      const statsData = await statsRes.json()
+      const announcementsData = await announcementsRes.json()
 
       if (profileData.success) {
         setCompletion(profileData.completion)
@@ -114,6 +127,16 @@ export default function VolunteerDashboard() {
           router.push("/dashboard/projects")
           return
         }
+      }
+
+      if (statsData.success) {
+        setTotalHours(statsData.totalHours || 0)
+        setUpcomingEvents(statsData.upcomingEvents || [])
+      }
+
+      if (announcementsData.success) {
+        setNotifications(announcementsData.notifications || [])
+        setAnnouncements(announcementsData.announcements || [])
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
@@ -340,30 +363,144 @@ export default function VolunteerDashboard() {
 
         {/* Sidebar Cards */}
         <div className="space-y-6">
-          {/* Quick Stats */}
+          {/* Total Hours & Notification Button */}
           <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Quick Stats</h3>
-            <div className="space-y-4">
-              {application && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Application Status</p>
-                  <p className="text-lg font-bold text-foreground capitalize">{application.status.replace("-", " ")}</p>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Total Hours</h3>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 hover:bg-muted rounded-lg transition-colors"
+                title="Notifications"
+              >
+                <Bell className="w-5 h-5 text-foreground" />
+                {notifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {notifications.length}
+                  </span>
+                )}
+              </button>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-primary/10 rounded-lg p-4 flex-1">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-6 h-6 text-primary" />
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{totalHours.toFixed(1)}</p>
+                    <p className="text-xs text-muted-foreground">Hours Worked</p>
+                  </div>
                 </div>
-              )}
-              {completion && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Profile Completion</p>
-                  <p className="text-lg font-bold text-primary">{completion.percent}%</p>
-                </div>
-              )}
-              {selectedProject && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Project</p>
-                  <p className="text-lg font-bold text-green-600">1</p>
+              </div>
+            </div>
+            {completion && (
+              <div className="pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-1">Profile Completion</p>
+                <p className="text-lg font-bold text-primary">{completion.percent}%</p>
+              </div>
+            )}
+          </div>
+
+          {/* Notifications Dropdown */}
+          {showNotifications && (
+            <div className="bg-card rounded-xl border border-border p-4 shadow-lg z-10">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-foreground">Latest Notifications</h3>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className="p-1 hover:bg-muted rounded"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No new notifications</p>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {notifications.map((notif) => (
+                    <div
+                      key={notif._id}
+                      className="p-3 bg-muted/50 rounded-lg border border-border/50"
+                    >
+                      <p className="font-medium text-sm text-foreground mb-1">{notif.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{notif.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(notif.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          </div>
+          )}
+
+          {/* Upcoming Events */}
+          {upcomingEvents.length > 0 && (
+            <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                <Calendar className="w-5 h-5 mr-2 text-primary" />
+                Upcoming Events
+              </h3>
+              <div className="space-y-3">
+                {upcomingEvents.slice(0, 3).map((event) => (
+                  <div
+                    key={event._id}
+                    className="p-3 bg-muted/50 rounded-lg border border-border/50 hover:bg-muted transition-colors cursor-pointer"
+                    onClick={() => router.push("/dashboard/events")}
+                  >
+                    <p className="font-medium text-sm text-foreground mb-1">{event.title}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar className="w-3 h-3" />
+                      <span>
+                        {new Date(event.eventDate).toLocaleDateString()}
+                        {event.startTime && ` • ${new Date(event.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`}
+                      </span>
+                    </div>
+                    {event.location && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate">{event.location}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {upcomingEvents.length > 3 && (
+                  <Link
+                    href="/dashboard/events"
+                    className="block text-center text-sm text-primary hover:text-primary/80 font-medium mt-2"
+                  >
+                    View All Events →
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Announcements */}
+          {announcements.length > 0 && (
+            <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                <Megaphone className="w-5 h-5 mr-2 text-primary" />
+                Announcements
+              </h3>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {announcements.map((announcement) => (
+                  <div
+                    key={announcement._id}
+                    className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                  >
+                    <p className="font-semibold text-sm text-foreground mb-2">{announcement.title}</p>
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-3">{announcement.content}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className="bg-card rounded-xl border border-border p-6 shadow-sm">

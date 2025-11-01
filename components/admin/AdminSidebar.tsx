@@ -18,6 +18,7 @@ import {
   Award,
   FolderKanban,
   TrendingUp,
+  Megaphone,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -64,6 +65,12 @@ const sidebarItems: SidebarItem[] = [
     label: "Events",
     href: "/admin/events",
     icon: <Calendar className="w-5 h-5" />,
+  },
+  {
+    id: "announcements",
+    label: "Announcements",
+    href: "/admin/announcements",
+    icon: <Megaphone className="w-5 h-5" />,
   },
   // {
   //   id: "certificates",

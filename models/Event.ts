@@ -6,6 +6,10 @@ export interface IEvent extends Document {
   projectId: mongoose.Types.ObjectId
   eventDate: Date
   location?: string
+  locationCoordinates?: {
+    latitude: number
+    longitude: number
+  }
   startTime?: Date
   endTime?: Date
   coordinator?: string
@@ -40,6 +44,10 @@ const EventSchema = new Schema<IEvent>(
     location: {
       type: String,
       trim: true,
+    },
+    locationCoordinates: {
+      latitude: { type: Number },
+      longitude: { type: Number },
     },
     startTime: {
       type: Date,

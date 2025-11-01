@@ -1,0 +1,69 @@
+import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
+import dbConnect from "@/lib/mongodb"
+import Announcement from "@/models/Announcement"
+import NSSApplication from "@/models/NSSApplication"
+
+export async function GET(_request: NextRequest) {
+  try {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    await dbConnect()
+
+    // Verify volunteer has approved application
+    const application = await NSSApplication.findOne({
+      userId: session.user.id,
+      status: "approved",
+    }).lean()
+
+    if (!application) {
+      return NextResponse.json({ success: true, announcements: [], notifications: [] })
+    }
+
+    // Get active announcements and notifications
+    const announcements = await Announcement.find({
+      status: "active",
+      type: { $in: ["announcement", "general"] },
+    })
+      .populate("createdBy", "name")
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean()
+
+    const notifications = await Announcement.find({
+      status: "active",
+      type: "notification",
+    })
+      .populate("createdBy", "name")
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean()
+
+    return NextResponse.json({
+      success: true,
+      announcements: announcements.map((a: any) => ({
+        _id: a._id,
+        title: a.title,
+        content: a.content,
+        type: a.type,
+        createdAt: a.createdAt,
+        createdBy: a.createdBy?.name || "Admin",
+      })),
+      notifications: notifications.map((n: any) => ({
+        _id: n._id,
+        title: n.title,
+        content: n.content,
+        createdAt: n.createdAt,
+        createdBy: n.createdBy?.name || "Admin",
+      })),
+    })
+  } catch (error) {
+    console.error("Announcements fetch error:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  }
+}
+
