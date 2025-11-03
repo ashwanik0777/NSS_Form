@@ -31,11 +31,19 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 - Form Preview before submission
 - Email Notifications for every status update
 - Secure Document Upload
+- Set password and complete profile after approval
+- Project selection and ID card generation
+- Event participation with location-based photo check-in/out
+- Automatic working hours calculation
 
 ### 🛠️ For Administrators
 - Admin Dashboard with analytics
 - Application Review (approve/reject with reason)
-- User Management (Admins/Sub-admins)
+- User Management (Admins/Sub-admins/Volunteers)
+- Project Management (create, assign, monitor)
+- Volunteer Management (track progress, hours, events)
+- Event Management (create, assign, monitor attendance)
+- Announcements (send to all or selected users)
 - Automated Email System
 - Reports & Real-time Analytics
 - Role-based Access Control
@@ -114,24 +122,46 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 5. **Preview All Details**
 6. **Submit Application**
 7. **Check Email for Confirmation**
-8. **Login to Dashboard to Track Status**
-    - See: Pending, Approved, or Rejected
-    - Download certificate if approved
+8. **Wait for Admin Approval**
+9. **After Approval:**
+    - Set your password (first login)
+    - Complete your profile (add missing details)
+    - Select your project from available options
+    - Download your digital ID card
+10. **Participate in Events:**
+    - Join events assigned to your project
+    - At event start: Upload location-based selfie (check-in)
+    - At event end: Upload location-based selfie (check-out)
+    - Working hours are automatically added to your profile based on event participation
+11. **Track your progress and working hours in your dashboard**
+12. **Receive announcements and notifications from admin**
 
 ### Admin Flow
 
 1. **Login as Admin**
 2. **Access Admin Dashboard**
-3. **View Application Stats**
-4. **Review Applications**
-    - Approve or Reject (with reason)
-    - Send status emails automatically
-5. **Manage Sub-admins**
-    - Add, edit, or remove sub-admins
-    - Assign permissions
-6. **Edit Form Layout (if needed)**
-7. **Test Email Templates**
-8. **Download Reports**
+3. **User Management**
+    - View, add, edit, or remove admins, sub-admins, and volunteers
+    - Assign roles and permissions
+4. **Project Management**
+    - Create new projects
+    - Assign volunteers to projects
+    - Monitor project progress and volunteer participation
+5. **Volunteer Management**
+    - Track volunteer registrations, approvals, and working hours
+    - View volunteer profiles and event participation
+6. **Event Management**
+    - Create and schedule events for projects
+    - Assign volunteers to events
+    - Monitor attendance and working hours (via photo check-in/out)
+7. **Announcements**
+    - Send announcements to all users or selected groups
+8. **Application Review**
+    - Approve or reject volunteer applications (with reason)
+    - Automated status emails sent to applicants
+9. **Reports & Analytics**
+    - Download reports on volunteers, projects, events, and hours
+    - View real-time analytics on dashboard
 
 ---
 
@@ -149,11 +179,18 @@ flowchart TD
     F --> G[Review & Declaration]
     G --> H[Submit Application]
     H --> I[Receive Email Confirmation]
-    I --> J[Login to Volunteer Dashboard]
-    J --> K{Application Status}
-    K -->|Pending| L[Wait for Review]
-    K -->|Approved| M[Download Certificate]
-    K -->|Rejected| N[See Reason & Retry]
+    I --> J[Wait for Admin Approval]
+    J -->|Approved| K[Set Password (First Login)]
+    K --> L[Complete Profile]
+    L --> M[Select Project]
+    M --> N[Download Digital ID Card]
+    N --> O[Participate in Events]
+    O --> P[Event Start: Upload Location-based Selfie (Check-in)]
+    P --> Q[Event End: Upload Location-based Selfie (Check-out)]
+    Q --> R[Working Hours Added to Profile]
+    R --> S[Track Progress & Hours in Dashboard]
+    S --> T[Receive Announcements & Notifications]
+    J -->|Rejected| U[See Reason & Retry]
 ```
 
 ---
@@ -163,15 +200,29 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Admin Login] --> B[View Dashboard]
-    B --> C[See Application Stats]
-    B --> D[Review Applications]
-    D --> E{Approve or Reject?}
-    E -->|Approve| F[Send Approval Email]
-    E -->|Reject| G[Send Rejection Email with Reason]
-    B --> H[Manage Sub-admins]
-    B --> I[Edit Form Layout]
-    B --> J[Test Email Templates]
-    B --> K[Download Reports]
+    B --> C[User Management]
+    C --> C1[Add/Edit/Remove Admins/Sub-admins/Volunteers]
+    C --> C2[Assign Roles & Permissions]
+    B --> D[Project Management]
+    D --> D1[Create/Edit Projects]
+    D --> D2[Assign Volunteers to Projects]
+    D --> D3[Monitor Project Progress]
+    B --> E[Volunteer Management]
+    E --> E1[Track Registrations & Approvals]
+    E --> E2[View Volunteer Profiles]
+    E --> E3[Monitor Working Hours & Event Participation]
+    B --> F[Event Management]
+    F --> F1[Create/Schedule Events]
+    F --> F2[Assign Volunteers to Events]
+    F --> F3[Monitor Attendance (Photo Check-in/out)]
+    B --> G[Announcements]
+    G --> G1[Send Announcements to Users]
+    B --> H[Application Review]
+    H --> H1[Approve/Reject Applications]
+    H --> H2[Send Status Emails]
+    B --> I[Reports & Analytics]
+    I --> I1[Download Reports]
+    I --> I2[View Real-time Analytics]
 ```
 
 ---
