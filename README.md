@@ -31,19 +31,11 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 - Form Preview before submission
 - Email Notifications for every status update
 - Secure Document Upload
-- Set password and complete profile after approval
-- Project selection and ID card generation
-- Event participation with location-based photo check-in/out
-- Automatic working hours calculation
 
 ### 🛠️ For Administrators
 - Admin Dashboard with analytics
 - Application Review (approve/reject with reason)
-- User Management (Admins/Sub-admins/Volunteers)
-- Project Management (create, assign, monitor)
-- Volunteer Management (track progress, hours, events)
-- Event Management (create, assign, monitor attendance)
-- Announcements (send to all or selected users)
+- User Management (Admins/Sub-admins)
 - Automated Email System
 - Reports & Real-time Analytics
 - Role-based Access Control
@@ -122,46 +114,24 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 5. **Preview All Details**
 6. **Submit Application**
 7. **Check Email for Confirmation**
-8. **Wait for Admin Approval**
-9. **After Approval:**
-    - Set your password (first login)
-    - Complete your profile (add missing details)
-    - Select your project from available options
-    - Download your digital ID card
-10. **Participate in Events:**
-    - Join events assigned to your project
-    - At event start: Upload location-based selfie (check-in)
-    - At event end: Upload location-based selfie (check-out)
-    - Working hours are automatically added to your profile based on event participation
-11. **Track your progress and working hours in your dashboard**
-12. **Receive announcements and notifications from admin**
+8. **Login to Dashboard to Track Status**
+    - See: Pending, Approved, or Rejected
+    - Download certificate if approved
 
 ### Admin Flow
 
 1. **Login as Admin**
 2. **Access Admin Dashboard**
-3. **User Management**
-    - View, add, edit, or remove admins, sub-admins, and volunteers
-    - Assign roles and permissions
-4. **Project Management**
-    - Create new projects
-    - Assign volunteers to projects
-    - Monitor project progress and volunteer participation
-5. **Volunteer Management**
-    - Track volunteer registrations, approvals, and working hours
-    - View volunteer profiles and event participation
-6. **Event Management**
-    - Create and schedule events for projects
-    - Assign volunteers to events
-    - Monitor attendance and working hours (via photo check-in/out)
-7. **Announcements**
-    - Send announcements to all users or selected groups
-8. **Application Review**
-    - Approve or reject volunteer applications (with reason)
-    - Automated status emails sent to applicants
-9. **Reports & Analytics**
-    - Download reports on volunteers, projects, events, and hours
-    - View real-time analytics on dashboard
+3. **View Application Stats**
+4. **Review Applications**
+    - Approve or Reject (with reason)
+    - Send status emails automatically
+5. **Manage Sub-admins**
+    - Add, edit, or remove sub-admins
+    - Assign permissions
+6. **Edit Form Layout (if needed)**
+7. **Test Email Templates**
+8. **Download Reports**
 
 ---
 
@@ -171,26 +141,30 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 
 ```mermaid
 flowchart TD
-    A[Start: Visit Registration Page] --> B[Select Language]
-    B --> C[Fill Step 1: Institution Details]
-    C --> D[Fill Step 2: Personal Info]
-    D --> E[Fill Step 3: Education]
-    E --> F[Upload Documents]
-    F --> G[Review & Declaration]
-    G --> H[Submit Application]
-    H --> I[Receive Email Confirmation]
-    I --> J[Wait for Admin Approval]
-    J -->|Approved| K[Set Password (First Login)]
-    K --> L[Complete Profile]
-    L --> M[Select Project]
-    M --> N[Download Digital ID Card]
-    N --> O[Participate in Events]
-    O --> P1[Event Start: Upload Location-based Selfie (Check-in)]
-    P1 --> P2[Event End: Upload Location-based Selfie (Check-out)]
-    P2 --> Q[Working Hours Added to Profile]
-    Q --> R[Track Progress & Hours in Dashboard]
-    R --> S[Receive Announcements & Notifications]
-    J -->|Rejected| T[See Reason & Retry]
+    A[Start: Volunteer Submits Application] --> B[Email Confirmation Sent]
+    B --> C[Admin Reviews Application]
+    C --> D{Application Approved?}
+    D -->|No| E[Rejected: Volunteer Receives Rejection Email with Reason]
+    D -->|Yes| F[Volunteer Receives Approval Email with Login Link]
+
+    F --> G[Volunteer Logs in for the First Time]
+    G --> H[Set Password & Secure Account]
+    H --> I[Complete Volunteer Profile]
+    I --> J[Upload Additional Documents (if required)]
+    J --> K[Select Assigned Project or Request Project Enrollment]
+    K --> L[System Issues Digital NSS ID Card]
+    L --> M[Volunteer Dashboard Activated]
+
+    M --> N[View Upcoming NSS Events]
+    N --> O[Register for an Event]
+    O --> P[Attend Event - Capture Location Photo at Start Time]
+    P --> Q[Event Participation in Progress]
+    Q --> R[Capture Selfie at Event End]
+    R --> S[Upload Event Photos]
+    S --> T[System Records Attendance & Working Hours]
+    T --> U[Working Hours Reflected in Volunteer Profile]
+    U --> V[View Event Certificates & Progress Summary]
+    V --> W[End]
 ```
 
 ---
@@ -199,30 +173,52 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Admin Login] --> B[View Dashboard]
-    B --> C[User Management]
-    C --> C1[Add/Edit/Remove Admins/Sub-admins/Volunteers]
-    C --> C2[Assign Roles & Permissions]
-    B --> D[Project Management]
-    D --> D1[Create/Edit Projects]
-    D --> D2[Assign Volunteers to Projects]
-    D --> D3[Monitor Project Progress]
+    A[Admin Login] --> B[View Admin Dashboard Overview]
+    B --> C[Application Management]
+    C --> C1[Review Volunteer Applications]
+    C --> C2[Approve or Reject Applications with Reason]
+    C2 --> C3[Automatic Email Notifications Sent]
+
+    B --> D[User Management]
+    D --> D1[Create Admin/Sub-admin Accounts]
+    D --> D2[Assign Roles & Permissions]
+    D --> D3[Deactivate or Edit Users]
+
     B --> E[Volunteer Management]
-    E --> E1[Track Registrations & Approvals]
-    E --> E2[View Volunteer Profiles]
-    E --> E3[Monitor Working Hours & Event Participation]
-    B --> F[Event Management]
-    F --> F1[Create/Schedule Events]
-    F --> F2[Assign Volunteers to Events]
-    F --> F3[Monitor Attendance (Photo Check-in/out)]
-    B --> G[Announcements]
-    G --> G1[Send Announcements to Users]
-    B --> H[Application Review]
-    H --> H1[Approve/Reject Applications]
-    H --> H2[Send Status Emails]
+    E --> E1[View All Registered Volunteers]
+    E --> E2[Track Volunteer Profiles & Hours]
+    E --> E3[Edit or Approve Profile Changes]
+    E --> E4[Generate NSS ID Cards]
+
+    B --> F[Project Management]
+    F --> F1[Create or Edit NSS Projects]
+    F --> F2[Assign Volunteers to Projects]
+    F --> F3[Monitor Project Progress]
+    F --> F4[Export Project Reports]
+
+    B --> G[Event Management]
+    G --> G1[Create Upcoming NSS Events]
+    G --> G2[Assign Events to Projects or Volunteers]
+    G --> G3[Track Attendance & Photo Logs]
+    G --> G4[Calculate Working Hours]
+    G --> G5[Approve Event Certificates]
+
+    B --> H[Announcements]
+    H --> H1[Post Notifications to All Volunteers]
+    H --> H2[Send Event Reminders & Alerts]
+    H --> H3[Manage Internal Communication]
+
     B --> I[Reports & Analytics]
-    I --> I1[Download Reports]
-    I --> I2[View Real-time Analytics]
+    I --> I1[Application Statistics]
+    I --> I2[Volunteer Participation Summary]
+    I --> I3[Project & Event Reports]
+    I --> I4[Download Excel/PDF Reports]
+
+    B --> J[Settings]
+    J --> J1[Email Templates Management]
+    J --> J2[Form Customization]
+    J --> J3[Backup & Security Settings]
+
 ```
 
 ---
