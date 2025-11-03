@@ -1,25 +1,44 @@
 # 🌟 NSS Registration System
 
-A comprehensive **National Service Scheme (NSS)** volunteer registration and management system built using **Next.js 15**, **MongoDB**, and modern web technologies.
+A comprehensive **National Service Scheme (NSS)** volunteer registration and management system built with **Next.js 15**, **MongoDB**, and modern web technologies.
+
+---
+
+## 📚 Table of Contents
+
+- [Features](#-features)
+- [Technology Stack](#-technology-stack)
+- [Getting Started](#-getting-started)
+- [App Usage Guide](#-app-usage-guide)
+  - [Volunteer Flow](#volunteer-flow)
+  - [Admin Flow](#admin-flow)
+- [Flow Diagrams](#-flow-diagrams)
+  - [Volunteer Dashboard Flow](#volunteer-dashboard-flow)
+  - [Admin Dashboard Flow](#admin-dashboard-flow)
+- [Permission System](#-permission-system)
+- [Deployment](#️-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Support](#-support)
 
 ---
 
 ## ✨ Features
 
-### 👤 For Applicants
-- 🧩 **Multi-step Registration Form** — Intuitive 4-step form with real-time validation
-- 🌐 **Bilingual Support** — English & Hindi interface
-- 👁️‍🗨️ **Form Preview** — Review all details before final submission
-- 📧 **Email Notifications** — Automatic status updates via email
-- 📁 **Document Upload** — Upload necessary supporting documents securely
+### 👤 For Applicants (Volunteers)
+- Multi-step Registration Form (4 steps, real-time validation)
+- Bilingual Support (English & Hindi)
+- Form Preview before submission
+- Email Notifications for every status update
+- Secure Document Upload
 
 ### 🛠️ For Administrators
-- 📊 **Admin Dashboard** — Complete management interface with analytics
-- 🔎 **Application Review** — Approve/reject forms with dynamic reasoning
-- 👥 **User Management** — Create/manage Sub-admins with granular permissions
-- 📬 **Email System** — Automated email templates for all status changes
-- 📈 **Reports & Analytics** — Real-time statistics and performance tracking
-- 🔐 **Role-based Access** — Secure permission-based routing and API control
+- Admin Dashboard with analytics
+- Application Review (approve/reject with reason)
+- User Management (Admins/Sub-admins)
+- Automated Email System
+- Reports & Real-time Analytics
+- Role-based Access Control
 
 ---
 
@@ -40,6 +59,7 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 ## 🚀 Getting Started
 
 ### ✅ Prerequisites
+
 - **Node.js** v18 or later
 - **MongoDB** (Atlas or local)
 - **SMTP** Email service (e.g. Gmail, SendGrid)
@@ -47,28 +67,116 @@ A comprehensive **National Service Scheme (NSS)** volunteer registration and man
 ### 🔧 Installation
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/your-username/nss-registration-system.git
-cd nss-registration-system
-```
+    ```bash
+    git clone https://github.com/your-username/nss-registration-system.git
+    cd nss-registration-system
+    ```
 
+2. **Install dependencies**
+    ```bash
+    npm install
+    ```
+
+3. **Configure Environment Variables**
+
+    Create a `.env.local` file in the root directory and add:
+    ```
+    MONGODB_URI=your_mongodb_connection_string
+    NEXTAUTH_SECRET=your_nextauth_secret
+    EMAIL_SERVER_USER=your_email@example.com
+    EMAIL_SERVER_PASSWORD=your_email_password
+    EMAIL_SERVER_HOST=smtp.example.com
+    EMAIL_SERVER_PORT=587
+    ```
+
+4. **Run the development server**
+    ```bash
+    npm run dev
+    ```
+
+5. **Open the app**
+    - Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📋 Key Features Explained
+## 🧑‍💻 App Usage Guide
 
-### 🧾 Multi-step Form
+### Volunteer Flow
 
-The registration process is divided into:
+1. **Go to Registration Page**
+2. **Select Language** (English/Hindi)
+3. **Fill Multi-step Form**
+    - Step 1: Institution Details
+    - Step 2: Personal Information
+    - Step 3: Educational Background
+    - Step 4: Review & Declaration
+4. **Upload Required Documents**
+5. **Preview All Details**
+6. **Submit Application**
+7. **Check Email for Confirmation**
+8. **Login to Dashboard to Track Status**
+    - See: Pending, Approved, or Rejected
+    - Download certificate if approved
 
-- 🏫 Institution Details
-- 👤 Personal Information
-- 🎓 Educational Background
-- ✅ Review & Declaration
+### Admin Flow
 
-Includes input validation, field masking (e.g., phone numbers), and real-time previews.
+1. **Login as Admin**
+2. **Access Admin Dashboard**
+3. **View Application Stats**
+4. **Review Applications**
+    - Approve or Reject (with reason)
+    - Send status emails automatically
+5. **Manage Sub-admins**
+    - Add, edit, or remove sub-admins
+    - Assign permissions
+6. **Edit Form Layout (if needed)**
+7. **Test Email Templates**
+8. **Download Reports**
 
-### 🔐 Permission System
+---
+
+## 🗂️ Flow Diagrams
+
+### Volunteer Dashboard Flow
+
+```mermaid
+flowchart TD
+    A[Start: Visit Registration Page] --> B[Select Language]
+    B --> C[Fill Step 1: Institution Details]
+    C --> D[Fill Step 2: Personal Info]
+    D --> E[Fill Step 3: Education]
+    E --> F[Upload Documents]
+    F --> G[Review & Declaration]
+    G --> H[Submit Application]
+    H --> I[Receive Email Confirmation]
+    I --> J[Login to Volunteer Dashboard]
+    J --> K{Application Status}
+    K -->|Pending| L[Wait for Review]
+    K -->|Approved| M[Download Certificate]
+    K -->|Rejected| N[See Reason & Retry]
+```
+
+---
+
+### Admin Dashboard Flow
+
+```mermaid
+flowchart TD
+    A[Admin Login] --> B[View Dashboard]
+    B --> C[See Application Stats]
+    B --> D[Review Applications]
+    D --> E{Approve or Reject?}
+    E -->|Approve| F[Send Approval Email]
+    E -->|Reject| G[Send Rejection Email with Reason]
+    B --> H[Manage Sub-admins]
+    B --> I[Edit Form Layout]
+    B --> J[Test Email Templates]
+    B --> K[Download Reports]
+```
+
+---
+
+## 🔐 Permission System
 
 | Role       | Access Level                      |
 |------------|----------------------------------|
@@ -76,60 +184,46 @@ Includes input validation, field masking (e.g., phone numbers), and real-time pr
 | Sub-admin  | Limited access (assignable)       |
 | User       | Form submission & tracking only   |
 
-Permissions are enforced both in the UI and the backend via middleware.
-
-### 📬 Email Notifications
-
-Users receive updates at each stage:
-- ✔️ Application submission confirmation
-- 🟢 Approval (with certificate or download link)
-- 🔴 Rejection (with reason and retry instructions)
-
-Admins can test emails via the dashboard interface.
-
-### 📊 Admin Dashboard
-
-Modern dashboard includes:
-- 📈 Application stats (pending, approved, rejected)
-- 🔍 Review interface with approve/reject actions
-- 📋 Sub-admin management (create, assign, remove)
-- ⚙️ Form layout editor (dynamic field configuration)
-- 🧪 Test email templates
+- Permissions enforced in UI and backend.
+- Sub-admins can be created/managed by Admins.
 
 ---
 
-### ⚙️ Deployment
+## ⚙️ Deployment
 
 To build for production:
 
-You can deploy this app on platforms like **Vercel**, **Render**, or **DigitalOcean App Platform**.
+```bash
+npm run build
+npm start
+```
+
+You can deploy on **Vercel**, **Render**, or **DigitalOcean App Platform**.
 
 ---
 
-### 🤝 Contributing
+## 🤝 Contributing
 
-Want to help improve this system?
-- Fork this repository
-- Create a new feature branch
-- Commit your changes
-- Submit a Pull Request
+1. Fork this repository
+2. Create a new feature branch
+3. Commit your changes
+4. Submit a Pull Request
 
-We welcome contributions of all sizes.
-
----
-
-### 📄 License
-
-This project is licensed under the MIT License.
+All contributions are welcome!
 
 ---
 
-### 📞 Support
+## 📄 License
 
-Need help or want to report an issue?
-- 💬 Open an issue on GitHub
-- 📧 Contact the dev team
-- 📝 Refer to the documentation folder
+MIT License
+
+---
+
+## 📞 Support
+
+- Open an issue on GitHub
+- Email the dev team
+- See the `/docs` folder for more help
 
 Developed for the National Service Scheme (NSS), Uttar Pradesh 🇮🇳
 
