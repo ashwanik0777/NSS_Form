@@ -185,12 +185,12 @@ flowchart TD
     L --> M[Select Project]
     M --> N[Download Digital ID Card]
     N --> O[Participate in Events]
-    O --> P[Event Start: Upload Location-based Selfie (Check-in)]
-    P --> Q[Event End: Upload Location-based Selfie (Check-out)]
-    Q --> R[Working Hours Added to Profile]
-    R --> S[Track Progress & Hours in Dashboard]
-    S --> T[Receive Announcements & Notifications]
-    J -->|Rejected| U[See Reason & Retry]
+    O --> P1[Event Start: Upload Location-based Selfie (Check-in)]
+    P1 --> P2[Event End: Upload Location-based Selfie (Check-out)]
+    P2 --> Q[Working Hours Added to Profile]
+    Q --> R[Track Progress & Hours in Dashboard]
+    R --> S[Receive Announcements & Notifications]
+    J -->|Rejected| T[See Reason & Retry]
 ```
 
 ---
