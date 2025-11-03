@@ -146,25 +146,24 @@ flowchart TD
     C --> D{Application Approved?}
     D -->|No| E[Rejected: Volunteer Receives Rejection Email with Reason]
     D -->|Yes| F[Volunteer Receives Approval Email with Login Link]
-
     F --> G[Volunteer Logs in for the First Time]
-    G --> H[Set Password & Secure Account]
+    G --> H[Set Password and Secure Account]
     H --> I[Complete Volunteer Profile]
-    I --> J[Upload Additional Documents (if required)]
-    J --> K[Select Assigned Project or Request Project Enrollment]
+    I --> J[Upload Additional Documents if Required]
+    J --> K[Select or Request Project Enrollment]
     K --> L[System Issues Digital NSS ID Card]
     L --> M[Volunteer Dashboard Activated]
-
     M --> N[View Upcoming NSS Events]
-    N --> O[Register for an Event]
-    O --> P[Attend Event - Capture Location Photo at Start Time]
+    N --> O[Register for Event]
+    O --> P[Attend Event - Capture Location Photo at Start]
     P --> Q[Event Participation in Progress]
     Q --> R[Capture Selfie at Event End]
     R --> S[Upload Event Photos]
-    S --> T[System Records Attendance & Working Hours]
+    S --> T[System Records Attendance and Working Hours]
     T --> U[Working Hours Reflected in Volunteer Profile]
-    U --> V[View Event Certificates & Progress Summary]
+    U --> V[View Event Certificates and Progress Summary]
     V --> W[End]
+
 ```
 
 ---
