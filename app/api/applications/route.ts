@@ -133,15 +133,31 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
+    const unitNo = searchParams.get("unitNo")
+    const enrollment = searchParams.get("enrollment") // first-year | second-year
+    const schoolName = searchParams.get("schoolName")
+    const departmentName = searchParams.get("departmentName")
     // Remove default limit of 10, fetch all applications if limit not provided
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limitParam = searchParams.get("limit")
     const limit = limitParam ? Number.parseInt(limitParam) : 0 // 0 means no limit
     const skip = (page - 1) * (limit || 1)
 
-    let query = {}
+    let query: any = {}
     if (status && status !== "all") {
       query = { status }
+    }
+    if (unitNo && unitNo !== "all") {
+      query.unitNo = unitNo
+    }
+    if (enrollment && (enrollment === "first-year" || enrollment === "second-year")) {
+      query.enrollment = enrollment
+    }
+    if (schoolName && schoolName.trim()) {
+      query.schoolName = { $regex: new RegExp(`${schoolName.trim()}`, 'i') }
+    }
+    if (departmentName && departmentName.trim()) {
+      query.departmentName = { $regex: new RegExp(`${departmentName.trim()}`, 'i') }
     }
 
     let applicationsQuery = NSSApplication.find(query)

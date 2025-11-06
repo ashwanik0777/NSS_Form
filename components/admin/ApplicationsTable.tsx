@@ -61,9 +61,13 @@ interface Application {
 
 interface ApplicationsTableProps {
   statusFilter?: string
+  unitNo?: string
+  enrollment?: string
+  schoolName?: string
+  departmentName?: string
 }
 
-export default function ApplicationsTable({ statusFilter = "all" }: ApplicationsTableProps) {
+export default function ApplicationsTable({ statusFilter = "all", unitNo = "all", enrollment = "all", schoolName = "", departmentName = "" }: ApplicationsTableProps) {
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedApp, setSelectedApp] = useState<Application | null>(null)
@@ -81,11 +85,18 @@ export default function ApplicationsTable({ statusFilter = "all" }: Applications
   useEffect(() => {
     fetchApplications()
     setCurrentPage(1) // Reset to first page on filter change
-  }, [statusFilter])
+  }, [statusFilter, unitNo, enrollment, schoolName, departmentName])
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch(`/api/applications?status=${statusFilter}`)
+      const params = new URLSearchParams()
+      params.set('status', statusFilter)
+      if (unitNo !== 'all') params.set('unitNo', unitNo)
+      if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
+      if (schoolName) params.set('schoolName', schoolName)
+      if (departmentName) params.set('departmentName', departmentName)
+
+      const response = await fetch(`/api/applications?${params.toString()}`)
       const data = await response.json()
       if (data.success) {
         setApplications(data.applications)
