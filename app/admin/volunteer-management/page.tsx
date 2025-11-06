@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import {
   TrendingUp,
   Users,
@@ -113,6 +114,7 @@ export default function VolunteerManagementPage() {
   }
 
   return (
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="volunteers.view">
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
@@ -411,6 +413,7 @@ export default function VolunteerManagementPage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   )
 }
 

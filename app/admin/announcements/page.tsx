@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Megaphone, Plus, Edit, Trash2, Loader2, X, Save, Bell, Mail } from "lucide-react"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<any[]>([])
@@ -148,6 +149,7 @@ export default function AnnouncementsPage() {
   }
 
   return (
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="announcements.view">
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -381,6 +383,7 @@ export default function AnnouncementsPage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   )
 }
 

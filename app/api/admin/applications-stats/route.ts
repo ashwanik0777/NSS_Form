@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
+import User from "@/models/User"
 
 export async function GET(request: NextRequest) {
   try {
     await dbConnect()
+    
+    // Check if user is sub-admin and get their assigned units
+    const session = await getServerSession(authOptions) as any
+    let userAssignedUnits: string[] | null = null
+    if (session?.user?.role === "sub-admin") {
+      const user = await User.findById(session.user.id).select("assignedUnits")
+      if (user && (user as any).assignedUnits && (user as any).assignedUnits.length > 0) {
+        userAssignedUnits = (user as any).assignedUnits
+      }
+    }
+    
     const { searchParams } = new URL(request.url)
     const unitNo = searchParams.get('unitNo')
     const enrollment = searchParams.get('enrollment')
@@ -12,7 +26,14 @@ export async function GET(request: NextRequest) {
     const departmentName = searchParams.get('departmentName')
 
     const match: any = {}
-    if (unitNo && unitNo !== 'all') match.unitNo = unitNo
+    
+    // If sub-admin has assigned units, filter by those units
+    if (userAssignedUnits && userAssignedUnits.length > 0) {
+      match.unitNo = { $in: userAssignedUnits }
+    } else if (unitNo && unitNo !== 'all') {
+      match.unitNo = unitNo
+    }
+    
     if (enrollment && (enrollment === 'first-year' || enrollment === 'second-year')) match.enrollment = enrollment
     if (schoolName && schoolName.trim()) match.schoolName = { $regex: new RegExp(`${schoolName.trim()}`, 'i') }
     if (departmentName && departmentName.trim()) match.departmentName = { $regex: new RegExp(`${departmentName.trim()}`, 'i') }
@@ -57,5 +78,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'Failed to load stats' }, { status: 500 })
   }
 }
+
+
 
 

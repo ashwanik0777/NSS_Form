@@ -51,15 +51,13 @@ export default function LoginForm() {
         const userRole = user?.role ?? "user"
         const mustChangePassword = user?.mustChangePassword ?? false
         
-        if (userRole === "admin" || userRole === "sub-admin") {
+        // If must change password, redirect to set-password page
+        if (mustChangePassword) {
+          router.push("/set-password")
+        } else if (userRole === "admin" || userRole === "sub-admin") {
           router.push("/admin")
         } else if (userRole === "volunteer" || userRole === "user") {
-          // If volunteer must change password, redirect to set-password page
-          if (mustChangePassword) {
-            router.push("/set-password")
-          } else {
-            router.push("/dashboard")
-          }
+          router.push("/dashboard")
         } else {
           router.push("/dashboard")
         }

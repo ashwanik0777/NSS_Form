@@ -7,7 +7,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     await dbConnect()
 
     const body = await request.json()
-    const { name, email, role, permissions } = body
+    const { name, email, role, permissions, assignedUnits } = body
 
     const user = await User.findByIdAndUpdate(
       params.id,
@@ -16,6 +16,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         email,
         role,
         permissions: permissions || [],
+        assignedUnits: assignedUnits || [],
         status: "accepted", // Accept karte waqt status update karein
       },
       { new: true },

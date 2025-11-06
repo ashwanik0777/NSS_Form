@@ -4,6 +4,8 @@ import NSSApplication from "@/models/NSSApplication"
 import User from "@/models/User"
 import { validateAllSteps } from "@/lib/validation"
 import { sendApplicationSubmittedEmail } from "@/lib/email"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
@@ -131,6 +133,16 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect()
 
+    // Check if user is sub-admin and get their assigned units
+    const session = await getServerSession(authOptions) as any
+    let userAssignedUnits: string[] | null = null
+    if (session?.user?.role === "sub-admin") {
+      const user = await User.findById(session.user.id).select("assignedUnits")
+      if (user && (user as any).assignedUnits && (user as any).assignedUnits.length > 0) {
+        userAssignedUnits = (user as any).assignedUnits
+      }
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
     const unitNo = searchParams.get("unitNo")
@@ -147,9 +159,14 @@ export async function GET(request: NextRequest) {
     if (status && status !== "all") {
       query = { status }
     }
-    if (unitNo && unitNo !== "all") {
+    
+    // If sub-admin has assigned units, filter by those units
+    if (userAssignedUnits && userAssignedUnits.length > 0) {
+      query.unitNo = { $in: userAssignedUnits }
+    } else if (unitNo && unitNo !== "all") {
       query.unitNo = unitNo
     }
+    
     if (enrollment && (enrollment === "first-year" || enrollment === "second-year")) {
       query.enrollment = enrollment
     }

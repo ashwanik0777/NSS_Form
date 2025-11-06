@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import AdminHeader from "@/components/admin/AdminHeader"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 export default function AdminSocialLinksPage() {
   const [form, setForm] = useState({ facebook: "", instagram: "", twitter: "", linkedin: "" })
@@ -49,7 +50,7 @@ export default function AdminSocialLinksPage() {
   }
 
   return (
-    <>
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="social.view">
       <AdminHeader title="NSS Social Links" subtitle="Manage official NSS social media links" />
       <div className="p-6 max-w-3xl">
         {loading ? (
@@ -82,7 +83,7 @@ export default function AdminSocialLinksPage() {
           </div>
         )}
       </div>
-    </>
+    </ProtectedRoute>
   )
 }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Calendar, Plus, Edit, Trash2, Users, Loader2, X, Save, Clock, MapPin } from "lucide-react"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([])
@@ -214,6 +215,7 @@ export default function EventsPage() {
   }
 
   return (
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="events.view">
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -593,5 +595,6 @@ export default function EventsPage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   )
 }

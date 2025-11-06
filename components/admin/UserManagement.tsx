@@ -25,6 +25,8 @@ export default function UserManagement() {
     email: "",
     role: "sub-admin" as "admin" | "sub-admin" | "user",
     permissions: [] as string[],
+    password: "",
+    assignedUnits: [] as string[],
   })
 
   useEffect(() => {
@@ -58,8 +60,9 @@ export default function UserManagement() {
       const data = await response.json()
       if (data.success) {
         setShowCreateModal(false)
-        setFormData({ name: "", email: "", role: "sub-admin", permissions: [] })
+        setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
         fetchUsers()
+        alert("Sub-Admin created successfully! Email sent with login credentials.")
       } else {
         alert("Error creating user: " + data.message)
       }
@@ -85,7 +88,7 @@ export default function UserManagement() {
       if (data.success) {
         setShowEditModal(false)
         setSelectedUser(null)
-        setFormData({ name: "", email: "", role: "sub-admin", permissions: [] })
+        setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
         fetchUsers()
       } else {
         alert("Error updating user: " + data.message)
@@ -123,6 +126,8 @@ export default function UserManagement() {
       email: user.email,
       role: user.role,
       permissions: user.permissions,
+      password: "",
+      assignedUnits: (user as any).assignedUnits || [],
     })
     setShowEditModal(true)
   }
@@ -221,6 +226,11 @@ export default function UserManagement() {
                   <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-muted-foreground">{user.permissions.length} permissions</div>
+                    {(user as any).assignedUnits && (user as any).assignedUnits.length > 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Units: {(user as any).assignedUnits.join(", ")}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
                     {new Date(user.createdAt).toLocaleDateString("en-IN")}
@@ -293,6 +303,54 @@ export default function UserManagement() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Password (Optional - leave blank to auto-generate)
+                </label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
+                  placeholder="Enter password (min 6 chars) or leave blank"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  If left blank, a temporary password will be generated and sent via email
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Assigned Units</label>
+                <div className="space-y-2 border border-border rounded-md p-3 max-h-40 overflow-y-auto">
+                  {["1", "2", "3", "4", "5"].map((unit) => (
+                    <label key={unit} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.assignedUnits.includes(unit)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              assignedUnits: [...prev.assignedUnits, unit],
+                            }))
+                          } else {
+                            setFormData((prev) => ({
+                              ...prev,
+                              assignedUnits: prev.assignedUnits.filter((u) => u !== unit),
+                            }))
+                          }
+                        }}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-foreground">Unit {unit}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Select units this sub-admin can manage. Leave empty for all units.
+                </p>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Permissions</label>
                 <div className="space-y-4 max-h-60 overflow-y-auto border border-border rounded-md p-4">
                   {Object.entries(permissionsByCategory).map(([category, permissions]) => (
@@ -323,7 +381,7 @@ export default function UserManagement() {
               <button
                 onClick={() => {
                   setShowCreateModal(false)
-                  setFormData({ name: "", email: "", role: "sub-admin", permissions: [] })
+                  setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
                 }}
                 className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-muted"
               >
@@ -370,7 +428,7 @@ export default function UserManagement() {
                 </div>
               </div>
 
-              {selectedUser.role !== "admin" && (
+                  {selectedUser.role !== "admin" && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Role</label>
@@ -382,6 +440,35 @@ export default function UserManagement() {
                       <option value="sub-admin">Sub-Admin</option>
                       <option value="user">User</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Assigned Units</label>
+                    <div className="space-y-2 border border-border rounded-md p-3 max-h-40 overflow-y-auto">
+                      {["1", "2", "3", "4", "5"].map((unit) => (
+                        <label key={unit} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.assignedUnits.includes(unit)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  assignedUnits: [...prev.assignedUnits, unit],
+                                }))
+                              } else {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  assignedUnits: prev.assignedUnits.filter((u) => u !== unit),
+                                }))
+                              }
+                            }}
+                            className="mr-2"
+                          />
+                          <span className="text-sm text-foreground">Unit {unit}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
@@ -418,7 +505,7 @@ export default function UserManagement() {
                 onClick={() => {
                   setShowEditModal(false)
                   setSelectedUser(null)
-                  setFormData({ name: "", email: "", role: "sub-admin", permissions: [] })
+                  setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
                 }}
                 className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-muted"
               >

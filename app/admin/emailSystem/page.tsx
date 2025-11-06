@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -339,6 +340,7 @@ export default function EmailSystemPage() {
   }
 
   return (
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="email.view">
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -778,5 +780,6 @@ export default function EmailSystemPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </ProtectedRoute>
   )
 }

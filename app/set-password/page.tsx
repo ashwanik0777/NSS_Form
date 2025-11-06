@@ -50,11 +50,16 @@ export default function SetPasswordPage() {
       if (!data.success) {
         setError(data.message || "Failed to set password")
       } else {
-        // Refresh session and redirect to profile completion
+        // Refresh session and redirect based on role
         await sessionData.update()
         // Wait a bit for session to update
         await new Promise(resolve => setTimeout(resolve, 500))
-        router.push("/dashboard/profile")
+        const user = sessionData.data?.user as any
+        if (user?.role === "sub-admin" || user?.role === "admin") {
+          router.push("/admin")
+        } else {
+          router.push("/dashboard/profile")
+        }
       }
     } catch (err) {
       setError("An error occurred. Please try again.")

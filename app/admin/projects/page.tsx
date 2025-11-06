@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import {
   FolderKanban,
   Plus,
@@ -175,6 +176,7 @@ export default function ProjectManagementPage() {
   }
 
   return (
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="projects.view">
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -507,6 +509,7 @@ export default function ProjectManagementPage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   )
 }
 

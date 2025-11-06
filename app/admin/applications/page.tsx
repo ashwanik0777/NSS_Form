@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import AdminHeader from "@/components/admin/AdminHeader"
 import ApplicationsTable from "@/components/admin/ApplicationsTable"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 const statusFilters = [
   { value: "all", label: "All Applications" },
@@ -38,7 +39,7 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <>
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="applications.view">
       <AdminHeader title="Applications" subtitle="Manage NSS volunteer applications" />
 
       <div className="p-6 space-y-6">
@@ -138,6 +139,6 @@ export default function ApplicationsPage() {
           departmentName={departmentName}
         />
       </div>
-    </>
+    </ProtectedRoute>
   )
 }

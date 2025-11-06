@@ -4,6 +4,8 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { hasPermission } from "@/lib/permissions"
 import {
   LayoutDashboard,
   FileText,
@@ -26,6 +28,7 @@ interface SidebarItem {
   label: string
   icon: React.ReactNode
   href: string
+  permission?: string
   children?: SidebarItem[]
 }
 
@@ -41,72 +44,65 @@ const sidebarItems: SidebarItem[] = [
     label: "Applications",
     href: "/admin/applications",
     icon: <FileText className="w-5 h-5" />,
+    permission: "applications.view",
   },
   {
     id: "users",
     label: "User Management",
     href: "/admin/users",
     icon: <Users className="w-5 h-5" />,
+    permission: "users.view",
   },
   {
     id: "projects",
     label: "Project Management",
     href: "/admin/projects",
     icon: <FolderKanban className="w-5 h-5" />,
+    permission: "projects.view",
   },
   {
     id: "volunteer-management",
     label: "Volunteer Management",
     href: "/admin/volunteer-management",
     icon: <UserCheck className="w-5 h-5" />,
+    permission: "volunteers.view",
   },
   {
     id: "events",
     label: "Events",
     href: "/admin/events",
     icon: <Calendar className="w-5 h-5" />,
+    permission: "events.view",
   },
   {
     id: "announcements",
     label: "Announcements",
     href: "/admin/announcements",
     icon: <Megaphone className="w-5 h-5" />,
+    permission: "announcements.view",
   },
   {
     id: "social-links",
     label: "NSS Social Links",
     href: "/admin/social-links",
     icon: <TrendingUp className="w-5 h-5" />,
+    permission: "social.view",
   },
-  // {
-  //   id: "certificates",
-  //   label: "Certificates",
-  //   href: "/admin/certificates",
-  //   icon: <Award className="w-5 h-5" />,
-  // },
-  // {
-  //   id: "reports",
-  //   label: "Reports",
-  //   href: "/admin/reports",
-  //   icon: <BarChart3 className="w-5 h-5" />,
-  // },
   {
     id: "email",
     label: "Email System",
     href: "/admin/emailSystem",
     icon: <Mail className="w-5 h-5" />,
+    permission: "email.view",
   },
-  // {
-  //   id: "settings",
-  //   label: "Settings",
-  //   href: "/admin/settings",
-  //   icon: <Settings className="w-5 h-5" />,
-  // },
 ]
 
 export default function AdminSidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const { data: session } = useSession()
+  const user = session?.user as any
+  const userPermissions = user?.permissions || []
 
   return (
     <aside
@@ -137,6 +133,11 @@ export default function AdminSidebar() {
       <nav className="p-4">
         <ul className="space-y-2">
           {sidebarItems.map((item) => {
+            // Check permission if required
+            if (item.permission && !hasPermission(userPermissions, item.permission as any)) {
+              return null
+            }
+            
             const isActive = pathname === item.href
             return (
               <li key={item.id}>
