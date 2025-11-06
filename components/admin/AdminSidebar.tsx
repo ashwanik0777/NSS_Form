@@ -72,6 +72,12 @@ const sidebarItems: SidebarItem[] = [
     href: "/admin/announcements",
     icon: <Megaphone className="w-5 h-5" />,
   },
+  {
+    id: "social-links",
+    label: "NSS Social Links",
+    href: "/admin/social-links",
+    icon: <TrendingUp className="w-5 h-5" />,
+  },
   // {
   //   id: "certificates",
   //   label: "Certificates",

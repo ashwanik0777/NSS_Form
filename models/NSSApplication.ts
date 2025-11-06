@@ -47,6 +47,12 @@ export interface INSSApplication extends Document {
   otherAchievements?: string
   otherAchievementsCertificates?: string
 
+  // Social Profiles (Mandatory before project selection)
+  socialFacebook?: string
+  socialInstagram?: string
+  socialTwitter?: string
+  socialLinkedin?: string
+
   // Application Status
   status: "draft" | "submitted" | "under-review" | "approved" | "rejected"
   rejectionReason?: string
@@ -253,6 +259,23 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     },
     otherAchievementsCertificates: {
       type: String, // File URL
+      trim: true,
+    },
+    // Social Profiles (Mandatory before project selection)
+    socialFacebook: {
+      type: String,
+      trim: true,
+    },
+    socialInstagram: {
+      type: String,
+      trim: true,
+    },
+    socialTwitter: {
+      type: String,
+      trim: true,
+    },
+    socialLinkedin: {
+      type: String,
       trim: true,
     },
     // permanentAddress: {

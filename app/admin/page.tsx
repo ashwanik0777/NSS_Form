@@ -18,9 +18,11 @@ export default function AdminDashboard() {
     rejected: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [social, setSocial] = useState<{facebook?: string; instagram?: string; twitter?: string; linkedin?: string}>({})
 
   useEffect(() => {
     fetchStats()
+    fetchSocial()
   }, [])
 
   const fetchStats = async () => {
@@ -51,6 +53,21 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchSocial = async () => {
+    try {
+      const res = await fetch('/api/admin/social-links')
+      const data = await res.json()
+      if (data.success) {
+        setSocial({
+          facebook: data.links?.facebook || '',
+          instagram: data.links?.instagram || '',
+          twitter: data.links?.twitter || '',
+          linkedin: data.links?.linkedin || '',
+        })
+      }
+    } catch (e) {}
   }
 
   const statCards = [
@@ -215,6 +232,39 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* NSS Social Media */}
+        <div className="mt-8 bg-card rounded-lg border border-border p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">NSS Social Media</h3>
+            <a href="/admin/social-links" className="text-sm text-primary hover:underline">Edit Links</a>
+          </div>
+          <div className="flex items-center gap-4">
+            {[
+              { key: 'facebook', url: social.facebook, bg: 'bg-blue-600', svg: (
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.7V12h2.7V9.7c0-2.7 1.6-4.2 4-4.2 1.2 0 2.5.2 2.5.2v2.7h-1.4c-1.4 0-1.9.9-1.9 1.8V12h3.2l-.5 2.9h-2.7v7A10 10 0 0022 12z"/></svg>
+              )},
+              { key: 'instagram', url: social.instagram, bg: 'bg-gradient-to-tr from-yellow-500 via-pink-600 to-purple-700', svg: (
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18 6.5a1 1 0 110 2 1 1 0 010-2z"/></svg>
+              )},
+              { key: 'twitter', url: social.twitter, bg: 'bg-black', svg: (
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M3 3l8.2 10.2L3.6 21h2.2l6.1-6.7 4.9 6.7H21l-8.7-11.9L20.3 3h-2.2l-5.5 6.1L8.1 3H3z"/></svg>
+              )},
+              { key: 'linkedin', url: social.linkedin, bg: 'bg-sky-700', svg: (
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8.98h5V24H0V8.98zM8.98 8.98h4.78v2.05h.07c.67-1.27 2.3-2.6 4.73-2.6 5.06 0 6 3.33 6 7.66V24h-5v-6.8c0-1.62-.03-3.7-2.25-3.7-2.25 0-2.6 1.76-2.6 3.58V24h-5V8.98z"/></svg>
+              )},
+            ].map((i) => (
+              <a key={i.key}
+                 href={i.url || '#'}
+                 target={i.url ? '_blank' : undefined}
+                 className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-border ${i.bg} ${i.url ? 'opacity-100 hover:scale-105 transition-transform' : 'opacity-40 cursor-not-allowed'}`}
+                 aria-label={i.key}
+              >
+                {i.svg}
+              </a>
+            ))}
           </div>
         </div>
       </div>

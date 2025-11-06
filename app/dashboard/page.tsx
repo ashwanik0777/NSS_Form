@@ -303,6 +303,31 @@ export default function VolunteerDashboard() {
             </div>
           )}
 
+        {/* Social Media Card (NSS Official Icons Only) */}
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">Follow NSS</h2>
+          </div>
+          <OfficialNssLinks />
+        </div>
+
+        {/* Upcoming Events (Main Card) */}
+        {upcomingEvents.length > 0 && (
+          <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+            <h2 className="text-xl font-semibold text-foreground mb-4">Upcoming Events</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {upcomingEvents.slice(0, 4).map((event) => (
+                <div key={event._id} className="p-4 border rounded-lg hover:bg-muted/40 transition-colors cursor-pointer" onClick={() => router.push("/dashboard/events")}>
+                  <p className="font-semibold text-foreground mb-1">{event.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(event.eventDate).toLocaleDateString()} {event.startTime && `• ${new Date(event.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
           {/* Profile Completion Alert */}
           {completion && completion.percent < 100 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
@@ -597,6 +622,57 @@ export default function VolunteerDashboard() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Lightweight client component to render official NSS links from admin settings
+function OfficialNssLinks() {
+  const [links, setLinks] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('/api/social-links')
+        const data = await res.json()
+        if (data.success) setLinks(data.links)
+      } catch {}
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  if (loading) return <div className="text-sm text-muted-foreground">Loading...</div>
+  if (!links) return <div className="text-sm text-muted-foreground">No links configured</div>
+
+  const icons = [
+    { key: 'facebook', label: 'Facebook', url: links.facebook, bg: 'bg-blue-600', svg: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.7V12h2.7V9.7c0-2.7 1.6-4.2 4-4.2 1.2 0 2.5.2 2.5.2v2.7h-1.4c-1.4 0-1.9.9-1.9 1.8V12h3.2l-.5 2.9h-2.7v7A10 10 0 0022 12z"/></svg>
+    )},
+    { key: 'instagram', label: 'Instagram', url: links.instagram, bg: 'bg-gradient-to-tr from-yellow-500 via-pink-600 to-purple-700', svg: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18 6.5a1 1 0 110 2 1 1 0 010-2z"/></svg>
+    )},
+    { key: 'twitter', label: 'Twitter/X', url: links.twitter, bg: 'bg-black', svg: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M3 3l8.2 10.2L3.6 21h2.2l6.1-6.7 4.9 6.7H21l-8.7-11.9L20.3 3h-2.2l-5.5 6.1L8.1 3H3z"/></svg>
+    )},
+    { key: 'linkedin', label: 'LinkedIn', url: links.linkedin, bg: 'bg-sky-700', svg: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8.98h5V24H0V8.98zM8.98 8.98h4.78v2.05h.07c.67-1.27 2.3-2.6 4.73-2.6 5.06 0 6 3.33 6 7.66V24h-5v-6.8c0-1.62-.03-3.7-2.25-3.7-2.25 0-2.6 1.76-2.6 3.58V24h-5V8.98z"/></svg>
+    )},
+  ]
+
+  return (
+    <div className="flex items-center gap-4">
+      {icons.map((i) => (
+        <a key={i.key}
+           href={i.url || '#'}
+           target={i.url ? '_blank' : undefined}
+           className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-border ${i.bg} ${i.url ? 'opacity-100 hover:scale-105 transition-transform' : 'opacity-40 cursor-not-allowed'}`}
+           aria-label={i.label}
+        >
+          {i.svg}
+        </a>
+      ))}
     </div>
   )
 }

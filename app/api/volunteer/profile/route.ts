@@ -19,6 +19,11 @@ export async function GET(_request: NextRequest) {
       ["institutionalIdCard", app.institutionalIdCard],
       ["highSchoolCertificate", (app as any).highSchoolCertificate],
       ["myBharatPortalRegistered", app.myBharatPortalRegistered],
+      // Social profiles required before project selection
+      ["socialFacebook", (app as any).socialFacebook],
+      ["socialInstagram", (app as any).socialInstagram],
+      ["socialTwitter", (app as any).socialTwitter],
+      ["socialLinkedin", (app as any).socialLinkedin],
     ]
     const missing = required.filter(([, v]) => !v).map(([k]) => {
       const labels: Record<string, string> = {
@@ -27,6 +32,10 @@ export async function GET(_request: NextRequest) {
         institutionalIdCard: "Institution I-Card Number",
         highSchoolCertificate: "High School Certificate",
         myBharatPortalRegistered: "My Bharat Portal Registration",
+        socialFacebook: "Facebook Profile URL",
+        socialInstagram: "Instagram Profile URL",
+        socialTwitter: "Twitter/X Profile URL",
+        socialLinkedin: "LinkedIn Profile URL",
       }
       return labels[k] || k
     })
@@ -62,6 +71,11 @@ export async function PATCH(request: NextRequest) {
       ["institutionalIdCard", app.institutionalIdCard],
       ["highSchoolCertificate", (app as any).highSchoolCertificate],
       ["myBharatPortalRegistered", app.myBharatPortalRegistered],
+      // Social profiles required before project selection
+      ["socialFacebook", (app as any).socialFacebook],
+      ["socialInstagram", (app as any).socialInstagram],
+      ["socialTwitter", (app as any).socialTwitter],
+      ["socialLinkedin", (app as any).socialLinkedin],
     ]
     const missing = required.filter(([, v]) => !v).map(([k]) => {
       const labels: Record<string, string> = {
@@ -70,6 +84,10 @@ export async function PATCH(request: NextRequest) {
         institutionalIdCard: "Institution I-Card Number",
         highSchoolCertificate: "High School Certificate",
         myBharatPortalRegistered: "My Bharat Portal Registration",
+        socialFacebook: "Facebook Profile URL",
+        socialInstagram: "Instagram Profile URL",
+        socialTwitter: "Twitter/X Profile URL",
+        socialLinkedin: "LinkedIn Profile URL",
       }
       return labels[k] || k
     })

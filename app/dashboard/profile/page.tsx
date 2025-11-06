@@ -11,6 +11,10 @@ interface ProfileData {
   institutionalIdCard?: string
   highSchoolCertificate?: string
   myBharatPortalRegistered?: boolean
+  socialFacebook?: string
+  socialInstagram?: string
+  socialTwitter?: string
+  socialLinkedin?: string
   [key: string]: any
 }
 
@@ -262,6 +266,58 @@ export default function ProfileCompletionPage() {
             </label>
           </div>
         </div>
+
+      {/* Social Profiles (Mandatory) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Facebook Profile URL</label>
+          <input
+            type="url"
+            value={formData.socialFacebook || ""}
+            onChange={(e) => setFormData((prev) => ({ ...prev, socialFacebook: e.target.value }))}
+            placeholder="https://www.facebook.com/your.profile"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground"
+            required
+          />
+          <p className="text-xs text-muted-foreground mt-1">If you don't have one, please create and add the link. This is mandatory.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Instagram Profile URL</label>
+          <input
+            type="url"
+            value={formData.socialInstagram || ""}
+            onChange={(e) => setFormData((prev) => ({ ...prev, socialInstagram: e.target.value }))}
+            placeholder="https://www.instagram.com/your.profile"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground"
+            required
+          />
+          <p className="text-xs text-muted-foreground mt-1">If you don't have one, please create and add the link. This is mandatory.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Twitter/X Profile URL</label>
+          <input
+            type="url"
+            value={formData.socialTwitter || ""}
+            onChange={(e) => setFormData((prev) => ({ ...prev, socialTwitter: e.target.value }))}
+            placeholder="https://x.com/your.profile"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground"
+            required
+          />
+          <p className="text-xs text-muted-foreground mt-1">If you don't have one, please create and add the link. This is mandatory.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">LinkedIn Profile URL</label>
+          <input
+            type="url"
+            value={formData.socialLinkedin || ""}
+            onChange={(e) => setFormData((prev) => ({ ...prev, socialLinkedin: e.target.value }))}
+            placeholder="https://www.linkedin.com/in/your.profile"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground"
+            required
+          />
+          <p className="text-xs text-muted-foreground mt-1">If you don't have one, please create and add the link. This is mandatory.</p>
+        </div>
+      </div>
 
         {/* Save Button */}
         <div className="pt-4 border-t border-border">
