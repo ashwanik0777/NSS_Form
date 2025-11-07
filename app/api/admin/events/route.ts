@@ -26,25 +26,55 @@ export async function GET(_request: NextRequest) {
       .sort({ eventDate: -1, createdAt: -1 })
       .lean()
 
+    const now = new Date()
+    const updatedEvents = []
+
+    // Auto-update event status based on timing
+    for (const event of events) {
+      let status = event.status
+      
+      // Only auto-update if not cancelled
+      if (status !== "cancelled") {
+        const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
+        const eventEndTime = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
+        
+        if (now < eventStartTime) {
+          status = "upcoming"
+        } else if (now >= eventStartTime && now < eventEndTime) {
+          status = "ongoing"
+        } else if (now >= eventEndTime) {
+          status = "completed"
+        }
+
+        // Update in database if status changed
+        if (status !== event.status) {
+          await Event.findByIdAndUpdate(event._id, { status })
+        }
+      }
+
+      updatedEvents.push({
+        _id: event._id,
+        title: event.title,
+        description: event.description,
+        projectId: event.projectId?._id,
+        projectName: event.projectId?.title,
+        eventDate: event.eventDate,
+        location: event.location,
+        startTime: event.startTime,
+        endTime: event.endTime,
+        coordinator: event.coordinator,
+        maxParticipants: event.maxParticipants,
+        currentParticipants: event.currentParticipants,
+        status: status,
+        attendanceExtensionMinutes: event.attendanceExtensionMinutes,
+        createdAt: event.createdAt,
+        updatedAt: event.updatedAt,
+      })
+    }
+
     return NextResponse.json({
       success: true,
-      events: events.map((e: any) => ({
-        _id: e._id,
-        title: e.title,
-        description: e.description,
-        projectId: e.projectId?._id,
-        projectName: e.projectId?.title,
-        eventDate: e.eventDate,
-        location: e.location,
-        startTime: e.startTime,
-        endTime: e.endTime,
-        coordinator: e.coordinator,
-        maxParticipants: e.maxParticipants,
-        currentParticipants: e.currentParticipants,
-        status: e.status,
-        createdAt: e.createdAt,
-        updatedAt: e.updatedAt,
-      })),
+      events: updatedEvents,
     })
   } catch (error) {
     console.error("Events fetch error:", error)

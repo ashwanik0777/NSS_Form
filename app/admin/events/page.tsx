@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Calendar, Plus, Edit, Trash2, Users, Loader2, X, Save, Clock, MapPin } from "lucide-react"
+import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 export default function EventsPage() {
@@ -23,7 +24,10 @@ export default function EventsPage() {
     coordinator: "",
     maxParticipants: "",
     status: "upcoming",
+    attendanceExtensionMinutes: "",
   })
+  const { data: session } = useSession()
+  const isSuperAdmin = (session?.user as any)?.role === "admin"
   const [projects, setProjects] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -80,6 +84,9 @@ export default function EventsPage() {
         coordinator: formData.coordinator || undefined,
         maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
         status: formData.status,
+        attendanceExtensionMinutes: isSuperAdmin && formData.attendanceExtensionMinutes
+          ? parseInt(formData.attendanceExtensionMinutes)
+          : undefined,
       }
 
       // Add location coordinates if provided
@@ -158,6 +165,7 @@ export default function EventsPage() {
       coordinator: event.coordinator || "",
       maxParticipants: event.maxParticipants?.toString() || "",
       status: event.status || "upcoming",
+      attendanceExtensionMinutes: event.attendanceExtensionMinutes?.toString() || "",
     })
     setShowModal(true)
   }
@@ -241,6 +249,7 @@ export default function EventsPage() {
               coordinator: "",
               maxParticipants: "",
               status: "upcoming",
+              attendanceExtensionMinutes: "",
             })
             setError(null)
             setShowModal(true)
@@ -360,8 +369,9 @@ export default function EventsPage() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-card rounded-xl border border-border p-6 max-w-3xl w-full my-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-card rounded-xl border border-border max-w-3xl w-full my-8 flex flex-col max-h-[90vh]">
+            {/* Sticky Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card rounded-t-xl z-10">
               <h2 className="text-2xl font-bold text-foreground">
                 {editingEvent ? "Edit Event" : "Add New Event"}
               </h2>
@@ -377,11 +387,13 @@ export default function EventsPage() {
               </button>
             </div>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
-            )}
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto flex-1 p-6">
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
+              )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+              <form id="event-form" onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -557,40 +569,62 @@ export default function EventsPage() {
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false)
-                    setEditingEvent(null)
-                    setError(null)
-                  }}
-                  className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      {editingEvent ? "Update Event" : "Create Event"}
-                    </>
-                  )}
-                </button>
+                {isSuperAdmin && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Attendance Extension (Minutes)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.attendanceExtensionMinutes}
+                      onChange={(e) => setFormData({ ...formData, attendanceExtensionMinutes: e.target.value })}
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="Additional minutes beyond 30 min default"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Super Admin Only: Extend attendance submission deadline beyond the default 30 minutes
+                    </p>
+                  </div>
+                )}
               </div>
-            </form>
+              </form>
+            </div>
+
+            {/* Sticky Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-border sticky bottom-0 bg-card rounded-b-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowModal(false)
+                  setEditingEvent(null)
+                  setError(null)
+                }}
+                className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                disabled={submitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="event-form"
+                disabled={submitting}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    {editingEvent ? "Update Event" : "Create Event"}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

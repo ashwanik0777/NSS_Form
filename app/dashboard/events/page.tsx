@@ -25,6 +25,8 @@ interface Event {
   startTime?: string
   endTime?: string
   status: string
+  registrationStatus?: "registered" | "declined" | "pending"
+  isDefaulter?: boolean
 }
 
 interface MyEvent {
@@ -56,6 +58,10 @@ export default function EventsPage() {
     null
   )
   const [workDescription, setWorkDescription] = useState("")
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false)
+  const [registrationAction, setRegistrationAction] = useState<"register" | "decline">("register")
+  const [declineReason, setDeclineReason] = useState("")
+  const [registering, setRegistering] = useState(false)
 
   useEffect(() => {
     if (status === "loading") return
@@ -342,7 +348,35 @@ export default function EventsPage() {
                     </div>
                   </div>
 
-                  {!myEvent ? (
+                  {event.registrationStatus === "pending" && !myEvent && (
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          setSelectedEvent(event._id)
+                          setRegistrationAction("register")
+                          setShowRegistrationModal(true)
+                        }}
+                        className="w-full flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        Register for Event
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedEvent(event._id)
+                          setRegistrationAction("decline")
+                          setDeclineReason("")
+                          setShowRegistrationModal(true)
+                        }}
+                        className="w-full flex items-center justify-center px-4 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors"
+                      >
+                        Decline (Provide Reason)
+                      </button>
+                      {event.isDefaulter && (
+                        <p className="text-xs text-red-600 text-center">⚠️ You are marked as defaulter for this event</p>
+                      )}
+                    </div>
+                  )}
+                  {event.registrationStatus === "registered" && !myEvent && (
                     <button
                       onClick={() => handleStartEvent(event._id)}
                       className="w-full flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
@@ -350,7 +384,21 @@ export default function EventsPage() {
                       <PlayCircle className="w-4 h-4 mr-2" />
                       Start Event
                     </button>
-                  ) : myEvent.status === "started" ? (
+                  )}
+                  {event.registrationStatus === "declined" && !myEvent && (
+                    <div className="w-full flex items-center justify-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg">
+                      Event Declined
+                    </div>
+                  )}
+                  {!event.registrationStatus && !myEvent ? (
+                    <button
+                      onClick={() => handleStartEvent(event._id)}
+                      className="w-full flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    >
+                      <PlayCircle className="w-4 h-4 mr-2" />
+                      Start Event
+                    </button>
+                  ) : myEvent && myEvent.status === "started" ? (
                     <button
                       onClick={() => handleEndEvent(event._id)}
                       className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -452,6 +500,150 @@ export default function EventsPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Registration Modal */}
+      {showRegistrationModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-xl border border-border p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold text-foreground mb-4">
+              {registrationAction === "register" ? "Register for Event" : "Decline Event"}
+            </h2>
+
+            {registrationAction === "register" ? (
+              <div className="space-y-4">
+                <p className="text-muted-foreground">
+                  By registering, you confirm that you will attend this event. If you fail to attend or mark your attendance, 
+                  you will be added to the defaulter list.
+                </p>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => {
+                      setShowRegistrationModal(false)
+                      setSelectedEvent(null)
+                    }}
+                    className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!selectedEvent) return
+                      setRegistering(true)
+                      try {
+                        const res = await fetch("/api/volunteer/event-registration", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            eventId: selectedEvent,
+                            action: "register",
+                          }),
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setShowRegistrationModal(false)
+                          setSelectedEvent(null)
+                          fetchEvents()
+                        } else {
+                          alert(data.message || "Failed to register")
+                        }
+                      } catch (error) {
+                        alert("Error registering for event")
+                      } finally {
+                        setRegistering(false)
+                      }
+                    }}
+                    disabled={registering}
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    {registering ? (
+                      <>
+                        <Loader2 className="animate-spin w-4 h-4 mr-2 inline" />
+                        Registering...
+                      </>
+                    ) : (
+                      "Confirm Registration"
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-muted-foreground">
+                  Please provide a reason for declining this event. If you don't register and don't provide a reason, 
+                  you will be added to the defaulter list.
+                </p>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Reason for Declining *</label>
+                  <textarea
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground"
+                    placeholder="Please provide a reason for not attending this event..."
+                    required
+                  />
+                </div>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => {
+                      setShowRegistrationModal(false)
+                      setSelectedEvent(null)
+                      setDeclineReason("")
+                    }}
+                    className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!selectedEvent || !declineReason.trim()) {
+                        alert("Please provide a reason")
+                        return
+                      }
+                      setRegistering(true)
+                      try {
+                        const res = await fetch("/api/volunteer/event-registration", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            eventId: selectedEvent,
+                            action: "decline",
+                            reason: declineReason,
+                          }),
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setShowRegistrationModal(false)
+                          setSelectedEvent(null)
+                          setDeclineReason("")
+                          fetchEvents()
+                        } else {
+                          alert(data.message || "Failed to decline event")
+                        }
+                      } catch (error) {
+                        alert("Error declining event")
+                      } finally {
+                        setRegistering(false)
+                      }
+                    }}
+                    disabled={registering || !declineReason.trim()}
+                    className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition-colors"
+                  >
+                    {registering ? (
+                      <>
+                        <Loader2 className="animate-spin w-4 h-4 mr-2 inline" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit Reason"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
