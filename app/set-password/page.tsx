@@ -56,7 +56,8 @@ export default function SetPasswordPage() {
         await new Promise(resolve => setTimeout(resolve, 500))
         const user = sessionData.data?.user as any
         if (user?.role === "sub-admin" || user?.role === "admin") {
-          router.push("/admin")
+          // Redirect to profile page for first-time setup
+          router.push("/admin/profile")
         } else {
           router.push("/dashboard/profile")
         }

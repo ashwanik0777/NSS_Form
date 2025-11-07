@@ -52,12 +52,15 @@ export default function ProtectedRoute({
       }
     }
 
-    // Check permission requirement
+    // Check permission requirement (admin users bypass permission checks)
     if (requiredPermission) {
-      const userPermissions = session.user.permissions || []
-      if (!hasPermission(userPermissions, requiredPermission)) {
-        router.push("/unauthorized")
-        return
+      const userRole = session.user.role
+      if (userRole !== "admin") {
+        const userPermissions = session.user.permissions || []
+        if (!hasPermission(userPermissions, requiredPermission)) {
+          router.push("/unauthorized")
+          return
+        }
       }
     }
   }, [session, status, router, requiredRole, requiredPermission, fallbackUrl])
@@ -96,10 +99,14 @@ export default function ProtectedRoute({
     }
   }
 
+  // Admin users bypass permission checks
   if (requiredPermission) {
-    const userPermissions = session.user.permissions || []
-    if (!hasPermission(userPermissions, requiredPermission)) {
-      return null // Will redirect
+    const userRole = session.user.role
+    if (userRole !== "admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, requiredPermission)) {
+        return null // Will redirect
+      }
     }
   }
 

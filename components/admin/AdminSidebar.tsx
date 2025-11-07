@@ -21,6 +21,7 @@ import {
   FolderKanban,
   TrendingUp,
   Megaphone,
+  User,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -102,6 +103,7 @@ export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const { data: session } = useSession()
   const user = session?.user as any
+  const userRole = user?.role
   const userPermissions = user?.permissions || []
 
   return (
@@ -133,8 +135,8 @@ export default function AdminSidebar() {
       <nav className="p-4">
         <ul className="space-y-2">
           {sidebarItems.map((item) => {
-            // Check permission if required
-            if (item.permission && !hasPermission(userPermissions, item.permission as any)) {
+            // Admin users have access to everything, skip permission check for them
+            if (userRole !== "admin" && item.permission && !hasPermission(userPermissions, item.permission as any)) {
               return null
             }
             
@@ -172,17 +174,25 @@ export default function AdminSidebar() {
 
       {!collapsed && (
         <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-4 border border-border/30">
+          <Link
+            href="/admin/profile"
+            className="block bg-muted/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 hover:bg-muted/70 transition-colors group"
+          >
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mr-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Admin User</p>
-                <p className="text-xs text-muted-foreground">Super Administrator</p>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                  {user?.name || "Admin User"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {userRole === "admin" ? "Super Administrator" : "Sub Administrator"}
+                </p>
               </div>
+              <User className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
-          </div>
+          </Link>
         </div>
       )}
     </aside>
