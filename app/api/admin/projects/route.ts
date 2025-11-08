@@ -5,12 +5,21 @@ import dbConnect from "@/lib/mongodb"
 import NSSProject from "@/models/NSSProject"
 import VolunteerProject from "@/models/VolunteerProject"
 import User from "@/models/User"
+import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 export async function GET(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "sub-admin")) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check permission for sub-admin
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "projects.view" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
+      }
     }
 
     await dbConnect()
@@ -99,6 +108,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
+    // Check permission for sub-admin - require projects.create
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "projects.create" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'projects.create' permission." }, { status: 403 })
+      }
+    }
+
     const body = await request.json()
     await dbConnect()
 
@@ -128,6 +145,14 @@ export async function PATCH(request: NextRequest) {
     const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "sub-admin")) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check permission for sub-admin - require projects.edit
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "projects.edit" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'projects.edit' permission." }, { status: 403 })
+      }
     }
 
     const body = await request.json()
@@ -160,6 +185,14 @@ export async function DELETE(request: NextRequest) {
     const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "sub-admin")) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check permission for sub-admin - require projects.delete
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "projects.delete" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'projects.delete' permission." }, { status: 403 })
+      }
     }
 
     const { searchParams } = new URL(request.url)

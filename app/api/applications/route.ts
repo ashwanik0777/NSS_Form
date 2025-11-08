@@ -6,6 +6,7 @@ import { validateAllSteps } from "@/lib/validation"
 import { sendApplicationSubmittedEmail } from "@/lib/email"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 export async function POST(request: NextRequest) {
   try {
@@ -131,12 +132,28 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "applications.view" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
+      }
+    }
+
     await dbConnect()
 
     // Check if user is sub-admin and get their assigned units
-    const session = await getServerSession(authOptions) as any
     let userAssignedUnits: string[] | null = null
-    if (session?.user?.role === "sub-admin") {
+    if (session.user.role === "sub-admin") {
       const user = await User.findById(session.user.id).select("assignedUnits")
       if (user && (user as any).assignedUnits && (user as any).assignedUnits.length > 0) {
         userAssignedUnits = (user as any).assignedUnits

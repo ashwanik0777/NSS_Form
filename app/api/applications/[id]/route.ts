@@ -6,11 +6,28 @@ import { sendApplicationApprovedEmail, sendApplicationRejectedEmail } from "@/li
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import mongoose from "mongoose"
-
+import { hasPermission, PermissionKey } from "@/lib/permissions"
 import bcrypt from "bcryptjs"   
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "applications.view" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
+      }
+    }
+
     await dbConnect()
 
     const application = await NSSApplication.findById(params.id)
@@ -37,12 +54,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const id = params.id
     const body = await req.json()
 
-    await dbConnect()
-
     const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
+
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin - require applications.review
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "applications.review" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'applications.review' permission." }, { status: 403 })
+      }
+    }
+
+    await dbConnect()
 
     const { status, rejectionReason } = body
 

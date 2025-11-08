@@ -3,9 +3,29 @@ import dbConnect from "@/lib/mongodb"
 import User from "@/models/User"
 import bcrypt from "bcryptjs"
 import { sendCustomEmail } from "@/lib/email"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
+import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 export async function GET(request: NextRequest) {
   try {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "users.view" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
+      }
+    }
+
     await dbConnect()
 
     // Fetch all users except those with role "user" (temp users), exclude password field
@@ -25,6 +45,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin - require users.create
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "users.create" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'users.create' permission." }, { status: 403 })
+      }
+    }
+
     await dbConnect()
 
     const body = await request.json()

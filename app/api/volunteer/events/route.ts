@@ -256,12 +256,12 @@ export async function POST(request: NextRequest) {
       }
 
       // Check time window (30 minutes from event end + extension)
-      const now = new Date()
-      const eventEndTime = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
-      const extensionMinutes = (event.attendanceExtensionMinutes || 0) + 30 // Default 30 min + extension
-      const deadlineTime = new Date(eventEndTime.getTime() + extensionMinutes * 60 * 1000)
+      const nowEnd = new Date()
+      const eventEndTimeEnd = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
+      const extensionMinutesEnd = (event.attendanceExtensionMinutes || 0) + 30 // Default 30 min + extension
+      const deadlineTime = new Date(eventEndTimeEnd.getTime() + extensionMinutesEnd * 60 * 1000)
 
-      if (now > deadlineTime) {
+      if (nowEnd > deadlineTime) {
         return NextResponse.json(
           {
             success: false,

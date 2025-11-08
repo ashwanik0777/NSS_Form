@@ -7,6 +7,7 @@ import VolunteerProject from "@/models/VolunteerProject"
 import User from "@/models/User"
 import NSSApplication from "@/models/NSSApplication"
 import { sendEventNotificationEmail } from "@/lib/email"
+import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 export async function GET(_request: NextRequest) {
   try {
@@ -17,6 +18,14 @@ export async function GET(_request: NextRequest) {
 
     if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "events.view" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
+      }
     }
 
     await dbConnect()
@@ -91,6 +100,14 @@ export async function POST(request: NextRequest) {
 
     if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin - require events.create
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "events.create" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'events.create' permission." }, { status: 403 })
+      }
     }
 
     const body = await request.json()
@@ -200,6 +217,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
+    // Check permission for sub-admin - require events.edit
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "events.edit" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'events.edit' permission." }, { status: 403 })
+      }
+    }
+
     const body = await request.json()
     const { eventId, ...updateData } = body
 
@@ -240,6 +265,14 @@ export async function DELETE(request: NextRequest) {
 
     if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin - require events.delete
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "events.delete" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'events.delete' permission." }, { status: 403 })
+      }
     }
 
     const { searchParams } = new URL(request.url)
