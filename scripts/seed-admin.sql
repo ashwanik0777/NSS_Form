@@ -6,7 +6,7 @@
 
 INSERT INTO users (name, email, password, role, permissions, createdAt, updatedAt) VALUES (
   'System Administrator',
-  'admin@nss-up.gov.in',
+  'admin@nss.ac.in',
   '$2a$12$LQv3c1yqBwEHxv5hSe8./.H.DqwO9jrjVklHlbwWaAqCd9jjO3ZGi', -- admin123
   'admin',
   '["system.admin"]',

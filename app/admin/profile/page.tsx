@@ -149,7 +149,7 @@ export default function AdminProfilePage() {
     <ProtectedRoute requiredRole="sub-admin">
       <AdminHeader title="My Profile" subtitle="Update your profile information" />
 
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-6 max-w-6xl mx-auto">
         <div className="bg-card rounded-xl border border-border shadow-sm">
           {/* Profile Photo Section */}
           <div className="p-6 border-b border-border">

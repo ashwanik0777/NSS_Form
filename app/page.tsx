@@ -52,7 +52,7 @@ export default function HomePage() {
                 href="/login"
                 className="px-6 py-2.5 border-2 border-border text-foreground rounded-lg hover:bg-muted hover:border-primary transition-all duration-300 font-semibold hover:scale-105 active:scale-95"
               >
-                Admin Login
+                Login
               </Link>
             </nav>
           </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { signOut, useSession } from "next-auth/react"
 import { Bell, User, ChevronDown, Settings, LogOut, Loader2 } from "lucide-react"
+import Link from "next/link"
 
 interface AdminHeaderProps {
   title: string
@@ -220,10 +221,10 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-lg z-50">
                 <div className="py-1">
-                  <button className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                  <Link href="/admin/profile"><button className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
                     <User className="w-4 h-4 mr-2" />
                     Profile
-                  </button>
+                  </button></Link>
                   <button className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
