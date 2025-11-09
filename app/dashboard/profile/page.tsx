@@ -175,7 +175,7 @@ export default function ProfileCompletionPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-center md:text-right">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              <div className="text-4xl md:text-5xl font-bold text-primary">
                 {completion.percent}%
               </div>
               <div className="text-sm text-muted-foreground font-medium">Complete</div>
@@ -188,16 +188,29 @@ export default function ProfileCompletionPage() {
       {/* Progress Card */}
       {/* <div className="bg-card rounded-xl border border-border shadow-sm p-6">
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">Profile Completion</span>
-            <span className="text-sm font-semibold text-muted-foreground">{completion.percent}%</span>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-base font-semibold text-foreground">Profile Completion</span>
+            <span className="text-2xl font-bold text-primary">
+              {completion.percent}%
+            </span>
           </div>
-          <div className="w-full bg-muted/50 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-muted/50 rounded-full h-4 overflow-hidden shadow-inner">
             <div
-              className={`h-full rounded-full bg-gradient-to-r ${getProgressColor()} transition-all duration-700 ease-out shadow-sm`}
+              className={`h-full rounded-full bg-gradient-to-r ${getProgressColor()} transition-all duration-700 ease-out shadow-sm flex items-center justify-end pr-2`}
               style={{ width: `${completion.percent}%` }}
-            />
+            >
+              {completion.percent > 10 && (
+                <span className="text-xs font-semibold text-white drop-shadow-sm">
+                  {completion.percent}%
+                </span>
+              )}
+            </div>
           </div>
+          {completion.percent <= 10 && (
+            <div className="text-right mt-1">
+              <span className="text-xs font-medium text-muted-foreground">{completion.percent}% Complete</span>
+            </div>
+          )}
         </div>
         {Array.isArray(completion.missing) && completion.missing.length > 0 && (
           <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
