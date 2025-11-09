@@ -58,7 +58,7 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <Link
         href="/dashboard"
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"

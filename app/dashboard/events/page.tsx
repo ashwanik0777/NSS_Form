@@ -223,7 +223,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
       <Link
         href="/dashboard"
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
