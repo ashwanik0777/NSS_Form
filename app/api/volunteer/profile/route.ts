@@ -11,7 +11,7 @@ export async function GET(_request: NextRequest) {
 
     await dbConnect()
     const app = await NSSApplication.findOne({ userId: session.user.id }).lean()
-    if (!app) return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+    if (!app || Array.isArray(app)) return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
 
     const required: Array<[string, any]> = [
       ["photo", app.photo],
@@ -62,7 +62,9 @@ export async function PATCH(request: NextRequest) {
       { new: true }
     ).lean()
 
-    if (!app) return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+    if (!app || Array.isArray(app)) {
+      return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+    }
 
     // Recalculate completion
     const required: Array<[string, any]> = [

@@ -141,9 +141,9 @@ export default function ProfileCompletionPage() {
 
   const getStatusIcon = () => {
     if (completion.percent === 100) {
-      return <CheckCircle className="w-6 h-6 text-emerald-500" />
+      return <AlertCircle className="w-6 h-6 text-amber-500" />
     }
-    return <AlertCircle className="w-6 h-6 text-amber-500" />
+    return <CheckCircle className="w-6 h-6 text-emerald-500" />
   }
 
   return (
