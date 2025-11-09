@@ -52,7 +52,11 @@ export default function ProfileCompletionPage() {
       const res = await fetch("/api/volunteer/profile")
       const data = await res.json()
       if (data.success) {
-        setCompletion(data)
+        setCompletion({
+          percent: data.completion?.percent || 0,
+          missing: data.completion?.missing || [],
+          application: data.application || {}
+        })
         setFormData(data.application || {})
       }
     } catch (error) {
@@ -132,18 +136,20 @@ export default function ProfileCompletionPage() {
     return <div className="p-6">Failed to load profile data</div>
   }
 
+  const percent = completion?.percent ?? 0
+
   const getProgressColor = () => {
-    if (completion.percent === 100) return "from-emerald-500 to-green-600"
-    if (completion.percent >= 75) return "from-blue-500 to-indigo-600"
-    if (completion.percent >= 50) return "from-amber-500 to-orange-500"
+    if (percent === 100) return "from-emerald-500 to-green-600"
+    if (percent >= 75) return "from-blue-500 to-indigo-600"
+    if (percent >= 50) return "from-amber-500 to-orange-500"
     return "from-orange-500 to-red-500"
   }
 
   const getStatusIcon = () => {
-    if (completion.percent === 100) {
-      return <AlertCircle className="w-6 h-6 text-amber-500" />
+    if (percent === 100) {
+      return <CheckCircle className="w-6 h-6 text-emerald-500" />
     }
-    return <CheckCircle className="w-6 h-6 text-emerald-500" />
+    return <AlertCircle className="w-6 h-6 text-amber-500" />
   }
 
   return (
@@ -175,10 +181,10 @@ export default function ProfileCompletionPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-center md:text-right">
-              <div className="text-4xl md:text-5xl font-bold text-primary">
-                {completion.percent}%
+              <div className="text-4xl md:text-5xl font-bold leading-none whitespace-nowrap text-primary">
+                {String(percent)}%
               </div>
-              <div className="text-sm text-muted-foreground font-medium">Complete</div>
+              <div className="text-sm text-muted-foreground font-medium mt-1">Complete</div>
             </div>
             {getStatusIcon()}
           </div>
