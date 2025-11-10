@@ -22,6 +22,7 @@ import {
   Bell,
   Megaphone,
   X,
+  Users,
 } from "lucide-react"
 
 interface ApplicationData {
@@ -56,6 +57,9 @@ export default function VolunteerDashboard() {
   const [loading, setLoading] = useState(true)
   const [totalHours, setTotalHours] = useState(0)
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
+  const [taskStats, setTaskStats] = useState<any | null>(null)
+  const [eventStats, setEventStats] = useState<any | null>(null)
+  const [meetingStats, setMeetingStats] = useState<any | null>(null)
   const [notifications, setNotifications] = useState<any[]>([])
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [showNotifications, setShowNotifications] = useState(false)
@@ -114,6 +118,9 @@ export default function VolunteerDashboard() {
       if (statsData.success) {
         setTotalHours(statsData.totalHours || 0)
         setUpcomingEvents(statsData.upcomingEvents || [])
+        setTaskStats(statsData.tasks || null)
+        setEventStats(statsData.events || null)
+        setMeetingStats(statsData.meetings || null)
       }
 
       if (announcementsData.success) {
@@ -195,6 +202,106 @@ export default function VolunteerDashboard() {
           )}
         </div>
       </div>
+
+      {/* Stats Overview */}
+      {(taskStats || eventStats || meetingStats) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Tasks Stats */}
+          {taskStats && (
+            <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-foreground flex items-center">
+                  <FileText className="w-4 h-4 mr-2 text-primary" />
+                  Tasks
+                </h3>
+                <span className="text-xs text-muted-foreground">Total: {taskStats.total}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Pending</p>
+                  <p className="text-lg font-bold">{taskStats.pending}</p>
+                </div>
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">In Progress</p>
+                  <p className="text-lg font-bold">{taskStats.inProgress}</p>
+                </div>
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Completed</p>
+                  <p className="text-lg font-bold">{taskStats.completed}</p>
+                </div>
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Cancelled</p>
+                  <p className="text-lg font-bold">{taskStats.cancelled}</p>
+                </div>
+              </div>
+              <div className="mt-3">
+                <Link href="/dashboard/tasks" className="text-xs text-primary hover:text-primary/80">
+                  View all tasks →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Events Stats */}
+          {eventStats && (
+            <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-foreground flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-primary" />
+                  Events
+                </h3>
+                <span className="text-xs text-muted-foreground">Total: {eventStats.totalEvents}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Upcoming/Ongoing</p>
+                  <p className="text-lg font-bold">{eventStats.upcomingOrOngoing}</p>
+                </div>
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Registered</p>
+                  <p className="text-lg font-bold">{eventStats.registered}</p>
+                </div>
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Attended</p>
+                  <p className="text-lg font-bold">{eventStats.attended}</p>
+                </div>
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Not Attended</p>
+                  <p className="text-lg font-bold">{eventStats.notAttended}</p>
+                </div>
+              </div>
+              <div className="mt-3">
+                <Link href="/dashboard/events" className="text-xs text-primary hover:text-primary/80">
+                  Manage events →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Meetings Stats (placeholder) */}
+          {meetingStats && (
+            <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-foreground flex items-center">
+                  <Users className="w-4 h-4 mr-2 text-primary" />
+                  Meetings
+                </h3>
+                <span className="text-xs text-muted-foreground">Total: {meetingStats.total}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Attended</p>
+                  <p className="text-lg font-bold">{meetingStats.attended}</p>
+                </div>
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                  <p className="text-muted-foreground text-xs mb-1">Not Attended</p>
+                  <p className="text-lg font-bold">{meetingStats.notAttended}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}

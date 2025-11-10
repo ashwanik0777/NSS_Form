@@ -18,11 +18,23 @@ export default function AdminDashboard() {
     rejected: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [meetings, setMeetings] = useState<{ total: number; upcomingOrOngoing: number; completed: number; cancelled: number }>({
+    total: 0,
+    upcomingOrOngoing: 0,
+    completed: 0,
+    cancelled: 0,
+  })
+  const [meetingAttendance, setMeetingAttendance] = useState<{ totalRegistrations: number; attended: number; absent: number }>({
+    totalRegistrations: 0,
+    attended: 0,
+    absent: 0,
+  })
   const [social, setSocial] = useState<{facebook?: string; instagram?: string; twitter?: string; linkedin?: string}>({})
 
   useEffect(() => {
     fetchStats()
     fetchSocial()
+    fetchMeetingStats()
   }, [])
 
   const fetchStats = async () => {
@@ -66,6 +78,17 @@ export default function AdminDashboard() {
           twitter: data.links?.twitter || '',
           linkedin: data.links?.linkedin || '',
         })
+      }
+    } catch (e) {}
+  }
+
+  const fetchMeetingStats = async () => {
+    try {
+      const res = await fetch("/api/admin/meetings/stats")
+      const data = await res.json()
+      if (data.success) {
+        setMeetings(data.meetings || { total: 0, upcomingOrOngoing: 0, completed: 0, cancelled: 0 })
+        setMeetingAttendance(data.attendance || { totalRegistrations: 0, attended: 0, absent: 0 })
       }
     } catch (e) {}
   }
@@ -155,6 +178,48 @@ export default function AdminDashboard() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Meetings Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-card rounded-lg border border-border p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Meetings Overview</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
+                <p className="text-muted-foreground text-xs mb-1">Total</p>
+                <p className="text-xl font-bold">{meetings.total}</p>
+              </div>
+              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
+                <p className="text-muted-foreground text-xs mb-1">Upcoming/Ongoing</p>
+                <p className="text-xl font-bold">{meetings.upcomingOrOngoing}</p>
+              </div>
+              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
+                <p className="text-muted-foreground text-xs mb-1">Completed</p>
+                <p className="text-xl font-bold">{meetings.completed}</p>
+              </div>
+              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
+                <p className="text-muted-foreground text-xs mb-1">Cancelled</p>
+                <p className="text-xl font-bold">{meetings.cancelled}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg border border-border p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Meeting Attendance</h3>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
+                <p className="text-muted-foreground text-xs mb-1">Registrations</p>
+                <p className="text-xl font-bold">{meetingAttendance.totalRegistrations}</p>
+              </div>
+              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
+                <p className="text-muted-foreground text-xs mb-1">Attended</p>
+                <p className="text-xl font-bold">{meetingAttendance.attended}</p>
+              </div>
+              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
+                <p className="text-muted-foreground text-xs mb-1">Absent</p>
+                <p className="text-xl font-bold">{meetingAttendance.absent}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
