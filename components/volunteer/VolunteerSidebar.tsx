@@ -64,6 +64,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <Calendar className="w-5 h-5" />,
   },
   {
+    id: "tasks",
+    label: "Tasks",
+    href: "/dashboard/tasks",
+    icon: <FileText className="w-5 h-5" />,
+  },
+  {
     id: "settings",
     label: "Settings",
     href: "/dashboard/settings",

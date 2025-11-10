@@ -14,6 +14,16 @@ import {
   Award,
   Loader2,
   X,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  GraduationCap,
+  FileText,
+  Plus,
+  Edit,
+  Trash2,
+  Save,
 } from "lucide-react"
 
 interface Volunteer {
@@ -58,6 +68,30 @@ interface VolunteerDetail {
   }>
 }
 
+interface Task {
+  _id: string
+  title: string
+  description: string
+  assignedTo: {
+    _id: string
+    name: string
+    email: string
+  }
+  assignedBy: {
+    _id: string
+    name: string
+    email: string
+  }
+  unitNo: string
+  status: "pending" | "in-progress" | "completed" | "cancelled"
+  priority: "low" | "medium" | "high" | "urgent"
+  dueDate?: string
+  completedAt?: string
+  completionNotes?: string
+  createdAt: string
+  updatedAt: string
+}
+
 interface Analytics {
   totalVolunteers: number
   totalActiveProjects: number
@@ -72,6 +106,16 @@ export default function VolunteerManagementPage() {
   const [loading, setLoading] = useState(true)
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerDetail | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [showTaskForm, setShowTaskForm] = useState(false)
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    priority: "medium" as "low" | "medium" | "high" | "urgent",
+    dueDate: "",
+  })
+  const [submittingTask, setSubmittingTask] = useState(false)
+  const [activeTab, setActiveTab] = useState<"profile" | "tasks" | "events">("profile")
 
   useEffect(() => {
     fetchData()
@@ -99,9 +143,90 @@ export default function VolunteerManagementPage() {
       if (data.success) {
         setSelectedVolunteer(data.volunteer)
         setShowDetailModal(true)
+        setActiveTab("profile")
+        fetchTasks(volunteerId)
       }
     } catch (error) {
       console.error("Error fetching volunteer detail:", error)
+    }
+  }
+
+  const fetchTasks = async (volunteerId: string) => {
+    try {
+      const res = await fetch(`/api/admin/tasks?volunteerId=${volunteerId}`)
+      const data = await res.json()
+      if (data.success) {
+        setTasks(data.tasks || [])
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error)
+    }
+  }
+
+  const handleAssignTask = async () => {
+    if (!selectedVolunteer || !taskForm.title || !taskForm.description) {
+      return
+    }
+
+    setSubmittingTask(true)
+    try {
+      const res = await fetch("/api/admin/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...taskForm,
+          assignedTo: selectedVolunteer._id,
+          unitNo: selectedVolunteer.application?.unitNo,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setTaskForm({ title: "", description: "", priority: "medium", dueDate: "" })
+        setShowTaskForm(false)
+        fetchTasks(selectedVolunteer._id)
+      } else {
+        alert(data.message || "Failed to assign task")
+      }
+    } catch (error) {
+      console.error("Error assigning task:", error)
+      alert("Failed to assign task")
+    } finally {
+      setSubmittingTask(false)
+    }
+  }
+
+  const handleUpdateTaskStatus = async (taskId: string, status: string) => {
+    try {
+      const res = await fetch("/api/admin/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId, status }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        fetchTasks(selectedVolunteer?._id || "")
+      }
+    } catch (error) {
+      console.error("Error updating task:", error)
+    }
+  }
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm("Are you sure you want to delete this task?")) return
+
+    try {
+      const res = await fetch(`/api/admin/tasks?id=${taskId}`, {
+        method: "DELETE",
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        fetchTasks(selectedVolunteer?._id || "")
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error)
     }
   }
 
@@ -266,16 +391,22 @@ export default function VolunteerManagementPage() {
       {/* Volunteer Detail Modal */}
       {showDetailModal && selectedVolunteer && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl border border-border p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-card rounded-xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
                 <h2 className="text-2xl font-bold text-foreground">{selectedVolunteer.name}</h2>
-                <p className="text-muted-foreground">{selectedVolunteer.email}</p>
+                <p className="text-muted-foreground flex items-center gap-2 mt-1">
+                  <Mail className="w-4 h-4" />
+                  {selectedVolunteer.email}
+                </p>
               </div>
               <button
                 onClick={() => {
                   setShowDetailModal(false)
                   setSelectedVolunteer(null)
+                  setTasks([])
+                  setShowTaskForm(false)
                 }}
                 className="p-2 hover:bg-muted rounded-lg transition-colors"
               >
@@ -283,131 +414,422 @@ export default function VolunteerManagementPage() {
               </button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalEvents}</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
-                  {selectedVolunteer.stats.completedEvents}
-                </p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">Total Hours</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalHours}h</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">Attendance</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
-                  {selectedVolunteer.stats.attendanceRate}%
-                </p>
-              </div>
+            {/* Tabs */}
+            <div className="flex border-b border-border px-6">
+              <button
+                onClick={() => setActiveTab("profile")}
+                className={`px-4 py-3 font-medium transition-colors ${
+                  activeTab === "profile"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Complete Profile
+              </button>
+              <button
+                onClick={() => setActiveTab("tasks")}
+                className={`px-4 py-3 font-medium transition-colors ${
+                  activeTab === "tasks"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Tasks ({tasks.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("events")}
+                className={`px-4 py-3 font-medium transition-colors ${
+                  activeTab === "events"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Events ({selectedVolunteer.events.length})
+              </button>
             </div>
 
-            {/* Application Details */}
-            {selectedVolunteer.application && (
-              <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-foreground mb-3">Application Details</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Form Number</p>
-                    <p className="text-foreground font-medium">{selectedVolunteer.application.formNo}</p>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Profile Tab */}
+              {activeTab === "profile" && (
+                <div className="space-y-6">
+                  {/* Stats */}
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <p className="text-sm text-muted-foreground">Total Events</p>
+                      <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalEvents}</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <p className="text-sm text-muted-foreground">Completed</p>
+                      <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.completedEvents}</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <p className="text-sm text-muted-foreground">Total Hours</p>
+                      <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalHours}h</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <p className="text-sm text-muted-foreground">Attendance</p>
+                      <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Institution</p>
-                    <p className="text-foreground font-medium">{selectedVolunteer.application.institutionName}</p>
-                  </div>
-                  {selectedVolunteer.application.departmentName && (
-                    <div>
-                      <p className="text-muted-foreground">Department</p>
-                      <p className="text-foreground font-medium">{selectedVolunteer.application.departmentName}</p>
+
+                  {/* Complete Profile Information */}
+                  {selectedVolunteer.application && (
+                    <div className="bg-muted/50 rounded-lg p-6 space-y-6">
+                      <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                        <User className="w-5 h-5" />
+                        Complete Profile Information
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Form Number</p>
+                          <p className="text-foreground font-medium">{selectedVolunteer.application.formNo || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Unit Number</p>
+                          <p className="text-foreground font-medium">{selectedVolunteer.application.unitNo || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                            <Mail className="w-3 h-3" />
+                            Email
+                          </p>
+                          <p className="text-foreground font-medium">{selectedVolunteer.email}</p>
+                        </div>
+                        {selectedVolunteer.application.mobileNo && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <Phone className="w-3 h-3" />
+                              Mobile Number
+                            </p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.mobileNo}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Name (English)</p>
+                          <p className="text-foreground font-medium">{selectedVolunteer.application.nameEnglish || selectedVolunteer.name}</p>
+                        </div>
+                        {selectedVolunteer.application.nameHindi && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Name (Hindi)</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.nameHindi}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            Institution
+                          </p>
+                          <p className="text-foreground font-medium">{selectedVolunteer.application.institutionName || "N/A"}</p>
+                        </div>
+                        {selectedVolunteer.application.departmentName && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <GraduationCap className="w-3 h-3" />
+                              Department
+                            </p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.departmentName}</p>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.courseName && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Course</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.courseName}</p>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.enrollment && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Enrollment Number</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.enrollment}</p>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.year && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Year</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.year}</p>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.semester && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Semester</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.semester}</p>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.institutionalIdCard && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Institution ID Card</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.institutionalIdCard}</p>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.socialFacebook && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Facebook</p>
+                            <a href={selectedVolunteer.application.socialFacebook} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              View Profile
+                            </a>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.socialInstagram && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Instagram</p>
+                            <a href={selectedVolunteer.application.socialInstagram} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              View Profile
+                            </a>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.socialTwitter && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Twitter/X</p>
+                            <a href={selectedVolunteer.application.socialTwitter} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              View Profile
+                            </a>
+                          </div>
+                        )}
+                        {selectedVolunteer.application.socialLinkedin && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">LinkedIn</p>
+                            <a href={selectedVolunteer.application.socialLinkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              View Profile
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                  {selectedVolunteer.application.courseName && (
-                    <div>
-                      <p className="text-muted-foreground">Course</p>
-                      <p className="text-foreground font-medium">{selectedVolunteer.application.courseName}</p>
-                    </div>
-                  )}
-                  {selectedVolunteer.application.mobileNo && (
-                    <div>
-                      <p className="text-muted-foreground">Mobile</p>
-                      <p className="text-foreground font-medium">{selectedVolunteer.application.mobileNo}</p>
-                    </div>
-                  )}
-                  {selectedVolunteer.application.enrollment && (
-                    <div>
-                      <p className="text-muted-foreground">Enrollment</p>
-                      <p className="text-foreground font-medium">{selectedVolunteer.application.enrollment}</p>
+
+                  {/* Project Info */}
+                  {selectedVolunteer.project && (
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <h3 className="font-semibold text-foreground mb-2">Current Project</h3>
+                      <p className="text-foreground font-medium">{selectedVolunteer.project.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedVolunteer.project.description}</p>
                     </div>
                   )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Project Info */}
-            {selectedVolunteer.project && (
-              <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-foreground mb-2">Current Project</h3>
-                <p className="text-foreground font-medium">{selectedVolunteer.project.title}</p>
-                <p className="text-sm text-muted-foreground">{selectedVolunteer.project.description}</p>
-              </div>
-            )}
+              {/* Tasks Tab */}
+              {activeTab === "tasks" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-foreground">Assigned Tasks</h3>
+                    <button
+                      onClick={() => setShowTaskForm(!showTaskForm)}
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Assign New Task
+                    </button>
+                  </div>
 
-            {/* Events List */}
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Event History</h3>
-              <div className="space-y-3">
-                {selectedVolunteer.events.length > 0 ? (
-                  selectedVolunteer.events.map((event) => (
-                    <div key={event._id} className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-2">
+                  {/* Task Assignment Form */}
+                  {showTaskForm && (
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+                      <h4 className="font-semibold text-foreground">Assign New Task</h4>
+                      <div className="space-y-3">
                         <div>
-                          <p className="font-medium text-foreground">{event.eventTitle}</p>
-                          <p className="text-sm text-muted-foreground">{event.projectTitle}</p>
+                          <label className="block text-sm font-medium text-foreground mb-1">Task Title *</label>
+                          <input
+                            type="text"
+                            value={taskForm.title}
+                            onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                            placeholder="Enter task title"
+                          />
                         </div>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            event.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : event.status === "started"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {event.status}
-                        </span>
-                      </div>
-                      {event.workDescription && (
-                        <p className="text-sm text-muted-foreground mb-2">{event.workDescription}</p>
-                      )}
-                      <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        {event.startTime && (
-                          <span>
-                            Start: {new Date(event.startTime).toLocaleString()}
-                          </span>
-                        )}
-                        {event.endTime && (
-                          <span>
-                            End: {new Date(event.endTime).toLocaleString()}
-                          </span>
-                        )}
-                        {event.hoursWorked > 0 && (
-                          <span className="flex items-center">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {event.hoursWorked}h
-                          </span>
-                        )}
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-1">Description *</label>
+                          <textarea
+                            value={taskForm.description}
+                            onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                            rows={3}
+                            placeholder="Enter task description"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-foreground mb-1">Priority</label>
+                            <select
+                              value={taskForm.priority}
+                              onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                              className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                            >
+                              <option value="low">Low</option>
+                              <option value="medium">Medium</option>
+                              <option value="high">High</option>
+                              <option value="urgent">Urgent</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-foreground mb-1">Due Date</label>
+                            <input
+                              type="datetime-local"
+                              value={taskForm.dueDate}
+                              onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                              className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleAssignTask}
+                            disabled={submittingTask || !taskForm.title || !taskForm.description}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                          >
+                            {submittingTask ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Assigning...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="w-4 h-4" />
+                                Assign Task
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowTaskForm(false)
+                              setTaskForm({ title: "", description: "", priority: "medium", dueDate: "" })
+                            }}
+                            className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">No events yet</p>
-                )}
-              </div>
+                  )}
+
+                  {/* Tasks List */}
+                  <div className="space-y-3">
+                    {tasks.length > 0 ? (
+                      tasks.map((task) => (
+                        <div key={task._id} className="bg-muted/50 rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-foreground">{task.title}</h4>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    task.priority === "urgent"
+                                      ? "bg-red-100 text-red-800"
+                                      : task.priority === "high"
+                                        ? "bg-orange-100 text-orange-800"
+                                        : task.priority === "medium"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-blue-100 text-blue-800"
+                                  }`}
+                                >
+                                  {task.priority}
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    task.status === "completed"
+                                      ? "bg-green-100 text-green-800"
+                                      : task.status === "in-progress"
+                                        ? "bg-blue-100 text-blue-800"
+                                        : task.status === "cancelled"
+                                          ? "bg-gray-100 text-gray-800"
+                                          : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                                >
+                                  {task.status}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+                              {task.dueDate && (
+                                <p className="text-xs text-muted-foreground">
+                                  Due: {new Date(task.dueDate).toLocaleString()}
+                                </p>
+                              )}
+                              {task.completedAt && (
+                                <p className="text-xs text-green-600 mt-1">
+                                  Completed: {new Date(task.completedAt).toLocaleString()}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              {task.status !== "completed" && task.status !== "cancelled" && (
+                                <button
+                                  onClick={() => handleUpdateTaskStatus(task._id, "completed")}
+                                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  title="Mark as completed"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteTask(task._id)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete task"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-center py-8">No tasks assigned yet</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Events Tab */}
+              {activeTab === "events" && (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-foreground">Event History</h3>
+                  <div className="space-y-3">
+                    {selectedVolunteer.events.length > 0 ? (
+                      selectedVolunteer.events.map((event) => (
+                        <div key={event._id} className="bg-muted/50 rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="font-medium text-foreground">{event.eventTitle}</p>
+                              <p className="text-sm text-muted-foreground">{event.projectTitle}</p>
+                            </div>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                event.status === "completed"
+                                  ? "bg-green-100 text-green-800"
+                                  : event.status === "started"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {event.status}
+                            </span>
+                          </div>
+                          {event.workDescription && (
+                            <p className="text-sm text-muted-foreground mb-2">{event.workDescription}</p>
+                          )}
+                          <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                            {event.startTime && (
+                              <span>Start: {new Date(event.startTime).toLocaleString()}</span>
+                            )}
+                            {event.endTime && (
+                              <span>End: {new Date(event.endTime).toLocaleString()}</span>
+                            )}
+                            {event.hoursWorked > 0 && (
+                              <span className="flex items-center">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {event.hoursWorked}h
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-center py-8">No events yet</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

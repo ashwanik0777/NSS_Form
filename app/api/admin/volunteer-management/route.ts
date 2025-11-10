@@ -7,6 +7,7 @@ import VolunteerProject from "@/models/VolunteerProject"
 import VolunteerEvent from "@/models/VolunteerEvent"
 import Event from "@/models/Event"
 import NSSApplication from "@/models/NSSApplication"
+import NSSProject from "@/models/NSSProject"
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,6 +17,16 @@ export async function GET(request: NextRequest) {
     }
 
     await dbConnect()
+    
+    // Ensure NSSProject model is registered before populate
+    // This prevents the "Schema hasn't been registered" error
+    // Access the model to ensure it's registered with Mongoose
+    try {
+      await NSSProject.findOne({}).limit(0).lean()
+    } catch (e) {
+      // Model might not be registered yet, but that's okay - the import should handle it
+    }
+    
     const { searchParams } = new URL(request.url)
     const volunteerId = searchParams.get("volunteerId")
 
@@ -27,6 +38,16 @@ export async function GET(request: NextRequest) {
       }
 
       const application = await NSSApplication.findOne({ userId: volunteerId }).lean()
+      
+      // Check unit access for sub-admin
+      if (session.user.role === "sub-admin" && application) {
+        const user = await User.findById(session.user.id).select("assignedUnits").lean()
+        const userAssignedUnits = (user as any)?.assignedUnits || []
+        if (userAssignedUnits.length > 0 && !userAssignedUnits.includes(application.unitNo)) {
+          return NextResponse.json({ success: false, message: "Access denied" }, { status: 403 })
+        }
+      }
+
       const projectAssignment = await VolunteerProject.findOne({
         volunteerId,
         status: "active",
@@ -49,7 +70,7 @@ export async function GET(request: NextRequest) {
         success: true,
         volunteer: {
           ...volunteer,
-          application,
+          application: application || null,
           project: projectAssignment?.projectId || null,
           stats: {
             totalEvents,
@@ -71,6 +92,37 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Unit-based filtering for sub-admins
+    let unitFilter: any = {}
+    if (session.user.role === "sub-admin") {
+      const user = await User.findById(session.user.id).select("assignedUnits").lean()
+      const userAssignedUnits = (user as any)?.assignedUnits || []
+      if (userAssignedUnits.length > 0) {
+        // Get volunteers from sub-admin's assigned units only
+        const applicationsInUnits = await NSSApplication.find({
+          status: "approved",
+          unitNo: { $in: userAssignedUnits },
+        })
+          .select("userId")
+          .lean()
+        const approvedUserIds = applicationsInUnits.map((app) => app.userId)
+        unitFilter = { _id: { $in: approvedUserIds } }
+      } else {
+        // No units assigned, return empty
+        return NextResponse.json({
+          success: true,
+          volunteers: [],
+          analytics: {
+            totalVolunteers: 0,
+            totalActiveProjects: 0,
+            totalEvents: 0,
+            totalEventParticipations: 0,
+            avgAttendanceRate: 0,
+          },
+        })
+      }
+    }
+
     // Get all volunteers with approved applications only
     const approvedApplications = await NSSApplication.find({ status: "approved" })
       .select("userId")
@@ -80,6 +132,7 @@ export async function GET(request: NextRequest) {
 
     // Get only volunteers with approved applications
     const volunteers = await User.find({
+      ...unitFilter,
       _id: { $in: approvedUserIds },
       role: { $in: ["volunteer", "user"] }
     }).lean()
