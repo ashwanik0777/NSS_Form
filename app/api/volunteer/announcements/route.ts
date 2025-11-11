@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import Announcement from "@/models/Announcement"
+import Notification from "@/models/Notification"
 import NSSApplication from "@/models/NSSApplication"
 import NotificationRead from "@/models/NotificationRead"
 
@@ -35,7 +36,7 @@ export async function GET(_request: NextRequest) {
       .limit(10)
       .lean()
 
-    const notifications = await Announcement.find({
+    const globalNotifications = await Announcement.find({
       status: "active",
       type: "notification",
     })
@@ -44,8 +45,14 @@ export async function GET(_request: NextRequest) {
       .limit(5)
       .lean()
 
-    // Get read status for notifications
-    const notificationIds = notifications.map((n: any) => n._id)
+    // Merge in per-user notifications
+    const userNotifications = await Notification.find({ userId: session.user.id })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean()
+
+    // Get read status for global notifications
+    const notificationIds = globalNotifications.map((n: any) => n._id)
     const readNotifications = await NotificationRead.find({
       volunteerId: session.user.id,
       announcementId: { $in: notificationIds },
@@ -67,14 +74,26 @@ export async function GET(_request: NextRequest) {
         createdAt: a.createdAt,
         createdBy: a.createdBy?.name || "Admin",
       })),
-      notifications: notifications.map((n: any) => ({
+      notifications: [
+        // Global announcement-based notifications
+        ...globalNotifications.map((n: any) => ({
         _id: n._id,
         title: n.title,
         content: n.content,
         createdAt: n.createdAt,
         createdBy: n.createdBy?.name || "Admin",
         isRead: readNotificationIds.has(n._id.toString()),
-      })),
+        })),
+        // User-specific notifications
+        ...userNotifications.map((n: any) => ({
+          _id: n._id,
+          title: n.title,
+          content: n.message,
+          createdAt: n.createdAt,
+          createdBy: "System",
+          isRead: n.isRead || false,
+        })),
+      ],
     })
   } catch (error) {
     console.error("Announcements fetch error:", error)
