@@ -5,6 +5,8 @@ import connectDB from "@/lib/mongodb"
 import SocialMediaPost from "@/models/SocialMediaPost"
 import PostView from "@/models/PostView"
 import User from "@/models/User"
+import Notification from "@/models/Notification"
+import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,6 +18,14 @@ export async function GET(request: NextRequest) {
     const user = session.user as any
     if (user.role !== "admin" && user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin
+    if (user.role === "sub-admin") {
+      const userPermissions = user.permissions || []
+      if (!hasPermission(userPermissions, "social.view" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'social.view' permission." }, { status: 403 })
+      }
     }
 
     await connectDB()
@@ -63,6 +73,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
+    // Check permission for sub-admin
+    if (user.role === "sub-admin") {
+      const userPermissions = user.permissions || []
+      if (!hasPermission(userPermissions, "social.edit" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'social.edit' permission." }, { status: 403 })
+      }
+    }
+
     await connectDB()
 
     const body = await request.json()
@@ -85,6 +103,28 @@ export async function POST(request: NextRequest) {
 
     await post.populate("postedBy", "name email")
 
+    // Send notifications to all volunteers
+    try {
+      const volunteers = await User.find({ role: "volunteer" }).select("_id").lean()
+      
+      const notificationPromises = volunteers.map((volunteer: any) =>
+        Notification.create({
+          userId: volunteer._id,
+          title: "New NSS Social Media Post",
+          message: `A new ${platform} post has been shared: "${title}". View it on your dashboard to earn ${pointsReward || 10} points!`,
+          type: "announcement",
+          link: "/dashboard",
+          isRead: false,
+        })
+      )
+
+      await Promise.all(notificationPromises)
+      console.log(`✓ Notifications sent to ${volunteers.length} volunteers for new social post`)
+    } catch (error: any) {
+      console.error("Error sending notifications:", error)
+      // Don't fail the request if notifications fail
+    }
+
     return NextResponse.json({ success: true, post }, { status: 201 })
   } catch (error: any) {
     console.error("Error creating social post:", error)
@@ -102,6 +142,14 @@ export async function PATCH(request: NextRequest) {
     const user = session.user as any
     if (user.role !== "admin" && user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin
+    if (user.role === "sub-admin") {
+      const userPermissions = user.permissions || []
+      if (!hasPermission(userPermissions, "social.edit" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'social.edit' permission." }, { status: 403 })
+      }
     }
 
     await connectDB()
@@ -148,6 +196,14 @@ export async function DELETE(request: NextRequest) {
     const user = session.user as any
     if (user.role !== "admin" && user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
+    }
+
+    // Check permission for sub-admin
+    if (user.role === "sub-admin") {
+      const userPermissions = user.permissions || []
+      if (!hasPermission(userPermissions, "social.edit" as PermissionKey)) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'social.edit' permission." }, { status: 403 })
+      }
     }
 
     await connectDB()
