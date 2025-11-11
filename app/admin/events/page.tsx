@@ -11,6 +11,19 @@ export default function EventsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState<any>(null)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportEvent, setReportEvent] = useState<any>(null)
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportError, setReportError] = useState<string | null>(null)
+  const [reportForm, setReportForm] = useState({
+    description: "",
+    attendeesCount: "",
+    photoUrls: [""],
+    selectedPhotoUrls: [] as string[],
+    videoUrls: [""],
+    sendToEmail: "",
+  })
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -349,6 +362,47 @@ export default function EventsPage() {
                         >
                           <Edit className="w-4 h-4" />
                         </button>
+                        {event.status === "completed" && (
+                          <button
+                            onClick={async () => {
+                              setReportEvent(event)
+                              setReportError(null)
+                              setReportLoading(true)
+                              setShowReportModal(true)
+                              try {
+                                const res = await fetch(`/api/admin/events/report?eventId=${event._id}`)
+                                const data = await res.json()
+                                if (data.success && data.report) {
+                                  setReportForm({
+                                    description: data.report.description || "",
+                                    attendeesCount: String(data.report.attendeesCount || ""),
+                                    photoUrls: (data.report.photoUrls && data.report.photoUrls.length > 0) ? data.report.photoUrls : [""],
+                                    selectedPhotoUrls: data.report.selectedPhotoUrls || [],
+                                    videoUrls: (data.report.videoUrls && data.report.videoUrls.length > 0) ? data.report.videoUrls : [""],
+                                    sendToEmail: "",
+                                  })
+                                } else {
+                                  setReportForm({
+                                    description: "",
+                                    attendeesCount: "",
+                                    photoUrls: [""],
+                                    selectedPhotoUrls: [],
+                                    videoUrls: [""],
+                                    sendToEmail: "",
+                                  })
+                                }
+                              } catch (e) {
+                                setReportError("Failed to load report")
+                              } finally {
+                                setReportLoading(false)
+                              }
+                            }}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Complete Report"
+                          >
+                            <Clock className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(event._id)}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -623,6 +677,251 @@ export default function EventsPage() {
                     {editingEvent ? "Update Event" : "Create Event"}
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && reportEvent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-card rounded-xl border border-border max-w-4xl w-full my-8 flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card rounded-t-xl z-10">
+              <h2 className="text-2xl font-bold text-foreground">Event Report - {reportEvent.title}</h2>
+              <button
+                onClick={() => {
+                  setShowReportModal(false)
+                  setReportEvent(null)
+                  setReportError(null)
+                }}
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="overflow-y-auto flex-1 p-6">
+              {reportLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <Loader2 className="animate-spin w-8 h-8 text-primary" />
+                </div>
+              ) : (
+                <>
+                  {reportError && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{reportError}</div>}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">Description</label>
+                      <textarea
+                        rows={4}
+                        value={reportForm.description}
+                        onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })}
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="Describe the event outcomes, activities, impact, etc."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Attendees Count</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={reportForm.attendeesCount}
+                        onChange={(e) => setReportForm({ ...reportForm, attendeesCount: e.target.value })}
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="e.g., 120"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Send Report To (Email)</label>
+                      <input
+                        type="email"
+                        value={reportForm.sendToEmail}
+                        onChange={(e) => setReportForm({ ...reportForm, sendToEmail: e.target.value })}
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="recipient@example.com"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-foreground">Photo URLs (up to 10)</label>
+                        <button
+                          onClick={() => {
+                            if (reportForm.photoUrls.length < 10) setReportForm({ ...reportForm, photoUrls: [...reportForm.photoUrls, ""] })
+                          }}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          + Add Photo
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {reportForm.photoUrls.map((url, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="url"
+                              value={url}
+                              onChange={(e) => {
+                                const list = [...reportForm.photoUrls]
+                                list[idx] = e.target.value
+                                setReportForm({ ...reportForm, photoUrls: list })
+                              }}
+                              className="flex-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                              placeholder="https://example.com/photo.jpg"
+                            />
+                            <input
+                              type="checkbox"
+                              checked={reportForm.selectedPhotoUrls.includes(url) && !!url}
+                              onChange={(e) => {
+                                const sel = new Set(reportForm.selectedPhotoUrls)
+                                if (e.target.checked) {
+                                  if (url && !sel.has(url) && sel.size < 4) sel.add(url)
+                                } else {
+                                  sel.delete(url)
+                                }
+                                setReportForm({ ...reportForm, selectedPhotoUrls: Array.from(sel) })
+                              }}
+                              title="Mark as selected (max 4)"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Tick up to 4 photos to include in the report email.</p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-foreground">Video Links (up to 4)</label>
+                        <button
+                          onClick={() => {
+                            if (reportForm.videoUrls.length < 4) setReportForm({ ...reportForm, videoUrls: [...reportForm.videoUrls, ""] })
+                          }}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          + Add Video
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {reportForm.videoUrls.map((url, idx) => (
+                          <input
+                            key={idx}
+                            type="url"
+                            value={url}
+                            onChange={(e) => {
+                              const list = [...reportForm.videoUrls]
+                              list[idx] = e.target.value
+                              setReportForm({ ...reportForm, videoUrls: list })
+                            }}
+                            className="px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="https://youtube.com/... or media link"
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Use links for large videos (YouTube/Drive/media URL).</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-border sticky bottom-0 bg-card rounded-b-xl">
+              <button
+                onClick={() => {
+                  setShowReportModal(false)
+                  setReportEvent(null)
+                  setReportError(null)
+                }}
+                className="px-4 py-2 text-foreground hover:bg-muted rounded-lg transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={async () => {
+                  if (!reportEvent) return
+                  setReportSubmitting(true)
+                  setReportError(null)
+                  try {
+                    const res = await fetch("/api/admin/events/report", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        eventId: reportEvent._id,
+                        description: reportForm.description,
+                        attendeesCount: parseInt(reportForm.attendeesCount || "0", 10) || 0,
+                        photoUrls: reportForm.photoUrls.filter(Boolean).slice(0, 10),
+                        selectedPhotoUrls: reportForm.selectedPhotoUrls.filter(Boolean).slice(0, 4),
+                        videoUrls: reportForm.videoUrls.filter(Boolean).slice(0, 4),
+                      }),
+                    })
+                    const data = await res.json()
+                    if (!data.success) {
+                      setReportError(data.message || "Failed to save report")
+                    } else {
+                      // saved
+                    }
+                  } catch (e) {
+                    setReportError("Failed to save report")
+                  } finally {
+                    setReportSubmitting(false)
+                  }
+                }}
+                disabled={reportSubmitting}
+                className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {reportSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Report
+              </button>
+              <button
+                onClick={async () => {
+                  if (!reportEvent || !reportForm.sendToEmail) {
+                    setReportError("Enter recipient email to send report")
+                    return
+                  }
+                  setReportSubmitting(true)
+                  setReportError(null)
+                  try {
+                    // Ensure saved before sending
+                    await fetch("/api/admin/events/report", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        eventId: reportEvent._id,
+                        description: reportForm.description,
+                        attendeesCount: parseInt(reportForm.attendeesCount || "0", 10) || 0,
+                        photoUrls: reportForm.photoUrls.filter(Boolean).slice(0, 10),
+                        selectedPhotoUrls: reportForm.selectedPhotoUrls.filter(Boolean).slice(0, 4),
+                        videoUrls: reportForm.videoUrls.filter(Boolean).slice(0, 4),
+                      }),
+                    })
+
+                    const res = await fetch("/api/admin/events/report/send", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ eventId: reportEvent._id, email: reportForm.sendToEmail }),
+                    })
+                    const data = await res.json()
+                    if (!data.success) {
+                      setReportError(data.message || "Failed to send report")
+                    } else {
+                      setShowReportModal(false)
+                      setReportEvent(null)
+                    }
+                  } catch (e) {
+                    setReportError("Failed to send report")
+                  } finally {
+                    setReportSubmitting(false)
+                  }
+                }}
+                disabled={reportSubmitting}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {reportSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Clock className="w-4 h-4 mr-2" />}
+                Send Report Email
               </button>
             </div>
           </div>
