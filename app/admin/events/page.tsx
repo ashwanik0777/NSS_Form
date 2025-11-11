@@ -759,6 +759,34 @@ export default function EventsPage() {
                           + Add Photo
                         </button>
                       </div>
+                      {/* Upload photos */}
+                      <div className="mb-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={async (e) => {
+                            if (!e.target.files || e.target.files.length === 0) return
+                            const files = Array.from(e.target.files)
+                            const remaining = Math.max(0, 10 - reportForm.photoUrls.filter(Boolean).length)
+                            const toUpload = files.slice(0, remaining)
+                            for (const f of toUpload) {
+                              const fd = new FormData()
+                              fd.append("file", f as any)
+                              try {
+                                const res = await fetch("/api/uploads", { method: "POST", body: fd })
+                                const data = await res.json()
+                                if (data.success && data.url) {
+                                  setReportForm((prev) => ({ ...prev, photoUrls: [...prev.photoUrls, data.url].slice(0, 10) }))
+                                }
+                              } catch {}
+                            }
+                            e.currentTarget.value = ""
+                          }}
+                          className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Upload images or paste links below.</p>
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {reportForm.photoUrls.map((url, idx) => (
                           <div key={idx} className="flex items-center gap-2">
@@ -804,6 +832,34 @@ export default function EventsPage() {
                         >
                           + Add Video
                         </button>
+                      </div>
+                      {/* Upload videos */}
+                      <div className="mb-3">
+                        <input
+                          type="file"
+                          accept="video/*"
+                          multiple
+                          onChange={async (e) => {
+                            if (!e.target.files || e.target.files.length === 0) return
+                            const files = Array.from(e.target.files)
+                            const remaining = Math.max(0, 4 - reportForm.videoUrls.filter(Boolean).length)
+                            const toUpload = files.slice(0, remaining)
+                            for (const f of toUpload) {
+                              const fd = new FormData()
+                              fd.append("file", f as any)
+                              try {
+                                const res = await fetch("/api/uploads", { method: "POST", body: fd })
+                                const data = await res.json()
+                                if (data.success && data.url) {
+                                  setReportForm((prev) => ({ ...prev, videoUrls: [...prev.videoUrls, data.url].slice(0, 4) }))
+                                }
+                              } catch {}
+                            }
+                            e.currentTarget.value = ""
+                          }}
+                          className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Upload videos or paste external links (YouTube/Drive).</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {reportForm.videoUrls.map((url, idx) => (

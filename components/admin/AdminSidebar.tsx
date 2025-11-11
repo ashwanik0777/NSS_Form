@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
@@ -33,98 +33,104 @@ interface SidebarItem {
   children?: SidebarItem[]
 }
 
-const sidebarItems: SidebarItem[] = [
+const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorClass: string; items: SidebarItem[] }[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    href: "/admin",
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    id: "group-overview",
+    group: "Overview",
+    icon: <LayoutDashboard className="w-4 h-4" />,
+    colorClass: "text-purple-600",
+    items: [
+      { id: "dashboard", label: "Dashboard", href: "/admin", icon: <LayoutDashboard className="w-5 h-5" /> },
+      { id: "applications", label: "Applications", href: "/admin/applications", icon: <FileText className="w-5 h-5" />, permission: "applications.view" },
+    ],
   },
   {
-    id: "applications",
-    label: "Applications",
-    href: "/admin/applications",
-    icon: <FileText className="w-5 h-5" />,
-    permission: "applications.view",
+    id: "group-users",
+    group: "Users",
+    icon: <Users className="w-4 h-4" />,
+    colorClass: "text-sky-600",
+    items: [
+      { id: "users", label: "User Management", href: "/admin/users", icon: <Users className="w-5 h-5" />, permission: "users.view" },
+      { id: "volunteer-management", label: "Volunteer Management", href: "/admin/volunteer-management", icon: <UserCheck className="w-5 h-5" />, permission: "volunteers.view" },
+    ],
   },
   {
-    id: "users",
-    label: "User Management",
-    href: "/admin/users",
-    icon: <Users className="w-5 h-5" />,
-    permission: "users.view",
+    id: "group-activities",
+    group: "Activities",
+    icon: <Calendar className="w-4 h-4" />,
+    colorClass: "text-pink-600",
+    items: [
+      { id: "events", label: "Events", href: "/admin/events", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
+      { id: "meetings", label: "Meetings", href: "/admin/meetings", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
+      { id: "announcements", label: "Announcements", href: "/admin/announcements", icon: <Megaphone className="w-5 h-5" />, permission: "announcements.view" },
+      { id: "grievances", label: "Grievances", href: "/admin/grievances", icon: <FileText className="w-5 h-5" />, permission: "volunteers.view" },
+    ],
   },
   {
-    id: "projects",
-    label: "Project Management",
-    href: "/admin/projects",
-    icon: <FolderKanban className="w-5 h-5" />,
-    permission: "projects.view",
-  },
-  {
-    id: "volunteer-management",
-    label: "Volunteer Management",
-    href: "/admin/volunteer-management",
-    icon: <UserCheck className="w-5 h-5" />,
-    permission: "volunteers.view",
-  },
-  {
-    id: "events",
-    label: "Events",
-    href: "/admin/events",
-    icon: <Calendar className="w-5 h-5" />,
-    permission: "events.view",
-  },
-  {
-    id: "grievances",
-    label: "Grievances",
-    href: "/admin/grievances",
-    icon: <FileText className="w-5 h-5" />,
-    permission: "volunteers.view",
-  },
-  {
-    id: "meetings",
-    label: "Meetings",
-    href: "/admin/meetings",
-    icon: <Calendar className="w-5 h-5" />,
-    permission: "events.view",
-  },
-  {
-    id: "announcements",
-    label: "Announcements",
-    href: "/admin/announcements",
-    icon: <Megaphone className="w-5 h-5" />,
-    permission: "announcements.view",
-  },
-  {
-    id: "social-links",
-    label: "NSS Social Links",
-    href: "/admin/social-links",
-    icon: <TrendingUp className="w-5 h-5" />,
-    permission: "social.view",
-  },
-  {
-    id: "email",
-    label: "Email System",
-    href: "/admin/emailSystem",
-    icon: <Mail className="w-5 h-5" />,
-    permission: "email.view",
+    id: "group-settings",
+    group: "Settings",
+    icon: <Settings className="w-4 h-4" />,
+    colorClass: "text-amber-600",
+    items: [
+      { id: "social-links", label: "NSS Social Links", href: "/admin/social-links", icon: <TrendingUp className="w-5 h-5" />, permission: "social.view" },
+      { id: "email", label: "Email System", href: "/admin/emailSystem", icon: <Mail className="w-5 h-5" />, permission: "email.view" },
+    ],
   },
 ]
+
+// Color mapping for individual items (for colorful icons)
+const getItemColorClass = (id: string): string => {
+  switch (id) {
+    case "dashboard":
+      return "text-purple-600"
+    case "applications":
+      return "text-indigo-600"
+    case "users":
+      return "text-sky-600"
+    case "volunteer-management":
+      return "text-blue-600"
+    case "projects":
+      return "text-emerald-600"
+    case "events":
+      return "text-pink-600"
+    case "meetings":
+      return "text-orange-600"
+    case "announcements":
+      return "text-rose-600"
+    case "grievances":
+      return "text-fuchsia-600"
+    case "social-links":
+      return "text-teal-600"
+    case "email":
+      return "text-amber-600"
+    default:
+      return "text-primary"
+  }
+}
 
 export default function AdminSidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    "group-overview": true,
+    "group-users": false,
+    "group-activities": false,
+    "group-settings": false,
+  })
   const { data: session } = useSession()
   const user = session?.user as any
   const userRole = user?.role
   const userPermissions = user?.permissions || []
 
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }))
+  }
+
   return (
     <aside
       className={`${
         collapsed ? "w-20" : "w-72"
-      } bg-gradient-to-b from-card to-card/80 backdrop-blur-md border-r border-border/50 transition-all duration-300 ease-in-out shadow-xl`}
+      } bg-white border-r border-border/50 transition-all duration-300 ease-in-out shadow-xl`}
     >
       <div className="flex items-center justify-between p-6 border-b border-border/50">
         {!collapsed && (
@@ -147,43 +153,91 @@ export default function AdminSidebar() {
       </div>
 
       <nav className="p-4">
-        <ul className="space-y-2">
-          {sidebarItems.map((item) => {
-            // Admin users have access to everything, skip permission check for them
-            if (userRole !== "admin" && item.permission && !hasPermission(userPermissions, item.permission as any)) {
-              return null
-            }
-            
-            const isActive = pathname === item.href
-            return (
-              <li key={item.id}>
-                <Link
-                  href={item.href}
-                  className={`group flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25"
-                      : "text-foreground hover:bg-muted/80 hover:scale-105"
-                  }`}
-                  title={collapsed ? item.label : undefined}
-                >
+        <div className="space-y-3">
+          {groupedSidebar.map(({ id, group, icon, colorClass, items }) => (
+            <div key={id} className="relative">
+              <button
+                type="button"
+                onClick={() => toggleGroup(id)}
+                className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-between"} px-3 py-2 rounded-lg hover:bg-muted/80 transition-colors`}
+                title={collapsed ? group : undefined}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={`w-6 h-6 flex items-center justify-center rounded-md bg-muted/60 ${colorClass}`}>{icon}</span>
+                  {!collapsed && <span className="text-xs uppercase tracking-wide text-muted-foreground">{group}</span>}
+                </span>
+                {!collapsed && (
                   <span
-                    className={`flex-shrink-0 transition-transform duration-300 ${
-                      isActive ? "scale-110" : "group-hover:scale-110"
+                    className={`w-3 h-3 border-t-2 border-r-2 border-muted-foreground/70 inline-block transition-transform ${
+                      expandedGroups[id] ? "rotate-135" : "rotate-45"
                     }`}
-                  >
-                    {item.icon}
-                  </span>
-                  {!collapsed && (
-                    <span className="ml-4 text-sm font-semibold transition-all duration-300">{item.label}</span>
-                  )}
-                  {!collapsed && isActive && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  )}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+                  />
+                )}
+              </button>
+
+              {/* Expanded content */}
+              {expandedGroups[id] && !collapsed && (
+                <ul className="mt-2 space-y-2 pl-2">
+                  {items.map((item) => {
+                    if (userRole !== "admin" && item.permission && !hasPermission(userPermissions, item.permission as any)) {
+                      return null
+                    }
+                    const isActive = pathname === item.href
+                    const color = getItemColorClass(item.id)
+                    return (
+                      <li key={item.id}>
+                        <Link
+                          href={item.href}
+                          className={`group flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
+                            isActive
+                              ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25"
+                              : "text-foreground hover:bg-muted/80 hover:scale-105"
+                          }`}
+                          title={collapsed ? item.label : undefined}
+                        >
+                          <span className={`flex-shrink-0 transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"} ${!isActive ? color : ""}`}>
+                            {item.icon}
+                          </span>
+                          {!collapsed && <span className="ml-4 text-sm font-semibold transition-all duration-300">{item.label}</span>}
+                          {!collapsed && isActive && <div className="ml-auto w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+
+              {/* Floating panel when collapsed */}
+              {expandedGroups[id] && collapsed && (
+                <div className="absolute left-full top-0 ml-2 z-50 bg-card border border-border rounded-xl shadow-xl min-w-[220px] p-2">
+                  <ul className="space-y-1">
+                    {items.map((item) => {
+                      if (userRole !== "admin" && item.permission && !hasPermission(userPermissions, item.permission as any)) {
+                        return null
+                      }
+                      const isActive = pathname === item.href
+                      const color = getItemColorClass(item.id)
+                      return (
+                        <li key={item.id}>
+                          <Link
+                            href={item.href}
+                            className={`group flex items-center px-3 py-2 rounded-lg transition-all duration-300 ${
+                              isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted/80 text-foreground"
+                            }`}
+                            title={item.label}
+                          >
+                            <span className={`mr-2 ${!isActive ? color : ""}`}>{item.icon}</span>
+                            <span className="text-sm font-medium">{item.label}</span>
+                          </Link>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </nav>
 
       {!collapsed && (
