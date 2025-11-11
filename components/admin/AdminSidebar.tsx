@@ -76,6 +76,13 @@ const sidebarItems: SidebarItem[] = [
     permission: "events.view",
   },
   {
+    id: "meetings",
+    label: "Meetings",
+    href: "/admin/meetings",
+    icon: <Calendar className="w-5 h-5" />,
+    permission: "events.view",
+  },
+  {
     id: "announcements",
     label: "Announcements",
     href: "/admin/announcements",

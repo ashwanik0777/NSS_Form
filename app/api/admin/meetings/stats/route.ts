@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import Meeting from "@/models/Meeting"
 import VolunteerMeeting from "@/models/VolunteerMeeting"
+import User from "@/models/User"
 
 export async function GET(_request: NextRequest) {
   try {
@@ -19,12 +20,23 @@ export async function GET(_request: NextRequest) {
 
     await dbConnect()
 
+    // Get sub-admin's assigned units
+    let userAssignedUnits: string[] | null = null
+    let query: any = {}
+    if (session.user.role === "sub-admin") {
+      const user = await User.findById(session.user.id).select("assignedUnits").lean()
+      if (user && (user as any).assignedUnits && (user as any).assignedUnits.length > 0) {
+        userAssignedUnits = (user as any).assignedUnits
+        query.unitNo = { $in: userAssignedUnits }
+      }
+    }
+
     const [totalMeetings, upcomingOrOngoing, completedMeetings, cancelledMeetings, totalRegistrations, totalAttended, totalAbsent] =
       await Promise.all([
-        Meeting.countDocuments({}),
-        Meeting.countDocuments({ status: { $in: ["upcoming", "ongoing"] } }),
-        Meeting.countDocuments({ status: "completed" }),
-        Meeting.countDocuments({ status: "cancelled" }),
+        Meeting.countDocuments(query),
+        Meeting.countDocuments({ ...query, status: { $in: ["upcoming", "ongoing"] } }),
+        Meeting.countDocuments({ ...query, status: "completed" }),
+        Meeting.countDocuments({ ...query, status: "cancelled" }),
         VolunteerMeeting.countDocuments({}),
         VolunteerMeeting.countDocuments({ status: "attended" }),
         VolunteerMeeting.countDocuments({ status: "absent" }),
