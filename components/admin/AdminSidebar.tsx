@@ -241,7 +241,7 @@ export default function AdminSidebar() {
       </nav>
 
       {!collapsed && (
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="absolute w-64 bottom-4 left-4 right-4">
           <Link
             href="/admin/profile"
             className="block bg-muted/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 hover:bg-muted/70 transition-colors group"

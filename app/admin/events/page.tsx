@@ -781,7 +781,7 @@ export default function EventsPage() {
                                 }
                               } catch {}
                             }
-                            e.currentTarget.value = ""
+                            if (e.currentTarget) e.currentTarget.value = ""
                           }}
                           className="w-full px-3 py-2 border border-border rounded-lg"
                         />
