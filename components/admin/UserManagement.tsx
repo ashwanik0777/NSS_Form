@@ -19,6 +19,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [formData, setFormData] = useState({
     name: "",
@@ -48,6 +49,8 @@ export default function UserManagement() {
   }
 
   const handleCreateUser = async () => {
+    if (creating) return
+    setCreating(true)
     try {
       const response = await fetch("/api/admin/users", {
         method: "POST",
@@ -69,6 +72,8 @@ export default function UserManagement() {
     } catch (error) {
       console.error("Error creating user:", error)
       alert("Error creating user")
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -389,10 +394,10 @@ export default function UserManagement() {
               </button>
               <button
                 onClick={handleCreateUser}
-                disabled={!formData.name || !formData.email}
+                disabled={!formData.name || !formData.email || creating}
                 className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create User
+                {creating ? "Creating..." : "Create User"}
               </button>
             </div>
           </div>

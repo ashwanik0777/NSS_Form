@@ -10,26 +10,28 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.formData()
-    const file = data.get("file") as File
-
+    const form = await request.formData()
+    const file = form.get("file") as unknown as File | null
     if (!file) {
-      return NextResponse.json({ success: false, message: "No file received" }, { status: 400 })
+      return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 })
     }
 
-    // Validate file type
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"]
-    if (!allowedTypes.includes(file.type)) {
+    // Determine if it's an image or video
+    const isImage = file.type.startsWith("image/")
+    const isVideo = file.type.startsWith("video/")
+
+    if (!isImage && !isVideo) {
       return NextResponse.json(
-        { success: false, message: "Only JPG, JPEG, and PNG files are allowed" },
+        { success: false, message: "Only image and video files are allowed" },
         { status: 400 }
       )
     }
 
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
+    // Validate file size (10MB for images, 100MB for videos)
+    const maxSize = isImage ? 10 * 1024 * 1024 : 100 * 1024 * 1024
+    if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, message: "File size must be less than 2MB" },
+        { success: false, message: `File size must be less than ${isImage ? "10MB" : "100MB"}` },
         { status: 400 }
       )
     }
@@ -40,20 +42,30 @@ export async function POST(request: NextRequest) {
 
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: "image",
-          folder: "nss-registration", // Optional: organize uploads in a folder
-          transformation: [
-            { width: 800, height: 800, crop: "limit" }, // Resize large images
-            { quality: "auto" }, // Optimize quality
-          ],
-        },
-        (error, result) => {
-          if (error) reject(error)
-          else resolve(result)
-        }
-      ).end(buffer)
+      const uploadOptions: any = {
+        folder: isImage ? "nss-uploads/images" : "nss-uploads/videos",
+        resource_type: isImage ? "image" : "video",
+      }
+
+      // Add transformations for images
+      if (isImage) {
+        uploadOptions.transformation = [
+          { width: 1920, height: 1920, crop: "limit" }, // Resize large images
+          { quality: "auto" }, // Optimize quality
+        ]
+      }
+
+      // Add video transformations
+      if (isVideo) {
+        uploadOptions.transformation = [
+          { quality: "auto" }, // Optimize video quality
+        ]
+      }
+
+      cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+        if (error) reject(error)
+        else resolve(result)
+      }).end(buffer)
     })
 
     const uploadResult = result as any
@@ -64,10 +76,10 @@ export async function POST(request: NextRequest) {
       public_id: uploadResult.public_id,
       message: "File uploaded successfully",
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Upload error:", error)
     return NextResponse.json(
-      { success: false, message: "Upload failed" },
+      { success: false, message: error.message || "Upload failed" },
       { status: 500 }
     )
   }

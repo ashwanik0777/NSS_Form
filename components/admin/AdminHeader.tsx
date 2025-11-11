@@ -211,16 +211,20 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
             >
-                {session?.user?.image ? (
-                <img
-                  src={session.user.image}
-                  alt={session.user.name || "Profile Photo"}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
+                {session?.user?.image || (session?.user as any)?.photo ? (
+                  <img
+                    src={(session?.user as any)?.image || (session?.user as any)?.photo}
+                    alt={session?.user?.name || "Profile Photo"}
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement
+                      target.style.display = "none"
+                    }}
+                  />
                 ) : (
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary-foreground" />
-                </div>
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary-foreground" />
+                  </div>
                 )}
                 <span className="text-sm font-medium text-foreground">
                 {session?.user?.name || session?.user?.email || "Admin User"}

@@ -128,9 +128,9 @@ const Footer = () => {
         <div>
           <p>
             Designed and developed by{" "}
-            <a href="#" className="hover:text-white font-semibold cursor-pointer">
+            <Link href="/developers" className="hover:text-white font-semibold cursor-pointer transition-colors">
               NSS Cell, Gautam Buddha University
-            </a>{" "}
+            </Link>{" "}
           </p>
         </div>
         <div className="flex gap-4 mt-2 md:mt-0">

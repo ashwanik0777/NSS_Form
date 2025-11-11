@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Megaphone,
   User,
+  Share2,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -63,6 +64,7 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
       { id: "events", label: "Events", href: "/admin/events", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
       { id: "meetings", label: "Meetings", href: "/admin/meetings", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
       { id: "announcements", label: "Announcements", href: "/admin/announcements", icon: <Megaphone className="w-5 h-5" />, permission: "announcements.view" },
+      { id: "social-posts", label: "Social Media Posts", href: "/admin/social-posts", icon: <Share2 className="w-5 h-5" />, permission: "social.view" },
       { id: "grievances", label: "Grievances", href: "/admin/grievances", icon: <FileText className="w-5 h-5" />, permission: "volunteers.view" },
     ],
   },
@@ -97,6 +99,8 @@ const getItemColorClass = (id: string): string => {
       return "text-orange-600"
     case "announcements":
       return "text-rose-600"
+    case "social-posts":
+      return "text-cyan-600"
     case "grievances":
       return "text-fuchsia-600"
     case "social-links":

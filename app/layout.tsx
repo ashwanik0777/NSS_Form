@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "NSS Registration System - National Service Scheme",
-  description: "National Service Scheme volunteer registration and management system for Uttar Pradesh",
+  description: "National Service Scheme volunteer registration and management system for Gautam Buddha University",
 }
 
 export default function RootLayout({
