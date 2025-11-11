@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                 <p className="text-xl font-bold">{meetings.total}</p>
               </div>
               <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1">Upcoming/Ongoing</p>
+                <p className="text-muted-foreground text-xs mb-1 break-words">Upcoming/Ongoing</p>
                 <p className="text-xl font-bold">{meetings.upcomingOrOngoing}</p>
               </div>
               <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
