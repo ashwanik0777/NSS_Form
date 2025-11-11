@@ -224,14 +224,16 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mr-4">
-              <svg className="w-8 h-8 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mr-4">
+              {/* <svg className="w-8 h-8 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              </svg> */}
+              <img src="/nssLogo.png" alt="NSS Logo" className="h-16 w-auto" />
             </div>
             <div className="text-left">
-              <h1 className="text-3xl font-bold text-foreground">National Service Scheme</h1>
-              <p className="text-lg text-muted-foreground">राष्ट्रीय सेवा योजना - उत्तर प्रदेश</p>
+              <h1 className="text-3xl font-bold text-foreground">NSS - GBU</h1>
+              <p className="text-lg text-muted-foreground">राष्ट्रीय सेवा योजना - गौतम बुद्ध विश्वविद्यालय
+</p>
             </div>
           </div>
           <h2 className="text-xl font-semibold text-foreground mb-2">

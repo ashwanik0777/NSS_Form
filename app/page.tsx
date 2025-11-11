@@ -66,14 +66,20 @@ export default function HomePage() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="w-28 h-28 bg-gradient-to-br from-primary via-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl hover-lift">
-            <Shield className="w-16 h-16 text-white" />
+          <div className="w-28 h-28  rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl hover-lift">
+            {/* <Shield className="w-16 h-16 text-white" /> */}
+            <img
+              src="/nssLogo.png"
+              alt="NSS Logo"
+              className="h-22 w-auto"
+            />
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
             National Service <span className="gradient-text">Scheme</span>
           </h1>
-          <p className="text-2xl md:text-3xl text-muted-foreground mb-4 font-medium">राष्ट्रीय सेवा योजना - उत्तर प्रदेश</p>
+          <p className="text-2xl md:text-3xl text-muted-foreground mb-4 font-medium">राष्ट्रीय सेवा योजना -गौतम बुद्ध विश्वविद्यालय
+</p>
           <p className="text-lg text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
             Join the National Service Scheme and contribute to nation-building through community service. Register as a
             volunteer and make a difference in society with thousands of like-minded students.
@@ -153,28 +159,28 @@ export default function HomePage() {
               <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Users className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">500+</div>
               <div className="text-muted-foreground">Active Volunteers</div>
             </div>
             <div className="text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Globe className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">10+</div>
               <div className="text-muted-foreground">Projects Completed</div>
             </div>
             <div className="text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-accent to-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Award className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
-              <div className="text-muted-foreground">Institutions</div>
+              <div className="text-3xl font-bold text-foreground mb-2">8</div>
+              <div className="text-muted-foreground">Schools</div>
             </div>
             <div className="text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-primary via-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">0+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">10+</div>
               <div className="text-muted-foreground">Years of Service</div>
             </div>
           </div>

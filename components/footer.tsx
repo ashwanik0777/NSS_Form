@@ -86,6 +86,8 @@ const Footer = () => {
           <address className="not-italic text-gray-300 text-sm">
             <strong>Address:</strong>
             <br />
+            NSS Cell Admin Office 
+            <br />
             Gautam Buddha University
             <br />
             Greater Noida, Uttar Pradesh
@@ -106,7 +108,7 @@ const Footer = () => {
               href="mailto:info@gbu.ac.in"
               className="hover:text-orange-500"
             >
-              info@gbu.ac.in
+              nss@gbu.ac.in
             </a>
           </p>
           <div className="mt-4">
@@ -126,8 +128,8 @@ const Footer = () => {
         <div>
           <p>
             Designed and developed by{" "}
-            <a href="https://ashwanik0777.github.io/portfolio/" className="hover:text-white font-semibold cursor-pointer">
-              Ashwani Kushwaha
+            <a href="#" className="hover:text-white font-semibold cursor-pointer">
+              NSS Cell, Gautam Buddha University
             </a>{" "}
           </p>
         </div>
