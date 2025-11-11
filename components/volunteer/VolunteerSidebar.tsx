@@ -19,6 +19,7 @@ import {
   CreditCard,
 } from "lucide-react"
 
+
 interface SidebarItem {
   id: string
   label: string
@@ -120,8 +121,15 @@ export default function VolunteerSidebar() {
         <div className="flex items-center justify-between p-6 border-b border-border/50">
           {!collapsed && (
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                <Award className="w-6 h-6 text-white" />
+              <div className="rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                {/* <Award className="w-6 h-6 text-white" /> */}
+                {/* nss logo */}
+                <img
+                  src="/nssLogo.png"
+                  alt="NSS Logo"
+                  className="w-12 h-12 object-contain"
+                />
+
               </div>
               <div>
                 <h2 className="text-xl font-bold text-foreground">NSS Volunteer</h2>
@@ -176,7 +184,19 @@ export default function VolunteerSidebar() {
             <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 mb-3 flex items-center justify-center">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mr-3">
-                  <Award className="w-4 h-4 text-white" />
+                  {/* <Award className="w-4 h-4 text-white" /> */}
+                  {/* user photo */}
+                  {user?.image ? (
+                    <img
+                      src={user.photo}
+                      alt={user.name || "Profile Photo"}
+                      className="w-8 h-8 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <User className="w-4 h-4 text-white" />
+                  )}
+                  
+                  {/* user name */}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">{user?.name || "Volunteer"}</p>

@@ -76,12 +76,19 @@ export default function LoginForm() {
 
       <div className="max-w-md w-full space-y-8 relative z-10">
         <div className="text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-primary via-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl hover-lift">
-            <Shield className="w-14 h-14 text-white" />
-          </div>
-          <h2 className="text-4xl font-bold text-foreground mb-2">NSS Login</h2>
-          <p className="text-lg text-muted-foreground mb-1">National Service Scheme - Uttar Pradesh</p>
-          <p className="text-sm text-muted-foreground">राष्ट्रीय सेवा योजना - उत्तर प्रदेश</p>
+          {/* <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl hover-lift"> */}
+            {/* <Shield className="w-14 h-14 text-white" /> */}
+            {/* logo 1+ logo 2 + logo3 */}
+            <div className="flex space-x-8 justify-center mb-8 items-center">
+              <img src="/1.png" alt="GBU Logo" className="w-22 h-22 rounded-full border-2 border-white" />
+              <img src="/nssLogo.png" alt="NSS Logo" className="w-20 h-20 rounded-full border-2 border-white" />
+              <img src="/myBharatLogo.png" alt="GBU Logo" className="w-35 h-25 rounded-full border-2 border-white" />
+            </div>
+
+       
+          <h2 className="text-4xl font-bold text-foreground mb-2">NSS Digital Login</h2>
+          <p className="text-lg text-muted-foreground mb-1">National Service Scheme - Gautam Buddha University</p>
+          <p className="text-sm text-muted-foreground">राष्ट्रीय सेवा योजना - गौतम बुद्ध विश्वविद्यालय </p>
           {/* <p className="text-xs text-muted-foreground mt-2">For Admin, Sub-Admin & Volunteers</p> */}
         </div>
 
@@ -183,7 +190,7 @@ export default function LoginForm() {
         </div> */}
 
         <div className="text-center text-xs text-muted-foreground space-y-1">
-          <p className="font-medium">Government of India | भारत सरकार</p>
+          {/* <p className="font-medium">Government of India | भारत सरकार</p> */}
           <p>National Service Scheme - Uttar Pradesh</p>
         </div>
       </div>

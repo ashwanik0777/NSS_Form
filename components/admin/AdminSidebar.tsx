@@ -135,8 +135,10 @@ export default function AdminSidebar() {
       <div className="flex items-center justify-between p-6 border-b border-border/50">
         {!collapsed && (
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mr-3 shadow-lg">
-              <Shield className="w-6 h-6 text-white" />
+            <div className="rounded-xl flex items-center justify-center mr-3 shadow-lg">
+              {/* <Shield className="w-6 h-6 text-white" /> */}
+              {/* logo nss */}
+              <img src="/nssLogo.png" alt="NSS Logo" className="w-13 h-13 rounded-full border-2 border-white" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-foreground">NSS Admin</h2>
