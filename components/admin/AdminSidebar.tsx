@@ -23,6 +23,8 @@ import {
   Megaphone,
   User,
   Share2,
+  LucideProjector,
+  Book,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -61,6 +63,7 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
     icon: <Calendar className="w-4 h-4" />,
     colorClass: "text-pink-600",
     items: [
+      { id: "projects", label: "Projects", href: "/admin/projects", icon: <Book className="w-5 h-5" />, permission: "events.view" },
       { id: "events", label: "Events", href: "/admin/events", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
       { id: "meetings", label: "Meetings", href: "/admin/meetings", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
       { id: "announcements", label: "Announcements", href: "/admin/announcements", icon: <Megaphone className="w-5 h-5" />, permission: "announcements.view" },

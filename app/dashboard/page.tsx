@@ -994,7 +994,7 @@ export default function VolunteerDashboard() {
           )}
 
         {/* Announcements */}
-        {sortedAnnouncements.length > 0 && (
+        {/* {sortedAnnouncements.length > 0 && (
           <div id="announcements-section" className="bg-card rounded-xl border border-border p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -1030,7 +1030,7 @@ export default function VolunteerDashboard() {
               ))}
             </div>
           </div>
-        )}
+        )} */}
           {/* My NSS Project */}
           {selectedProject && (
             <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
