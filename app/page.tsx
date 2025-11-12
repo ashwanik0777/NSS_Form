@@ -36,10 +36,7 @@ export default function HomePage() {
               />
             </Link>
             </div>
-              {/* <div>
-                <h1 className="text-xl font-bold text-foreground">NSS Uttar Pradesh</h1>
-                <p className="text-xs text-muted-foreground">राष्ट्रीय सेवा योजना</p>
-              </div> */}
+             
             </div>
             <nav className="flex space-x-4">
               <Link
