@@ -65,52 +65,133 @@ const stepTitles = [
 ]
 
 export default function RegisterPage() {
-  // Restore from localStorage if present
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<FormData>(initialFormData)
-
-  // Restore from localStorage on mount (client only)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("nss_formData")
-    if (saved) {
-      try {
-        setFormData({ ...initialFormData, ...JSON.parse(saved) })
-      } catch {
-        setFormData(initialFormData)
-      }
-    }
-    const savedStep = localStorage.getItem("nss_currentStep")
-    if (savedStep) {
-      setCurrentStep(Number(savedStep))
-    }
-  }, [])
-
-  // Save formData and currentStep to localStorage on every change
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("nss_formData", JSON.stringify(formData))
-  }, [formData])
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("nss_currentStep", String(currentStep))
-  }, [currentStep])
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [applicationId, setApplicationId] = useState("")
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  // Persist to localStorage on change
+  // Restore from localStorage on mount (client only)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("nss_formData", JSON.stringify(formData))
+    if (typeof window === "undefined") return
+
+    try {
+      // Restore form data
+      const savedFormData = localStorage.getItem("nss_formData")
+      if (savedFormData) {
+        try {
+          const parsed = JSON.parse(savedFormData)
+          // Merge with initial data to ensure all fields exist
+          setFormData({ ...initialFormData, ...parsed })
+        } catch (parseError) {
+          console.error("Error parsing saved form data:", parseError)
+          // If parsing fails, use initial data
+          setFormData(initialFormData)
+        }
+      }
+
+      // Restore current step
+      const savedStep = localStorage.getItem("nss_currentStep")
+      if (savedStep) {
+        const stepNum = Number(savedStep)
+        if (stepNum >= 1 && stepNum <= 5) {
+          setCurrentStep(stepNum)
+        }
+      }
+    } catch (error) {
+      console.error("Error restoring from localStorage:", error)
+      // On any error, use defaults
+      setFormData(initialFormData)
+      setCurrentStep(1)
+    } finally {
+      setIsInitialized(true)
     }
-  }, [formData])
+  }, [])
+
+  // Helper function to sanitize form data for localStorage
+  const sanitizeFormData = (data: FormData): any => {
+    const sanitized: any = {}
+    
+    Object.keys(data).forEach((key) => {
+      const value = data[key]
+      
+      // Skip File objects (they should be URLs after upload)
+      if (value instanceof File) {
+        return
+      }
+      
+      // Handle null/undefined
+      if (value === null || value === undefined) {
+        sanitized[key] = null
+        return
+      }
+      
+      // Handle nested objects (like specialCampDetails)
+      if (typeof value === "object" && !Array.isArray(value) && value.constructor === Object) {
+        const nestedSanitized: any = {}
+        Object.keys(value).forEach((nestedKey) => {
+          const nestedValue = (value as any)[nestedKey]
+          // Skip File objects in nested objects too
+          if (!(nestedValue instanceof File)) {
+            nestedSanitized[nestedKey] = nestedValue
+          }
+        })
+        sanitized[key] = nestedSanitized
+        return
+      }
+      
+      // Handle arrays
+      if (Array.isArray(value)) {
+        sanitized[key] = value.map((item) => {
+          if (item instanceof File) return null
+          return item
+        })
+        return
+      }
+      
+      // Handle primitives (string, number, boolean)
+      sanitized[key] = value
+    })
+    
+    return sanitized
+  }
+
+  // Save formData to localStorage on every change (only after initialization)
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined" || !isInitialized) return
+
+    try {
+      const dataToSave = sanitizeFormData(formData)
+      localStorage.setItem("nss_formData", JSON.stringify(dataToSave))
+    } catch (error) {
+      console.error("Error saving form data to localStorage:", error)
+      // If localStorage is full or unavailable, try to clear old data
+      try {
+        // Check if it's a quota exceeded error
+        if (error instanceof DOMException && error.name === "QuotaExceededError") {
+          console.warn("localStorage quota exceeded, clearing old form data")
+          localStorage.removeItem("nss_formData")
+          localStorage.removeItem("nss_currentStep")
+        }
+      } catch (clearError) {
+        console.error("Error clearing localStorage:", clearError)
+      }
+    }
+  }, [formData, isInitialized])
+
+  // Save currentStep to localStorage on every change (only after initialization)
+  useEffect(() => {
+    if (typeof window === "undefined" || !isInitialized) return
+
+    try {
       localStorage.setItem("nss_currentStep", String(currentStep))
+    } catch (error) {
+      console.error("Error saving current step to localStorage:", error)
+      // Don't throw, just log the error
     }
-  }, [currentStep])
+  }, [currentStep, isInitialized])
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -145,8 +226,13 @@ export default function RegisterPage() {
         setApplicationId(result.applicationId)
         setSubmitSuccess(true)
         // Clear localStorage on successful submit
-        localStorage.removeItem("nss_formData")
-        localStorage.removeItem("nss_currentStep")
+        try {
+          localStorage.removeItem("nss_formData")
+          localStorage.removeItem("nss_currentStep")
+        } catch (error) {
+          console.error("Error clearing localStorage:", error)
+          // Don't fail the submission if clearing localStorage fails
+        }
       } else {
         alert("Error submitting application: " + result.message)
       }
@@ -156,6 +242,44 @@ export default function RegisterPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Warn user before leaving if form has unsaved changes
+  useEffect(() => {
+    if (typeof window === "undefined" || !isInitialized || submitSuccess) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Check if form has any meaningful data
+      const hasData = 
+        formData.nameEnglish || 
+        formData.emailId || 
+        formData.mobileNo || 
+        formData.programOfficerName ||
+        formData.unitNo
+
+      if (hasData) {
+        e.preventDefault()
+        e.returnValue = "You have unsaved changes. Are you sure you want to leave?"
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    }
+  }, [formData, isInitialized, submitSuccess])
+
+  // Show loading state while initializing from localStorage
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-background py-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading form...</p>
+        </div>
+      </div>
+    )
   }
 
   if (submitSuccess) {
