@@ -3,9 +3,13 @@ import mongoose, { type Document, Schema } from "mongoose"
 export interface ISocialMediaPost extends Document {
   title: string
   description?: string
-  image?: string
-  platform: "facebook" | "instagram" | "twitter" | "linkedin" | "youtube"
-  postUrl?: string
+  platformLinks: {
+    facebook?: string
+    instagram?: string
+    twitter?: string
+    linkedin?: string
+    youtube?: string
+  }
   postedBy: mongoose.Types.ObjectId
   isActive: boolean
   pointsReward: number
@@ -24,18 +28,27 @@ const SocialMediaPostSchema = new Schema<ISocialMediaPost>(
       type: String,
       trim: true,
     },
-    image: {
-      type: String,
-      trim: true,
-    },
-    platform: {
-      type: String,
-      enum: ["facebook", "instagram", "twitter", "linkedin", "youtube"],
-      required: true,
-    },
-    postUrl: {
-      type: String,
-      trim: true,
+    platformLinks: {
+      facebook: {
+        type: String,
+        trim: true,
+      },
+      instagram: {
+        type: String,
+        trim: true,
+      },
+      twitter: {
+        type: String,
+        trim: true,
+      },
+      linkedin: {
+        type: String,
+        trim: true,
+      },
+      youtube: {
+        type: String,
+        trim: true,
+      },
     },
     postedBy: {
       type: Schema.Types.ObjectId,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import connectDB from "@/lib/mongodb"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
+import dbConnect from "@/lib/mongodb"
 import SocialMediaPost from "@/models/SocialMediaPost"
 import PostView from "@/models/PostView"
 import User from "@/models/User"
@@ -10,25 +10,24 @@ import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    const user = session.user as any
-    if (user.role !== "admin" && user.role !== "sub-admin") {
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
     // Check permission for sub-admin
-    if (user.role === "sub-admin") {
-      const userPermissions = user.permissions || []
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
       if (!hasPermission(userPermissions, "social.view" as PermissionKey)) {
         return NextResponse.json({ success: false, message: "Permission denied. You need 'social.view' permission." }, { status: 403 })
       }
     }
 
-    await connectDB()
+    await dbConnect()
 
     const { searchParams } = new URL(request.url)
     const includeStats = searchParams.get("stats") === "true"
@@ -63,41 +62,44 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    const user = session.user as any
-    if (user.role !== "admin" && user.role !== "sub-admin") {
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
     // Check permission for sub-admin
-    if (user.role === "sub-admin") {
-      const userPermissions = user.permissions || []
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
       if (!hasPermission(userPermissions, "social.edit" as PermissionKey)) {
         return NextResponse.json({ success: false, message: "Permission denied. You need 'social.edit' permission." }, { status: 403 })
       }
     }
 
-    await connectDB()
+    await dbConnect()
 
     const body = await request.json()
-    const { title, description, image, platform, postUrl, pointsReward } = body
+    const { title, description, platformLinks, pointsReward } = body
 
-    if (!title || !platform) {
-      return NextResponse.json({ success: false, message: "Title and platform are required" }, { status: 400 })
+    if (!title) {
+      return NextResponse.json({ success: false, message: "Title is required" }, { status: 400 })
+    }
+
+    // Check if at least one platform link is provided
+    const hasLink = platformLinks && Object.values(platformLinks).some((link: any) => link && link.trim() !== "")
+    if (!hasLink) {
+      return NextResponse.json({ success: false, message: "At least one platform link is required" }, { status: 400 })
     }
 
     const post = await SocialMediaPost.create({
       title,
       description,
-      image,
-      platform,
-      postUrl,
-      postedBy: user.id,
-      pointsReward: pointsReward || 10,
+      platformLinks: platformLinks || {},
+      postedBy: session.user.id,
+      pointsReward: pointsReward || 2.5,
       isActive: true,
     })
 
@@ -106,12 +108,13 @@ export async function POST(request: NextRequest) {
     // Send notifications to all volunteers
     try {
       const volunteers = await User.find({ role: "volunteer" }).select("_id").lean()
+      const platformCount = Object.keys(platformLinks || {}).filter((key) => platformLinks[key]).length
       
       const notificationPromises = volunteers.map((volunteer: any) =>
         Notification.create({
           userId: volunteer._id,
           title: "New NSS Social Media Post",
-          message: `A new ${platform} post has been shared: "${title}". View it on your dashboard to earn ${pointsReward || 10} points!`,
+          message: `A new social media post has been shared: "${title}". Click on platform links to earn ${pointsReward || 2.5} points per platform!`,
           type: "announcement",
           link: "/dashboard",
           isRead: false,
@@ -134,28 +137,27 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    const user = session.user as any
-    if (user.role !== "admin" && user.role !== "sub-admin") {
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
     // Check permission for sub-admin
-    if (user.role === "sub-admin") {
-      const userPermissions = user.permissions || []
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
       if (!hasPermission(userPermissions, "social.edit" as PermissionKey)) {
         return NextResponse.json({ success: false, message: "Permission denied. You need 'social.edit' permission." }, { status: 403 })
       }
     }
 
-    await connectDB()
+    await dbConnect()
 
     const body = await request.json()
-    const { postId, title, description, image, platform, postUrl, isActive, pointsReward } = body
+    const { postId, title, description, platformLinks, isActive, pointsReward } = body
 
     if (!postId) {
       return NextResponse.json({ success: false, message: "Post ID is required" }, { status: 400 })
@@ -164,9 +166,14 @@ export async function PATCH(request: NextRequest) {
     const updateData: any = {}
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
-    if (image !== undefined) updateData.image = image
-    if (platform !== undefined) updateData.platform = platform
-    if (postUrl !== undefined) updateData.postUrl = postUrl
+    if (platformLinks !== undefined) {
+      // Check if at least one platform link is provided
+      const hasLink = Object.values(platformLinks).some((link: any) => link && link.trim() !== "")
+      if (!hasLink) {
+        return NextResponse.json({ success: false, message: "At least one platform link is required" }, { status: 400 })
+      }
+      updateData.platformLinks = platformLinks
+    }
     if (isActive !== undefined) updateData.isActive = isActive
     if (pointsReward !== undefined) updateData.pointsReward = pointsReward
 
@@ -188,25 +195,24 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    const user = session.user as any
-    if (user.role !== "admin" && user.role !== "sub-admin") {
+    if (session.user.role !== "admin" && session.user.role !== "sub-admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
     // Check permission for sub-admin
-    if (user.role === "sub-admin") {
-      const userPermissions = user.permissions || []
+    if (session.user.role === "sub-admin") {
+      const userPermissions = session.user.permissions || []
       if (!hasPermission(userPermissions, "social.edit" as PermissionKey)) {
         return NextResponse.json({ success: false, message: "Permission denied. You need 'social.edit' permission." }, { status: 403 })
       }
     }
 
-    await connectDB()
+    await dbConnect()
 
     const { searchParams } = new URL(request.url)
     const postId = searchParams.get("postId")

@@ -466,30 +466,47 @@ export default function VolunteerDashboard() {
                   linkedin: Linkedin,
                   youtube: Youtube,
                 }
-                const PlatformIcon = platformIcons[post.platform] || Share2
                 const platformColors: any = {
-                  facebook: "bg-blue-600",
-                  instagram: "bg-gradient-to-r from-purple-500 to-pink-500",
-                  twitter: "bg-black",
-                  linkedin: "bg-blue-700",
-                  youtube: "bg-red-600",
+                  facebook: "bg-blue-600 hover:bg-blue-700",
+                  instagram: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600",
+                  twitter: "bg-black hover:bg-gray-900",
+                  linkedin: "bg-blue-700 hover:bg-blue-800",
+                  youtube: "bg-red-600 hover:bg-red-700",
                 }
+                const platformLabels: any = {
+                  facebook: "Facebook",
+                  instagram: "Instagram",
+                  twitter: "Twitter",
+                  linkedin: "LinkedIn",
+                  youtube: "YouTube",
+                }
+
+                const platformLinks = post.platformLinks || {}
+                const availablePlatforms = Object.keys(platformLinks).filter((key) => platformLinks[key])
+                const clickedPlatforms = post.clickedPlatforms || []
 
                 return (
                   <div
                     key={post._id}
                     className={`group relative border rounded-xl overflow-hidden transition-all duration-300 ${
-                      post.isViewed
+                      availablePlatforms.length === clickedPlatforms.length && clickedPlatforms.length > 0
                         ? "border-border bg-muted/30 opacity-90"
                         : "border-primary/50 bg-gradient-to-r from-primary/5 to-secondary/5 shadow-sm hover:shadow-md"
                     }`}
                   >
-                    {/* View Badge */}
-                    {post.isViewed ? (
+                    {/* Status Badge */}
+                    {availablePlatforms.length === clickedPlatforms.length && clickedPlatforms.length > 0 ? (
                       <div className="absolute top-3 right-3 z-10">
                         <div className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded-full text-xs font-medium">
                           <CheckCircle className="w-3 h-3" />
-                          Viewed
+                          Complete
+                        </div>
+                      </div>
+                    ) : clickedPlatforms.length > 0 ? (
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">
+                          <Eye className="w-3 h-3" />
+                          {clickedPlatforms.length}/{availablePlatforms.length}
                         </div>
                       </div>
                     ) : (
@@ -503,156 +520,110 @@ export default function VolunteerDashboard() {
 
                     {/* Post Content */}
                     <div className="p-4">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className={`p-2 rounded-lg ${platformColors[post.platform] || "bg-primary"} text-white flex-shrink-0`}>
-                          <PlatformIcon className="w-4 h-4" />
+                      <div className="mb-3">
+                        <h3 className="font-semibold text-foreground mb-1 line-clamp-1">{post.title}</h3>
+                        {post.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{post.description}</p>
+                        )}
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Star className="w-3 h-3 text-yellow-500" />
+                            +{post.pointsReward || 2.5} points per platform
+                          </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground mb-1 line-clamp-1">{post.title}</h3>
-                          {post.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{post.description}</p>
-                          )}
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="capitalize">{post.platform}</span>
-                            {post.pointsReward > 0 && (
-                              <>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  <Star className="w-3 h-3 text-yellow-500" />
-                                  +{post.pointsReward} points
-                                </span>
-                              </>
-                            )}
+                      </div>
+
+                      {/* Platform Buttons */}
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        {availablePlatforms.map((platform) => {
+                          const PlatformIcon = platformIcons[platform] || Share2
+                          const isClicked = clickedPlatforms.includes(platform)
+                          const isClicking = viewingPost === `${post._id}-${platform}`
+
+                          return (
+                            <a
+                              key={platform}
+                              href={platformLinks[platform]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={async (e) => {
+                                if (!isClicked) {
+                                  e.preventDefault()
+                                  setViewingPost(`${post._id}-${platform}`)
+                                  try {
+                                    const res = await fetch("/api/volunteer/social-posts", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ postId: post._id, platform }),
+                                    })
+                                    const data = await res.json()
+                                    if (data.success) {
+                                      // Update local state
+                                      setSocialPosts((prev) =>
+                                        prev.map((p) =>
+                                          p._id === post._id
+                                            ? {
+                                                ...p,
+                                                clickedPlatforms: [...(p.clickedPlatforms || []), platform],
+                                              }
+                                            : p
+                                        )
+                                      )
+                                      setTotalPoints(data.totalPoints)
+                                      if (data.pointsAwarded) {
+                                        alert(`🎉 You earned ${data.pointsEarned} points for ${platformLabels[platform]}! Total: ${data.totalPoints}`)
+                                      }
+                                      // Open link after recording
+                                      window.open(platformLinks[platform], "_blank")
+                                      await fetchDashboardData()
+                                    }
+                                  } catch (error) {
+                                    console.error("Error recording platform click:", error)
+                                  } finally {
+                                    setViewingPost(null)
+                                  }
+                                }
+                              }}
+                              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white font-medium text-sm transition-all ${
+                                isClicked
+                                  ? `${platformColors[platform]} opacity-60 cursor-default`
+                                  : `${platformColors[platform]} hover:shadow-md`
+                              } ${isClicking ? "opacity-50" : ""}`}
+                            >
+                              {isClicking ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Recording...
+                                </>
+                              ) : (
+                                <>
+                                  <PlatformIcon className="w-4 h-4" />
+                                  <span>{platformLabels[platform]}</span>
+                                  {isClicked && <CheckCircle className="w-4 h-4" />}
+                                </>
+                              )}
+                            </a>
+                          )
+                        })}
+                      </div>
+
+                      {/* Progress */}
+                      {clickedPlatforms.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-border">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-semibold text-foreground">
+                              {clickedPlatforms.length}/{availablePlatforms.length} platforms
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className="bg-primary h-2 rounded-full transition-all"
+                              style={{ width: `${(clickedPlatforms.length / availablePlatforms.length) * 100}%` }}
+                            />
                           </div>
                         </div>
-                      </div>
-
-                      {/* Post Image */}
-                      {post.image && (
-                        <div className="mb-3 rounded-lg overflow-hidden">
-                          <img
-                            src={post.image}
-                            alt={post.title}
-                            className="w-full h-48 object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.style.display = "none"
-                            }}
-                          />
-                        </div>
                       )}
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2">
-                        {post.postUrl ? (
-                          <a
-                            href={post.postUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={async () => {
-                              if (!post.isViewed) {
-                                setViewingPost(post._id)
-                                try {
-                                  const res = await fetch("/api/volunteer/social-posts", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ postId: post._id }),
-                                  })
-                                  const data = await res.json()
-                                  if (data.success) {
-                                    // Update local state
-                                    setSocialPosts((prev) =>
-                                      prev.map((p) =>
-                                        p._id === post._id
-                                          ? { ...p, isViewed: true, viewedAt: new Date() }
-                                          : p
-                                      )
-                                    )
-                                    setMissingPostsCount((prev) => Math.max(0, prev - 1))
-                                    if (data.pointsAwarded) {
-                                      setTotalPoints(data.totalPoints)
-                                      // Show success message
-                                      alert(`🎉 You earned ${data.pointsEarned} points! Total: ${data.totalPoints}`)
-                                    }
-                                    await fetchDashboardData()
-                                  }
-                                } catch (error) {
-                                  console.error("Error recording view:", error)
-                                } finally {
-                                  setViewingPost(null)
-                                }
-                              }
-                            }}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm"
-                          >
-                            {viewingPost === post._id ? (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Opening...
-                              </>
-                            ) : (
-                              <>
-                                <ExternalLink className="w-4 h-4" />
-                                {post.isViewed ? "View Post" : "View & Earn Points"}
-                              </>
-                            )}
-                          </a>
-                        ) : (
-                          <button
-                            onClick={async () => {
-                              if (!post.isViewed) {
-                                setViewingPost(post._id)
-                                try {
-                                  const res = await fetch("/api/volunteer/social-posts", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ postId: post._id }),
-                                  })
-                                  const data = await res.json()
-                                  if (data.success) {
-                                    setSocialPosts((prev) =>
-                                      prev.map((p) =>
-                                        p._id === post._id
-                                          ? { ...p, isViewed: true, viewedAt: new Date() }
-                                          : p
-                                      )
-                                    )
-                                    setMissingPostsCount((prev) => Math.max(0, prev - 1))
-                                    if (data.pointsAwarded) {
-                                      setTotalPoints(data.totalPoints)
-                                      alert(`🎉 You earned ${data.pointsEarned} points! Total: ${data.totalPoints}`)
-                                    }
-                                    await fetchDashboardData()
-                                  }
-                                } catch (error) {
-                                  console.error("Error recording view:", error)
-                                } finally {
-                                  setViewingPost(null)
-                                }
-                              }
-                            }}
-                            disabled={post.isViewed || viewingPost === post._id}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {viewingPost === post._id ? (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Recording...
-                              </>
-                            ) : post.isViewed ? (
-                              <>
-                                <CheckCircle className="w-4 h-4" />
-                                Viewed
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="w-4 h-4" />
-                                Mark as Viewed (+{post.pointsReward} pts)
-                              </>
-                            )}
-                          </button>
-                        )}
-                      </div>
                     </div>
                   </div>
                 )

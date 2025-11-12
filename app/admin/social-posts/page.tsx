@@ -34,10 +34,14 @@ export default function SocialPostsPage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    image: "",
-    platform: "facebook",
-    postUrl: "",
-    pointsReward: 10,
+    platformLinks: {
+      facebook: "",
+      instagram: "",
+      twitter: "",
+      linkedin: "",
+      youtube: "",
+    },
+    pointsReward: 2.5,
     isActive: true,
   })
   const [error, setError] = useState<string | null>(null)
@@ -68,8 +72,16 @@ export default function SocialPostsPage() {
     setError(null)
 
     try {
-      if (!formData.title || !formData.platform) {
-        setError("Title and platform are required")
+      if (!formData.title) {
+        setError("Title is required")
+        setSubmitting(false)
+        return
+      }
+
+      // Check if at least one platform link is provided
+      const hasLink = Object.values(formData.platformLinks).some((link) => link.trim() !== "")
+      if (!hasLink) {
+        setError("At least one platform link is required")
         setSubmitting(false)
         return
       }
@@ -102,10 +114,14 @@ export default function SocialPostsPage() {
       setFormData({
         title: "",
         description: "",
-        image: "",
-        platform: "facebook",
-        postUrl: "",
-        pointsReward: 10,
+        platformLinks: {
+          facebook: "",
+          instagram: "",
+          twitter: "",
+          linkedin: "",
+          youtube: "",
+        },
+        pointsReward: 2.5,
         isActive: true,
       })
       await fetchPosts()
@@ -122,9 +138,13 @@ export default function SocialPostsPage() {
     setFormData({
       title: post.title || "",
       description: post.description || "",
-      image: post.image || "",
-      platform: post.platform || "facebook",
-      postUrl: post.postUrl || "",
+      platformLinks: post.platformLinks || {
+        facebook: "",
+        instagram: "",
+        twitter: "",
+        linkedin: "",
+        youtube: "",
+      },
       pointsReward: post.pointsReward || 10,
       isActive: post.isActive !== undefined ? post.isActive : true,
     })
@@ -202,10 +222,14 @@ export default function SocialPostsPage() {
               setFormData({
                 title: "",
                 description: "",
-                image: "",
-                platform: "facebook",
-                postUrl: "",
-                pointsReward: 10,
+                platformLinks: {
+                  facebook: "",
+                  instagram: "",
+                  twitter: "",
+                  linkedin: "",
+                  youtube: "",
+                },
+                pointsReward: 2.5,
                 isActive: true,
               })
               setError(null)
@@ -231,17 +255,28 @@ export default function SocialPostsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post) => {
-              const PlatformIcon = platformIcons[post.platform] || Share2
+              const platformLinks = post.platformLinks || {}
+              const availablePlatforms = Object.keys(platformLinks).filter((key) => platformLinks[key])
               return (
                 <div
                   key={post._id}
                   className="bg-card rounded-xl border border-border p-6 hover:shadow-lg transition-all duration-300"
                 >
-                  {/* Platform Badge */}
+                  {/* Platform Badges */}
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-lg ${platformColors[post.platform] || "bg-primary"} text-white`}>
-                      <PlatformIcon className="w-4 h-4" />
-                      <span className="text-sm font-medium capitalize">{post.platform}</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {availablePlatforms.map((platform) => {
+                        const PlatformIcon = platformIcons[platform] || Share2
+                        return (
+                          <div
+                            key={platform}
+                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs ${platformColors[platform] || "bg-primary"} text-white`}
+                          >
+                            <PlatformIcon className="w-3 h-3" />
+                            <span className="capitalize">{platform}</span>
+                          </div>
+                        )
+                      })}
                     </div>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -253,21 +288,6 @@ export default function SocialPostsPage() {
                       {post.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
-
-                  {/* Post Image */}
-                  {post.image && (
-                    <div className="mb-4 rounded-lg overflow-hidden">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-full h-40 object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = "none"
-                        }}
-                      />
-                    </div>
-                  )}
 
                   {/* Post Content */}
                   <div className="mb-4">
@@ -392,73 +412,121 @@ export default function SocialPostsPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Platform <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        required
-                        value={formData.platform}
-                        onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      >
-                        <option value="facebook">Facebook</option>
-                        <option value="instagram">Instagram</option>
-                        <option value="twitter">Twitter</option>
-                        <option value="linkedin">LinkedIn</option>
-                        <option value="youtube">YouTube</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Points Reward</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.pointsReward}
-                        onChange={(e) =>
-                          setFormData({ ...formData, pointsReward: parseInt(e.target.value) || 0 })
-                        }
-                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="10"
-                      />
-                    </div>
-                  </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Post URL</label>
-                    <input
-                      type="url"
-                      value={formData.postUrl}
-                      onChange={(e) => setFormData({ ...formData, postUrl: e.target.value })}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Image URL</label>
-                    <input
-                      type="url"
-                      value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="https://..."
-                    />
-                    {formData.image && (
-                      <div className="mt-2 rounded-lg overflow-hidden">
-                        <img
-                          src={formData.image}
-                          alt="Preview"
-                          className="w-full h-32 object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.style.display = "none"
-                          }}
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Platform Links <span className="text-red-500">*</span>
+                      <span className="text-xs text-muted-foreground ml-2">(At least one required)</span>
+                    </label>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="flex items-center gap-2 mb-1 text-sm text-foreground">
+                          <Facebook className="w-4 h-4 text-blue-600" />
+                          Facebook
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.platformLinks.facebook}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              platformLinks: { ...formData.platformLinks, facebook: e.target.value },
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="https://facebook.com/..."
                         />
                       </div>
-                    )}
+                      <div>
+                        <label className="flex items-center gap-2 mb-1 text-sm text-foreground">
+                          <Instagram className="w-4 h-4 text-pink-600" />
+                          Instagram
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.platformLinks.instagram}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              platformLinks: { ...formData.platformLinks, instagram: e.target.value },
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="https://instagram.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="flex items-center gap-2 mb-1 text-sm text-foreground">
+                          <Twitter className="w-4 h-4 text-black" />
+                          Twitter
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.platformLinks.twitter}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              platformLinks: { ...formData.platformLinks, twitter: e.target.value },
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="https://twitter.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="flex items-center gap-2 mb-1 text-sm text-foreground">
+                          <Linkedin className="w-4 h-4 text-blue-700" />
+                          LinkedIn
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.platformLinks.linkedin}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              platformLinks: { ...formData.platformLinks, linkedin: e.target.value },
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="https://linkedin.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="flex items-center gap-2 mb-1 text-sm text-foreground">
+                          <Youtube className="w-4 h-4 text-red-600" />
+                          YouTube <span className="text-xs text-muted-foreground">(Optional)</span>
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.platformLinks.youtube}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              platformLinks: { ...formData.platformLinks, youtube: e.target.value },
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="https://youtube.com/..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Points Reward (per platform click)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={formData.pointsReward}
+                      onChange={(e) =>
+                        setFormData({ ...formData, pointsReward: parseFloat(e.target.value) || 0 })
+                      }
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="2.5"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Each platform click awards {formData.pointsReward} points (Total: {formData.pointsReward * 4} points for all 4 platforms)
+                    </p>
                   </div>
 
                   <div>
