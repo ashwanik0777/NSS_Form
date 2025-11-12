@@ -81,28 +81,34 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3 w-full sm:w-auto">
-          <button onClick={handlePrint} className="nss-button-secondary text-sm sm:text-base w-full sm:w-auto">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex flex-row gap-2 w-full sm:w-auto">
+          <button
+            onClick={handlePrint}
+            className="nss-button-secondary text-sm sm:text-base w-full sm:w-auto flex-1 flex items-center justify-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
             Print
           </button>
-          <button onClick={handleDownloadPDF} className="nss-button-secondary text-sm sm:text-base w-full sm:w-auto">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button
+            onClick={handleDownloadPDF}
+            className="nss-button-secondary text-sm sm:text-base w-full sm:w-auto flex-1 flex items-center justify-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Download PDF
+            Download&nbsp;PDF
           </button>
         </div>
-      </div>
+            </div>
 
       {/* PDF Preview Container */}
       <div className="pdf-preview-container rounded-lg overflow-x-auto">
         {/* Page 1 */}
         <div className="pdf-page bg-white shadow-lg mx-auto mb-4 sm:mb-8" style={{ width: '210mm', minHeight: '297mm', padding: '20mm', maxWidth: '100%', transform: 'scale(1)' }}>
           {/* Header with logos */}
-          <div className="flex justify-between items-center mb-4 sm:mb-6 gap-2">
+          <div className="flex justify-between items-center mb-4 sm:mb-6 gap-8 -ml-5 sm:-ml-0">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded flex items-center justify-center flex-shrink-0">
               <img src="/1.png" alt="Logo 1" className="w-full h-full object-contain" />
             </div>
