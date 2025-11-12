@@ -171,11 +171,11 @@ export default function DevelopersPage() {
                 </span>
                 {/* Personal details section */}
                 <div className="text-xs text-muted-foreground mb-2 mt-2 space-y-1">
-                  <div>Roll Number: <span className="font-semibold">{dev.rollNumber}</span></div>
-                  <div>Batch: <span className="font-semibold">{dev.batch}</span></div>
-                  <div>Course: <span className="font-semibold">{dev.course}</span></div>
                   <div>School: <span className="font-semibold">{dev.school}</span></div>
                   <div>Department: <span className="font-semibold">{dev.department}</span></div>
+                  <div>Course: <span className="font-semibold">{dev.course}</span></div>
+                  <div>Batch: <span className="font-semibold">{dev.batch}</span></div>
+                  <div>Roll Number: <span className="font-semibold">{dev.rollNumber}</span></div>
                 </div>
                 {dev.bio && (
                   <p className="text-sm text-muted-foreground line-clamp-2">{dev.bio}</p>
