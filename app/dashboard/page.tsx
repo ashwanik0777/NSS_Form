@@ -174,6 +174,8 @@ export default function VolunteerDashboard() {
     fetchDashboardData()
   }, [session, status, router])
 
+  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -219,6 +221,238 @@ export default function VolunteerDashboard() {
               <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold text-center">
                 Profile Complete ✓
               </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Top Summary Bar */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 md:grid-cols-2 gap-4">
+        {/* Total Hours */}
+        <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Total Hours
+            </h3>
+            <Clock className="w-5 h-5 text-primary" />
+          </div>
+          <p className="text-3xl font-bold text-foreground mb-2">{totalHours.toFixed(1)}</p>
+          <p className="text-xs text-muted-foreground">Cumulative volunteering hours</p>
+          {completion && (
+            <div className="mt-4 pt-3 border-t border-border/60">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                <span>Profile Completion</span>
+                <span className="font-semibold text-primary">{completion.percent}%</span>
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all"
+                  style={{ width: `${completion.percent}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Announcements Snapshot */}
+        <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Announcements
+            </h3>
+            <Megaphone className="w-5 h-5 text-primary" />
+          </div>
+          {announcements.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No announcements right now</div>
+          ) : (
+            <div className="space-y-3">
+              {announcements.slice(0, 2).map((announcement) => (
+                <div key={announcement._id} className="p-3 bg-muted/40 rounded-lg border border-border/40">
+                  <p className="text-sm font-semibold text-foreground line-clamp-1">{announcement.title}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{announcement.content}</p>
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+          {announcements.length > 2 && (
+            <Link
+              href="#announcements"
+              className="inline-flex items-center text-xs text-primary hover:text-primary/80 mt-3"
+            >
+              View all announcements <ArrowRight className="w-3 h-3 ml-1" />
+            </Link>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-all">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+            Quick Actions
+          </h3>
+          <div className="space-y-2">
+            <Link
+              href="/dashboard/profile"
+              className="flex items-center justify-between px-3 py-2 rounded-lg border border-border/50 hover:bg-muted transition-colors text-sm"
+            >
+              <span>Update Profile</span>
+              <User className="w-4 h-4 text-primary" />
+            </Link>
+            <Link
+              href="/dashboard/events"
+              className="flex items-center justify-between px-3 py-2 rounded-lg border border-border/50 hover:bg-muted transition-colors text-sm"
+            >
+              <span>Browse Events</span>
+              <Calendar className="w-4 h-4 text-primary" />
+            </Link>
+            <Link
+              href="/dashboard/tasks"
+              className="flex items-center justify-between px-3 py-2 rounded-lg border border-border/50 hover:bg-muted transition-colors text-sm"
+            >
+              <span>Open Tasks</span>
+              <FolderKanban className="w-4 h-4 text-primary" />
+            </Link>
+            {application && application.status === "approved" && (
+              <a
+                href={`/api/generate-pdf?id=${application._id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between px-3 py-2 rounded-lg border border-border/50 hover:bg-muted transition-colors text-sm"
+              >
+                <span>Download Certificate</span>
+                <FileText className="w-4 h-4 text-primary" />
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-all relative">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Notifications
+            </h3>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 rounded-lg border border-border/60 hover:bg-muted transition-colors"
+              title="Open notifications"
+            >
+              <Bell className="w-5 h-5 text-primary" />
+              {unreadNotificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {unreadNotificationCount}
+                </span>
+              )}
+            </button>
+          </div>
+          {notifications.length === 0 ? (
+            <p className="text-sm text-muted-foreground">You’re all caught up!</p>
+          ) : (
+            <div className="space-y-2">
+              {notifications.slice(0, 3).map((notif) => (
+                <div
+                  key={notif._id}
+                  className={`p-3 rounded-lg border text-xs ${
+                    notif.isRead ? "bg-muted/30 border-border/30" : "bg-muted/60 border-border/60"
+                  }`}
+                >
+                  <p className="font-medium text-foreground line-clamp-1">{notif.title}</p>
+                  <p className="text-muted-foreground line-clamp-2">{notif.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {notifications.length > 3 && (
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="mt-3 text-xs text-primary hover:text-primary/80 flex items-center"
+            >
+              View all notifications <ArrowRight className="w-3 h-3 ml-1" />
+            </button>
+          )}
+
+          {/* Notifications Dropdown */}
+          {showNotifications && (
+            <div className="absolute top-full right-0 mt-3 w-full sm:w-80 bg-card rounded-xl border border-border shadow-2xl p-4 z-50">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-foreground text-sm">Latest Notifications</h4>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className="p-1 hover:bg-muted rounded"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No new notifications</p>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {notifications.map((notif) => (
+                    <div
+                      key={notif._id}
+                      className={`p-3 rounded-lg border cursor-pointer ${
+                        notif.isRead
+                          ? "bg-muted/30 border-border/30 opacity-70"
+                          : "bg-muted/50 border-border/50"
+                      }`}
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        if (!notif.isRead) {
+                          try {
+                            const updatedNotifications = notifications.map((n) =>
+                              n._id === notif._id ? { ...n, isRead: true } : n
+                            )
+                            setNotifications(updatedNotifications)
+
+                            const res = await fetch("/api/volunteer/notifications/read", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ announcementId: notif._id }),
+                            })
+
+                            if (!res.ok) {
+                              setNotifications((prev) =>
+                                prev.map((n) =>
+                                  n._id === notif._id ? { ...n, isRead: false } : n
+                                )
+                              )
+                            } else {
+                              try {
+                                const refreshRes = await fetch("/api/volunteer/announcements")
+                                const refreshData = await refreshRes.json()
+                                if (refreshData.success) {
+                                  setNotifications(refreshData.notifications || [])
+                                  setAnnouncements(refreshData.announcements || [])
+                                }
+                              } catch (refreshError) {
+                                console.error("Error refreshing notifications:", refreshError)
+                              }
+                            }
+                          } catch (error) {
+                            console.error("Error marking notification as read:", error)
+                            setNotifications((prev) =>
+                              prev.map((n) =>
+                                n._id === notif._id ? { ...n, isRead: false } : n
+                              )
+                            )
+                          }
+                        }
+                      }}
+                    >
+                      <p className="font-medium text-sm text-foreground mb-1">{notif.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{notif.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(notif.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -730,130 +964,7 @@ export default function VolunteerDashboard() {
         </div>
 
         {/* Sidebar Cards */}
-        <div className="space-y-6">
-          {/* Total Hours & Notification Button */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-foreground">Total Hours</h3>
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 hover:bg-muted rounded-lg transition-colors"
-                title="Notifications"
-              >
-                <Bell className="w-5 h-5 text-foreground" />
-                {notifications.filter((n) => !n.isRead).length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {notifications.filter((n) => !n.isRead).length}
-                  </span>
-                )}
-              </button>
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-primary/10 rounded-lg p-4 flex-1">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-6 h-6 text-primary" />
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{totalHours.toFixed(1)}</p>
-                    <p className="text-xs text-muted-foreground">Hours Worked</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {completion && (
-              <div className="pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground mb-1">Profile Completion</p>
-                <p className="text-lg font-bold text-primary">{completion.percent}%</p>
-              </div>
-            )}
-          </div>
-
-          {/* Notifications Dropdown */}
-          {showNotifications && (
-            <div className="bg-card rounded-xl border border-border p-4 shadow-lg z-10">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-foreground">Latest Notifications</h3>
-                <button
-                  onClick={() => setShowNotifications(false)}
-                  className="p-1 hover:bg-muted rounded"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              {notifications.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No new notifications</p>
-              ) : (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif._id}
-                      className={`p-3 rounded-lg border ${
-                        notif.isRead
-                          ? "bg-muted/30 border-border/30 opacity-70"
-                          : "bg-muted/50 border-border/50"
-                      }`}
-                      onClick={async (e) => {
-                        e.stopPropagation()
-                        if (!notif.isRead) {
-                          try {
-                            // Optimistically update UI
-                            const updatedNotifications = notifications.map((n) =>
-                              n._id === notif._id ? { ...n, isRead: true } : n
-                            )
-                            setNotifications(updatedNotifications)
-                            
-                            // Mark as read on server
-                            const res = await fetch("/api/volunteer/notifications/read", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ announcementId: notif._id }),
-                            })
-                            
-                            if (!res.ok) {
-                              // Revert on error
-                              setNotifications((prev) =>
-                                prev.map((n) =>
-                                  n._id === notif._id ? { ...n, isRead: false } : n
-                                )
-                              )
-                            } else {
-                              // Refresh notifications from server to ensure sync
-                              try {
-                                const refreshRes = await fetch("/api/volunteer/announcements")
-                                const refreshData = await refreshRes.json()
-                                if (refreshData.success) {
-                                  setNotifications(refreshData.notifications || [])
-                                  // Update unread count by triggering a re-render
-                                  setShowNotifications(false)
-                                  setTimeout(() => setShowNotifications(true), 50)
-                                }
-                              } catch (refreshError) {
-                                console.error("Error refreshing notifications:", refreshError)
-                              }
-                            }
-                          } catch (error) {
-                            console.error("Error marking notification as read:", error)
-                            // Revert on error
-                            setNotifications((prev) =>
-                              prev.map((n) =>
-                                n._id === notif._id ? { ...n, isRead: false } : n
-                              )
-                            )
-                          }
-                        }
-                      }}
-                    >
-                      <p className="font-medium text-sm text-foreground mb-1">{notif.title}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{notif.content}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(notif.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
+        <div className="space-y-6" id="announcements">
           {/* Upcoming Events */}
           {upcomingEvents.length > 0 && (
             <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
@@ -898,7 +1009,7 @@ export default function VolunteerDashboard() {
 
           {/* Announcements */}
           {announcements.length > 0 && (
-            <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+            <div id="announcements" className="bg-card rounded-xl border border-border p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                 <Megaphone className="w-5 h-5 mr-2 text-primary" />
                 Announcements
