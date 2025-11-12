@@ -47,6 +47,13 @@ const initialFormData: FormData = {
   elpProof: null,
   otherAchievements: "",
   otherAchievementsCertificates: null,
+  schoolName: "",
+  courseName: "",
+  bloodGroup: "",
+  photo: null,
+  signature: null,
+  addressType: "",
+  myBharatPortalId: null
 }
 
 const stepTitles = [

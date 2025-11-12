@@ -267,7 +267,7 @@ export default function Step4AdditionalDetails({
         </div>
 
         {/* My Bharat Portal */}
-        <div className="bg-muted/30 rounded-lg p-6 border border-border">
+        <div className="bg-muted/30 rounded-lg p-4 md:p-6 border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-4">
             My Bharat Portal Registration <span className="text-destructive">*</span>
           </h3>
@@ -277,7 +277,7 @@ export default function Step4AdditionalDetails({
               <label className="nss-form-label">
                 Registered on My Bharat Portal / माई भारत पोर्टल पर पंजीकृत <span className="text-destructive">*</span>
               </label>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col xs:flex-row xs:items-center xs:space-x-4 space-y-2 xs:space-y-0">
                 <label className="flex items-center">
                   <input
                     type="radio"
@@ -303,7 +303,7 @@ export default function Step4AdditionalDetails({
             </div>
 
             {formData.myBharatPortalRegistered === true && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="nss-form-group">
                   <label className="nss-form-label">
                     My Bharat Portal ID / माई भारत पोर्टल आईडी <span className="text-destructive">*</span>
@@ -352,8 +352,8 @@ export default function Step4AdditionalDetails({
             )}
 
             {formData.myBharatPortalRegistered === false && (
-              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                <div className="flex items-center justify-between">
+              <div className="p-3 md:p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div>
                     <h4 className="text-orange-800 font-medium mb-2">Registration Required / पंजीकरण आवश्यक</h4>
                     <p className="text-sm text-orange-700 mb-3">
@@ -365,7 +365,7 @@ export default function Step4AdditionalDetails({
                   <button
                     type="button"
                     onClick={openMyBharatPortal}
-                    className="nss-button-primary flex items-center whitespace-nowrap"
+                    className="nss-button-primary flex items-center whitespace-nowrap w-full md:w-auto justify-center"
                   >
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -373,7 +373,7 @@ export default function Step4AdditionalDetails({
                     Register Now / अभी पंजीकरण करें
                   </button>
                 </div>
-                <div className="mt-3 p-3 bg-white rounded border border-orange-200">
+                <div className="mt-3 p-2 md:p-3 bg-white rounded border border-orange-200">
                   <p className="text-xs text-orange-600">
                     <strong>Instructions / निर्देश:</strong>
                     <br />
@@ -495,20 +495,36 @@ export default function Step4AdditionalDetails({
         </div>
       </div>
 
-      <div className="flex justify-between mt-8">
-        <button onClick={onPrevious} className="nss-button-outline flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Previous / पिछला
-        </button>
-        <button onClick={handleNext} className="nss-button-primary">
-          Review & Submit / समीक्षा और जमा करें
-          <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
+      <div className="flex flex-row gap-3 justify-between mt-8">
+				<button
+					onClick={onPrevious}
+					className="nss-button-outline flex items-center text-xs md:text-base px-1 py-2 md:px-4 md:py-2.5"
+				>
+					<svg
+						className="w-4 h-4 mr-1"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+					</svg>
+					<span className="truncate">Previous / पिछला</span>
+				</button>
+				<button
+					onClick={handleNext}
+					className="nss-button-primary flex items-center text-xs md:text-base px-1 py-2 md:px-4 md:py-2.5"
+				>
+					<span className="truncate">Submit / जमा करें</span>
+					<svg
+						className="w-4 h-4 ml-1"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+					</svg>
+				</button>
+			</div>
     </div>
   )
 }

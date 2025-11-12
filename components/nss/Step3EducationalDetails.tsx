@@ -202,39 +202,39 @@ export default function Step3EducationalDetails({
         <h3 className="text-lg font-semibold text-foreground mb-4">Required Documents / आवश्यक दस्तावेज</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-center">
-            <svg className="w-4 h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Aadhaar Card (for Date of Birth verification) / आधार कार्ड (जन्मतिथि सत्यापन के लिए)
+        <svg className="w-4 h-4 min-w-[1rem] min-h-[1rem] md:w-4 md:h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Aadhaar Card (for Date of Birth verification) / आधार कार्ड (जन्मतिथि सत्यापन के लिए)
           </li>
           <li className="flex items-center">
-            <svg className="w-4 h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            High School Certificate (Mandatory - Now uploaded ✓) / हाई स्कूल प्रमाण पत्र (अनिवार्य - अब अपलोड किया गया ✓)
+        <svg className="w-4 h-4 min-w-[1rem] min-h-[1rem] md:w-4 md:h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+        High School Certificate (Mandatory - Now uploaded ✓) / हाई स्कूल प्रमाण पत्र (अनिवार्य - अब अपलोड किया गया ✓)
           </li>
           <li className="flex items-center">
-            <svg className="w-4 h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Current Academic Records / वर्तमान शैक्षणिक रिकॉर्ड
+        <svg className="w-4 h-4 min-w-[1rem] min-h-[1rem] md:w-4 md:h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Current Academic Records / वर्तमान शैक्षणिक रिकॉर्ड
           </li>
         </ul>
       </div>
 
-      <div className="flex justify-between mt-8">
+      {/* <div className="flex justify-between mt-8">
         <button onClick={onPrevious} className="nss-button-outline flex items-center">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -247,7 +247,37 @@ export default function Step3EducationalDetails({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
-      </div>
+      </div> */}
+      <div className="flex flex-row gap-3 justify-between mt-8">
+				<button
+					onClick={onPrevious}
+					className="nss-button-outline flex items-center text-xs md:text-base px-1 py-2 md:px-4 md:py-2.5"
+				>
+					<svg
+						className="w-4 h-4 mr-1"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+					</svg>
+					<span className="truncate">Previous / पिछला</span>
+				</button>
+				<button
+					onClick={handleNext}
+					className="nss-button-primary flex items-center text-xs md:text-base px-1 py-2 md:px-4 md:py-2.5"
+				>
+					<span className="truncate">Next / आगे</span>
+					<svg
+						className="w-4 h-4 ml-1"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+					</svg>
+				</button>
+			</div>
     </div>
   )
 }

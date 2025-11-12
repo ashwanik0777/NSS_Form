@@ -734,7 +734,7 @@ export default function Step2PersonalDetails({
 						Are you a Hostler or Day Scholar? / क्या आप होस्टलर हैं या डे स्कॉलर?
 						<span className="text-destructive">*</span>
 					</label>
-					<div className="flex gap-4 mt-2">
+					<div className="flex flex-col sm:flex-row gap-4 mt-2">
 						<label>
 							<input
 								type="radio"
@@ -782,22 +782,28 @@ export default function Step2PersonalDetails({
 				</div>
 			</div>
 
-			<div className="flex justify-between mt-8">
-				<button onClick={onPrevious} className="nss-button-outline flex items-center">
+			<div className="flex flex-row gap-3 justify-between mt-8">
+				<button
+					onClick={onPrevious}
+					className="nss-button-outline flex items-center text-xs md:text-base px-1 py-2 md:px-4 md:py-2.5"
+				>
 					<svg
-						className="w-4 h-4 mr-2"
+						className="w-4 h-4 mr-1"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
 					>
 						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
 					</svg>
-					Previous / पिछला
+					<span className="truncate">Previous / पिछला</span>
 				</button>
-				<button onClick={handleNext} className="nss-button-primary">
-					Next / आगे
+				<button
+					onClick={handleNext}
+					className="nss-button-primary flex items-center text-xs md:text-base px-1 py-2 md:px-4 md:py-2.5"
+				>
+					<span className="truncate">Next / आगे</span>
 					<svg
-						className="w-4 h-4 ml-2"
+						className="w-4 h-4 ml-1"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"

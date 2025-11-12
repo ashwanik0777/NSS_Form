@@ -9,45 +9,58 @@ export default function HomePage() {
       <header className="bg-card/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo Section */}
             <div className="flex items-center">
-              {/* <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                <Shield className="w-7 h-7 text-white" />
-              </div> */}
-              <div className="flex gap-5">
-            <Link href="/" className="flex items-center" aria-label="GBU Home">
-              <img
-                src="/1.png"
-                alt="GBU Logo"
-                className="h-13 w-auto"
-              />
-            </Link>
-            <Link href="/" className="flex items-center" aria-label="GBU Home">
-              <img
-                src="/nssLogo.png"
-                alt="GBU Logo"
-                className="h-11 w-auto"
-              />
-            </Link>
-            <Link href="/" className="flex items-center" aria-label="GBU Home">
-              <img
-                src="/myBharatLogo.png"
-                alt="GBU Logo"
-                className="h-12 w-auto"
-              />
-            </Link>
+              <div className="flex gap-5 sm:gap-5">
+                <Link href="/" className="flex items-center" aria-label="GBU Home">
+                  <img
+                    src="/1.png"
+                    alt="GBU Logo"
+                    className="h-11 w-auto sm:h-13"
+                  />
+                </Link>
+                <Link href="/" className="flex items-center" aria-label="NSS Home">
+                  <img
+                    src="/nssLogo.png"
+                    alt="NSS Logo"
+                    className="h-10 w-auto sm:h-11"
+                  />
+                </Link>
+                <Link href="/" className="flex items-center" aria-label="My Bharat Home">
+                  <img
+                    src="/myBharatLogo.png"
+                    alt="My Bharat Logo"
+                    className="h-11 w-auto sm:h-12"
+                  />
+                </Link>
+              </div>
             </div>
-             
-            </div>
-            <nav className="flex space-x-4">
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex space-x-2 sm:space-x-4">
               <Link
                 href="/register"
-                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
               >
                 Apply Now
               </Link>
               <Link
                 href="/login"
-                className="px-6 py-2.5 border-2 border-border text-foreground rounded-lg hover:bg-muted hover:border-primary transition-all duration-300 font-semibold hover:scale-105 active:scale-95"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-border text-foreground rounded-lg hover:bg-muted hover:border-primary transition-all duration-300 font-semibold hover:scale-105 active:scale-95"
+              >
+                Login
+              </Link>
+            </nav>
+            {/* Mobile Nav */}
+            <nav className="md:hidden flex items-center space-x-2">
+              <Link
+                href="/register"
+                className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-semibold shadow hover:bg-primary/90 transition-all"
+              >
+                Apply
+              </Link>
+              <Link
+                href="/login"
+                className="px-3 py-1.5 border border-border text-foreground rounded-md text-sm font-semibold hover:bg-muted hover:border-primary transition-all"
               >
                 Login
               </Link>
