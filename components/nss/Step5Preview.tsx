@@ -68,27 +68,27 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
   return (
     <div className="nss-form-section">
       {/* Header with action buttons */}
-      <div className="flex items-center justify-between mb-6 no-print">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-4 no-print">
         <div className="flex items-center">
-          <div className="flex-shrink-0 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mr-3 sm:mr-4">
+            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Application Preview</h2>
-            <p className="text-muted-foreground">आवेदन पूर्वावलोकन</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">Application Preview</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">आवेदन पूर्वावलोकन</p>
           </div>
         </div>
 
-        <div className="flex space-x-3">
-          <button onClick={handlePrint} className="nss-button-secondary">
+        <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3 w-full sm:w-auto">
+          <button onClick={handlePrint} className="nss-button-secondary text-sm sm:text-base w-full sm:w-auto">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
             Print
           </button>
-          <button onClick={handleDownloadPDF} className="nss-button-secondary">
+          <button onClick={handleDownloadPDF} className="nss-button-secondary text-sm sm:text-base w-full sm:w-auto">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -98,61 +98,61 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
       </div>
 
       {/* PDF Preview Container */}
-      <div className="pdf-preview-container rounded-lg">
+      <div className="pdf-preview-container rounded-lg overflow-x-auto">
         {/* Page 1 */}
-        <div className="pdf-page bg-white shadow-lg mx-auto mb-8" style={{ width: '210mm', minHeight: '297mm', padding: '20mm' }}>
+        <div className="pdf-page bg-white shadow-lg mx-auto mb-4 sm:mb-8" style={{ width: '210mm', minHeight: '297mm', padding: '20mm', maxWidth: '100%', transform: 'scale(1)' }}>
           {/* Header with logos */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="w-16 h-16 rounded flex items-center justify-center">
-              <img src="/1.png" alt="Logo 1" className="w-16 h-16 object-contain" />
+          <div className="flex justify-between items-center mb-4 sm:mb-6 gap-2">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded flex items-center justify-center flex-shrink-0">
+              <img src="/1.png" alt="Logo 1" className="w-full h-full object-contain" />
             </div>
-            <div className="w-32 h-32 rounded flex items-center justify-center">
-              <img src="/myBharatLogo.png" alt="My Bharat Logo" className="w-28 h-28 object-contain" />
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded flex items-center justify-center flex-shrink-0">
+              <img src="/myBharatLogo.png" alt="My Bharat Logo" className="w-full h-full object-contain" />
             </div>
-            <div className="w-16 h-16 rounded flex items-center justify-center">
-              <img src="/nssLogo.png" alt="NSS Logo" className="w-14 h-14 object-contain" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded flex items-center justify-center flex-shrink-0">
+              <img src="/nssLogo.png" alt="NSS Logo" className="w-full h-full object-contain" />
             </div>
           </div>
 
           {/* University Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-lg font-bold text-blue-900 mb-1">Gautam Buddha University</h1>
-            <h2 className="text-md font-semibold text-blue-800 mb-2">National Service Scheme (NSS)</h2>
-            <h3 className="text-lg font-bold">VOLUNTEER REGISTRATION FORM</h3>
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-base sm:text-lg font-bold text-blue-900 mb-1">Gautam Buddha University</h1>
+            <h2 className="text-sm sm:text-md font-semibold text-blue-800 mb-2">National Service Scheme (NSS)</h2>
+            <h3 className="text-base sm:text-lg font-bold">VOLUNTEER REGISTRATION FORM</h3>
           </div>
 
           {/* Academic Year and Form Number */}
-          <div className="mb-6 text-sm text-gray-600">
+          <div className="mb-4 sm:mb-6 text-xs sm:text-sm text-gray-600">
             Academic Year: 2025-26 | Form No: {formData.formNo || "N/A"}
           </div>
 
           {/* Institution Details */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Institution Details</h3>
+          <div className="mb-4 sm:mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">Institution Details</h3>
             </div>
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Institution Name:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+            <div className="grid grid-cols-1 gap-2 sm:gap-3">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Institution Name:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.institutionName || "Gautam Buddha University"}
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Programme Officer:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Programme Officer:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.programOfficerName}
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Unit Number:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Unit Number:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   Unit {formData.unitNo}
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Enrollment:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Enrollment:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.enrollment === "first-year" ? "First Year" : 
                    formData.enrollment === "second-year" ? "Second Year" :
                    formData.enrollment === "third-year" ? "Third Year" :
@@ -163,119 +163,117 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
 
           {/* Personal Details */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Personal Details</h3>
+          <div className="mb-4 sm:mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">Personal Details</h3>
             </div>
             
-            <div className="flex gap-6">
+            <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
               {/* Left side - Personal fields */}
-              <div className="flex-1 space-y-3">
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Name:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex-1 space-y-2 sm:space-y-3">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Name:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.nameEnglish}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Father's Name:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Father's Name:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.fatherName}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Mother's Name:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Mother's Name:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.motherName}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Date of Birth:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Date of Birth:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formatDate(formData.dateOfBirth)}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Gender:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Gender:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.gender === "male" ? "Male" : formData.gender === "female" ? "Female" : "Other"}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Category:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Category:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.category?.toUpperCase()}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Mobile Number:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Mobile Number:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.mobileNo}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Email ID:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Email ID:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.emailId}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">School:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">School:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.schoolName}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Department:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Department:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.departmentName}
                   </div>
                 </div>
-                 <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Course Name:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                 <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Course Name:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.courseName}
                   </div>
                 </div>
-                <div className="flex">
-                <span className="w-24 text-sm text-gray-600">Class/
-                  Semester:
-                </span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Class/Semester:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.classSemester}
                 </div>
               </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Institution I-Card:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Institution I-Card:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.institutionalIdCard}
                   </div>
                 </div>
                
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Blood Group:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Blood Group:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.bloodGroup}
                   </div>
                 </div>
-                <div className="flex">
-                  <span className="w-24 text-sm text-gray-600">Hostler/Day Scholar:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Hostler/Day Scholar:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.addressType === "hostler" ? "Hostler" : formData.addressType === "dayscholar" ? "Day Scholar" : ""}
                   </div>
                 </div>
                 {formData.addressType === "hostler" && (
-                  <div className="flex">
-                    <span className="w-24 text-sm text-gray-600">Hostel Address:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Hostel Address:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formData.hostelAddress}
                     </div>
                   </div>
                 )}
                 {formData.addressType === "dayscholar" && (
-                  <div className="flex">
-                    <span className="w-24 text-sm text-gray-600">Home Address:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-24 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Home Address:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formData.homeAddress}
                     </div>
                   </div>
@@ -283,10 +281,10 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               </div>
 
               {/* Right side - Photo and Signature */}
-              <div className="w-32 space-y-4">
+              <div className="w-full sm:w-32 space-y-4 flex flex-row sm:flex-col items-start sm:items-center gap-4 sm:gap-0">
                 {/* Photo */}
-                <div>
-                  <div className="w-28 h-32 border border-gray-400 bg-gray-50 flex items-center justify-center">
+                <div className="flex-shrink-0">
+                  <div className="w-24 h-28 sm:w-28 sm:h-32 border border-gray-400 bg-gray-50 flex items-center justify-center">
                     {formData.photo ? (
                       <img
                         src={typeof formData.photo === "string" ? formData.photo : "/placeholder.svg"}
@@ -300,8 +298,8 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                 </div>
 
                 {/* Signature */}
-                <div>
-                  <div className="w-28 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
+                <div className="flex-shrink-0">
+                  <div className="w-24 h-10 sm:w-28 sm:h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
                     {formData.signature ? (
                       <img
                         src={typeof formData.signature === "string" ? formData.signature : "/placeholder.svg"}
@@ -320,16 +318,16 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
         </div>
 
         {/* Page 2 */}
-        <div className="pdf-page bg-white shadow-lg mx-auto" style={{ width: '210mm', minHeight: '297mm', padding: '20mm' }}>
+        <div className="pdf-page bg-white shadow-lg mx-auto" style={{ width: '210mm', minHeight: '297mm', padding: '20mm', maxWidth: '100%', transform: 'scale(1)' }}>
           {/* Educational Details */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Educational Details</h3>
+          <div className="mb-4 sm:mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">Educational Details</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex">
-                <span className="w-40 text-sm text-gray-600">High School Roll No.:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-40 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">High School Roll No.:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.highSchoolRollNo}
                 </div>
               </div>
@@ -339,9 +337,9 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   {formData.classSemester}
                 </div>
               </div> */}
-              <div className="flex">
-                <span className="w-40 text-sm text-gray-600">High School Certificate:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-40 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">High School Certificate:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.highSchoolCertificate ? "✓ Uploaded" : "Not Uploaded"}
                 </div>
               </div>
@@ -349,48 +347,48 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
 
           {/* NSS Enrollment Details */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">NSS Enrollment Details</h3>
+          <div className="mb-4 sm:mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">NSS Enrollment Details</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">NSS Enrollment Year:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">NSS Enrollment Year:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.nssEnrollmentYear === "first-year" ? "First Year" : "Second Year"}
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Attended 7-Day Camp:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Attended 7-Day Camp:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.attendedSpecialCamp ? "Yes" : "No"}
                 </div>
               </div>
               
               {formData.attendedSpecialCamp && formData.specialCampDetails && (
-                <div className="ml-4 space-y-2">
-                  <p className="text-sm font-medium text-blue-700">Special Camp Details:</p>
-                  <div className="flex">
-                    <span className="w-48 text-sm text-gray-600">Village/Urban Slum:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="ml-0 sm:ml-4 space-y-2">
+                  <p className="text-xs sm:text-sm font-medium text-blue-700">Special Camp Details:</p>
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Village/Urban Slum:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formData.specialCampDetails.villageName}
                     </div>
                   </div>
-                  <div className="flex">
-                    <span className="w-48 text-sm text-gray-600">Date:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Date:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formatDate(formData.specialCampDetails.date || "")}
                     </div>
                   </div>
-                  <div className="flex">
-                    <span className="w-48 text-sm text-gray-600">Venue:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Venue:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formData.specialCampDetails.venue}
                     </div>
                   </div>
-                  <div className="flex">
-                    <span className="w-48 text-sm text-gray-600">Proof Certificate:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Proof Certificate:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formData.specialCampDetails.proof ? "✓ Uploaded" : "Not Uploaded"}
                     </div>
                   </div>
@@ -400,29 +398,29 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
 
           {/* My Bharat Portal Registration */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">My Bharat Portal Registration</h3>
+          <div className="mb-4 sm:mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">My Bharat Portal Registration</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex">
-                <span className="w-48 text-sm text-gray-600">Registered on My Bharat Portal:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Registered on My Bharat Portal:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.myBharatPortalRegistered ? "Yes" : "No"}
                 </div>
               </div>
               
               {formData.myBharatPortalRegistered && (
                 <>
-                  <div className="flex">
-                    <span className="w-48 text-sm text-gray-600">My Bharat Portal ID:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">My Bharat Portal ID:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formData.myBharatPortalId}
                     </div>
                   </div>
-                  <div className="flex">
-                    <span className="w-48 text-sm text-gray-600">Portal Screenshot:</span>
-                    <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Portal Screenshot:</span>
+                    <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                       {formData.myBharatPortalScreenshot ? "✓ Uploaded" : "Not Uploaded"}
                     </div>
                   </div>
@@ -432,46 +430,46 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
 
           {/* Additional Achievements */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Additional Achievements</h3>
+          <div className="mb-4 sm:mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">Additional Achievements</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Special NSS Achievements:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Special NSS Achievements:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.specialNSSAchievements || "None"}
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Achievement Proof:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Achievement Proof:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.specialNSSAchievementsProof ? "✓ Uploaded" : "Not Uploaded"}
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Attended ELP:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Attended ELP:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.attendedELP ? "Yes" : "No"}
                 </div>
               </div>
               {formData.attendedELP && (
-                <div className="flex">
-                  <span className="w-32 text-sm text-gray-600">ELP Proof:</span>
-                  <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+                <div className="flex flex-col sm:flex-row">
+                  <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">ELP Proof:</span>
+                  <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                     {formData.elpProof ? "✓ Uploaded" : "Not Uploaded"}
                   </div>
                 </div>
               )}
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Other Achievements:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Other Achievements:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.otherAchievements || "None"}
                 </div>
               </div>
-              <div className="flex">
-                <span className="w-32 text-sm text-gray-600">Other Certificates:</span>
-                <div className="flex-1 border border-gray-300 px-2 py-1 text-sm min-h-[24px]">
+              <div className="flex flex-col sm:flex-row">
+                <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Other Certificates:</span>
+                <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
                   {formData.otherAchievementsCertificates ? "✓ Uploaded" : "Not Uploaded"}
                 </div>
               </div>
@@ -479,11 +477,11 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
 
           {/* Document Upload Status */}
-          <div className="mb-6">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Document Upload Status</h3>
+          <div className="mb-4 sm:mb-6">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">Document Upload Status</h3>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs">
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Student Photo:</span>
@@ -534,19 +532,19 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </div>
 
           {/* Self Declaration */}
-          <div className="mb-8">
-            <div className="border-b-2 border-blue-600 pb-1 mb-4">
-              <h3 className="text-md font-bold text-blue-600">Self Declaration</h3>
+          <div className="mb-6 sm:mb-8">
+            <div className="border-b-2 border-blue-600 pb-1 mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-md font-bold text-blue-600">Self Declaration</h3>
             </div>
-            <p className="text-sm text-gray-700 leading-relaxed mb-6">
+            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-4 sm:mb-6">
               I hereby declare that all the information provided above is true to the best of my knowledge and belief.
               I understand that if any information is found to be incorrect, my enrollment may be cancelled.
             </p>
             
             {/* Signatures */}
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end gap-4 sm:gap-0">
               <div className="text-center">
-                <div className="w-36 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
+                <div className="w-28 h-10 sm:w-36 sm:h-12 border border-gray-400 bg-gray-50 flex items-center justify-center mb-2">
                   {formData.signature ? (
                     <img
                       src={typeof formData.signature === "string" ? formData.signature : "/placeholder.svg"}
@@ -557,15 +555,15 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                     <span className="text-xs text-gray-400">Signature</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600">Signature of Volunteer</p>
+                <p className="text-xs sm:text-sm text-gray-600">Signature of Volunteer</p>
                 <p className="text-xs text-gray-500 mt-1">Date: {new Date().toLocaleDateString("en-IN")}</p>
               </div>
               
               <div className="text-center">
-                <div className="w-36 h-12 border border-gray-400 bg-gray-50 flex items-center justify-center ml-5 mb-2">
+                <div className="w-28 h-10 sm:w-36 sm:h-12 border border-gray-400 bg-gray-50 flex items-center justify-center sm:ml-5 mb-2">
                   <img src="/coordinatorSign.png" alt="Coordinator Signature" className="w-full h-full object-contain" />
                 </div>
-                <p className="text-sm text-gray-600">Signature of Programme Officer</p>
+                <p className="text-xs sm:text-sm text-gray-600">Signature of Programme Officer</p>
                 <p className="text-xs text-gray-500 mt-1">{formData.programOfficerName}</p>
               </div>
             </div>
@@ -574,9 +572,9 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
       </div>
 
       {/* Declaration and Submit Section - Only visible on screen */}
-      <div className="no-print bg-muted/50 border border-border rounded-lg p-6 mt-8">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Final Declaration / अंतिम घोषणा</h3>
-        <div className="space-y-4 text-sm text-foreground">
+      <div className="no-print bg-muted/50 border border-border rounded-lg p-4 sm:p-6 mt-4 sm:mt-8">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">Final Declaration / अंतिम घोषणा</h3>
+        <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-foreground">
           <p className="leading-relaxed">
             मैं घोषणा करता / करती हूँ कि मेरे द्वारा दी गई उपरोक्त जानकारी मेरी जानकारी और विश्वास के अनुसार सही है। मैं यह भी समझता
             / समझती हूँ कि यदि मेरे द्वारा दी गई कोई जानकारी गलत पाई जाती है, तो मेरा नामांकन रद्द कर दिया जाएगा।
@@ -588,15 +586,15 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
           </p>
         </div>
 
-        <div className="mt-6">
-          <label className="flex items-start space-x-3 cursor-pointer">
+        <div className="mt-4 sm:mt-6">
+          <label className="flex items-start space-x-2 sm:space-x-3 cursor-pointer">
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-1 w-4 h-4 text-primary bg-input border-border rounded focus:ring-ring focus:ring-2"
+              className="mt-1 w-4 h-4 text-primary bg-input border-border rounded focus:ring-ring focus:ring-2 flex-shrink-0"
             />
-            <span className="text-sm text-foreground">
+            <span className="text-xs sm:text-sm text-foreground">
               I agree to the above declaration and confirm that all information provided is accurate and complete.
               <br />
               <span className="text-muted-foreground">
@@ -608,8 +606,8 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
       </div>
 
       {/* Action Buttons - Only visible on screen */}
-      <div className="flex justify-between mt-8 no-print">
-        <button onClick={onPrevious} className="nss-button-outline" disabled={isSubmitting}>
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-4 sm:mt-8 no-print">
+        <button onClick={onPrevious} className="nss-button-outline w-full sm:w-auto text-sm sm:text-base" disabled={isSubmitting}>
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -619,7 +617,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
         <button
           onClick={handleSubmit}
           disabled={!agreed || isSubmitting}
-          className={`nss-button-primary ${!agreed || isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`nss-button-primary w-full sm:w-auto text-sm sm:text-base ${!agreed || isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           {isSubmitting ? (
             <>
@@ -653,6 +651,8 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
             box-shadow: none !important;
             margin: 0 !important;
             page-break-after: always;
+            transform: scale(1) !important;
+            max-width: 100% !important;
           }
           body {
             background: white !important;
@@ -661,6 +661,30 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
         
         .pdf-page:last-child {
           page-break-after: auto;
+        }
+
+        /* Mobile and Tablet Responsive Styles */
+        @media (max-width: 768px) {
+          .pdf-page {
+            transform: scale(0.85);
+            transform-origin: top center;
+            margin-bottom: 1rem !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .pdf-page {
+            transform: scale(0.75);
+            transform-origin: top center;
+            padding: 15mm !important;
+          }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .pdf-page {
+            transform: scale(0.9);
+            transform-origin: top center;
+          }
         }
       `}</style>
     </div>
