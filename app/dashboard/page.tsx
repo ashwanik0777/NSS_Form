@@ -76,6 +76,8 @@ export default function VolunteerDashboard() {
   const [missingPostsCount, setMissingPostsCount] = useState(0)
   const [totalPoints, setTotalPoints] = useState(0)
   const [viewingPost, setViewingPost] = useState<string | null>(null)
+  const [viewAllNotifications, setViewAllNotifications] = useState(false)
+  const [viewAllAnnouncements, setViewAllAnnouncements] = useState(false)
   
   // Refresh function to refetch data
   const fetchDashboardData = async () => {
@@ -185,6 +187,23 @@ export default function VolunteerDashboard() {
   }
 
   const user = session?.user as any
+  const sortedNotifications = [...notifications].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+  const unreadNotifications = sortedNotifications.filter((n) => !n.isRead)
+  const readNotifications = sortedNotifications.filter((n) => n.isRead)
+  const limitedUnreadNotifications = viewAllNotifications ? unreadNotifications : unreadNotifications.slice(0, 10)
+  const limitedReadNotifications = viewAllNotifications ? readNotifications : readNotifications.slice(0, 5)
+  const displayNotifications = [...limitedUnreadNotifications, ...limitedReadNotifications]
+  const hasMoreNotifications =
+    unreadNotifications.length > limitedUnreadNotifications.length ||
+    readNotifications.length > limitedReadNotifications.length
+
+  const sortedAnnouncements = [...announcements].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+  const displayAnnouncements = viewAllAnnouncements ? sortedAnnouncements : sortedAnnouncements.slice(0, 5)
+  const hasMoreAnnouncements = sortedAnnouncements.length > displayAnnouncements.length
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       submitted: { label: "Submitted", color: "bg-blue-100 text-blue-800 border-blue-200", icon: FileText },
@@ -280,9 +299,9 @@ export default function VolunteerDashboard() {
               ))}
             </div>
           )}
-          {announcements.length > 2 && (
+          {hasMoreAnnouncements && (
             <Link
-              href="#announcements"
+              href="#announcements-section"
               className="inline-flex items-center text-xs text-primary hover:text-primary/80 mt-3"
             >
               View all announcements <ArrowRight className="w-3 h-3 ml-1" />
@@ -350,11 +369,11 @@ export default function VolunteerDashboard() {
               )}
             </button>
           </div>
-          {notifications.length === 0 ? (
+          {displayNotifications.length === 0 ? (
             <p className="text-sm text-muted-foreground">You’re all caught up!</p>
           ) : (
             <div className="space-y-2">
-              {notifications.slice(0, 3).map((notif) => (
+              {displayNotifications.slice(0, 3).map((notif) => (
                 <div
                   key={notif._id}
                   className={`p-3 rounded-lg border text-xs ${
@@ -367,9 +386,12 @@ export default function VolunteerDashboard() {
               ))}
             </div>
           )}
-          {notifications.length > 3 && (
+          {hasMoreNotifications && !viewAllNotifications && (
             <button
-              onClick={() => setShowNotifications(true)}
+              onClick={() => {
+                setViewAllNotifications(true)
+                setShowNotifications(true)
+              }}
               className="mt-3 text-xs text-primary hover:text-primary/80 flex items-center"
             >
               View all notifications <ArrowRight className="w-3 h-3 ml-1" />
@@ -378,7 +400,7 @@ export default function VolunteerDashboard() {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="absolute top-full right-0 mt-3 w-full sm:w-80 bg-card rounded-xl border border-border shadow-2xl p-4 z-50">
+            <div className="absolute top-full right-0 mt-3 w-full sm:w-96 bg-card rounded-xl border border-border shadow-2xl p-4 z-50">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-foreground text-sm">Latest Notifications</h4>
                 <button
@@ -388,11 +410,11 @@ export default function VolunteerDashboard() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              {notifications.length === 0 ? (
+              {displayNotifications.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">No new notifications</p>
               ) : (
                 <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  {notifications.map((notif) => (
+                  {displayNotifications.map((notif) => (
                     <div
                       key={notif._id}
                       className={`p-3 rounded-lg border cursor-pointer ${
@@ -452,6 +474,22 @@ export default function VolunteerDashboard() {
                     </div>
                   ))}
                 </div>
+              )}
+              {hasMoreNotifications && (
+                <button
+                  onClick={() => setViewAllNotifications((prev) => !prev)}
+                  className="mt-3 w-full text-xs text-primary hover:text-primary/80 flex items-center justify-center gap-1"
+                >
+                  {viewAllNotifications ? (
+                    <>
+                      View less <ArrowRight className="w-3 h-3 rotate-180" />
+                    </>
+                  ) : (
+                    <>
+                      View more <ArrowRight className="w-3 h-3" />
+                    </>
+                  )}
+                </button>
               )}
             </div>
           )}
@@ -621,50 +659,6 @@ export default function VolunteerDashboard() {
           )}
 
           {/* Selected Project Card */}
-          {selectedProject && (
-            <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-foreground flex items-center">
-                  <FolderKanban className="w-5 h-5 mr-2 text-primary" />
-                  My NSS Project
-                </h2>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                  Active
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">{selectedProject.title}</h3>
-                  <p className="text-muted-foreground">{selectedProject.description}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {selectedProject.location && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {selectedProject.location}
-                    </div>
-                  )}
-                  {selectedProject.coordinator && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <User className="w-4 h-4 mr-2" />
-                      {selectedProject.coordinator}
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  href="/dashboard/projects"
-                  className="inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium"
-                >
-                  View Project Details
-                  <TrendingUp className="w-4 h-4 ml-1" />
-                </Link>
-              </div>
-            </div>
-          )}
-
         {/* Social Media Posts Section */}
         <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
@@ -879,14 +873,6 @@ export default function VolunteerDashboard() {
           )}
         </div>
 
-        {/* Social Media Card (NSS Official Icons Only) */}
-        <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Follow NSS</h2>
-          </div>
-          <OfficialNssLinks />
-        </div>
-
         {/* Upcoming Events (Main Card) */}
         {upcomingEvents.length > 0 && (
           <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -1007,74 +993,93 @@ export default function VolunteerDashboard() {
             </div>
           )}
 
-          {/* Announcements */}
-          {announcements.length > 0 && (
-            <div id="announcements" className="bg-card rounded-xl border border-border p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                <Megaphone className="w-5 h-5 mr-2 text-primary" />
-                Announcements
-              </h3>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {announcements.map((announcement) => (
-                  <div
-                    key={announcement._id}
-                    className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800"
-                  >
-                    <p className="font-semibold text-sm text-foreground mb-2">{announcement.title}</p>
-                    <p className="text-xs text-muted-foreground mb-2 line-clamp-3">{announcement.content}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                ))}
+        {/* Announcements */}
+        {sortedAnnouncements.length > 0 && (
+          <div id="announcements-section" className="bg-card rounded-xl border border-border p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">Announcements</h3>
+              </div>
+              {hasMoreAnnouncements && (
+                <button
+                  onClick={() => setViewAllAnnouncements((prev) => !prev)}
+                  className="text-xs text-primary hover:text-primary/80 flex items-center gap-1"
+                >
+                  {viewAllAnnouncements ? "View less" : "View more"}
+                  <ArrowRight className={`w-3 h-3 transition-transform ${viewAllAnnouncements ? "rotate-180" : ""}`} />
+                </button>
+              )}
+            </div>
+            <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+              {displayAnnouncements.map((announcement) => (
+                <div
+                  key={announcement._id}
+                  className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                >
+                  <p className="font-semibold text-sm text-foreground mb-2">{announcement.title}</p>
+                  <p className="text-xs text-muted-foreground mb-2 line-clamp-3">{announcement.content}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+          {/* My NSS Project */}
+          {selectedProject && (
+            <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-foreground flex items-center">
+                  <FolderKanban className="w-5 h-5 mr-2 text-primary" />
+                  My NSS Project
+                </h2>
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                  Active
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-bold text-foreground mb-2">{selectedProject.title}</h3>
+                  <p className="text-muted-foreground">{selectedProject.description}</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {selectedProject.location && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      {selectedProject.location}
+                    </div>
+                  )}
+                  {selectedProject.coordinator && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <User className="w-4 h-4 mr-2" />
+                      {selectedProject.coordinator}
+                    </div>
+                  )}
+                </div>
+
+                <Link
+                  href="/dashboard/projects"
+                  className="inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium"
+                >
+                  View Project Details
+                  <TrendingUp className="w-4 h-4 ml-1" />
+                </Link>
               </div>
             </div>
           )}
 
-          {/* Quick Actions */}
+          {/* Follow NSS */}
           <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
-            <div className="space-y-2">
-              {(!completion || completion.percent < 100) && (
-                <Link
-                  href="/dashboard/profile"
-                  className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
-                >
-                  Complete Profile
-                </Link>
-              )}
-              {completion && completion.percent === 100 && !selectedProject && (
-                <Link
-                  href="/dashboard/projects"
-                  className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
-                >
-                  Select Project
-                </Link>
-              )}
-              {selectedProject && (
-                <Link
-                  href="/dashboard/events"
-                  className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  View Events
-                </Link>
-              )}
-              {application && application.status === "approved" && (
-                <a
-                  href={`/api/generate-pdf?id=${application._id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
-                >
-                  Download PDF
-                </a>
-              )}
-            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Follow NSS</h3>
+            <OfficialNssLinks />
           </div>
         </div>
       </div>
