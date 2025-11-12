@@ -822,6 +822,9 @@ export default function VolunteerDashboard() {
                                 const refreshData = await refreshRes.json()
                                 if (refreshData.success) {
                                   setNotifications(refreshData.notifications || [])
+                                  // Update unread count by triggering a re-render
+                                  setShowNotifications(false)
+                                  setTimeout(() => setShowNotifications(true), 50)
                                 }
                               } catch (refreshError) {
                                 console.error("Error refreshing notifications:", refreshError)

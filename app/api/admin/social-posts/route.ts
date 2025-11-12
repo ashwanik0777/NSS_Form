@@ -110,19 +110,26 @@ export async function POST(request: NextRequest) {
       const volunteers = await User.find({ role: "volunteer" }).select("_id").lean()
       const platformCount = Object.keys(platformLinks || {}).filter((key) => platformLinks[key]).length
       
-      const notificationPromises = volunteers.map((volunteer: any) =>
-        Notification.create({
-          userId: volunteer._id,
-          title: "New NSS Social Media Post",
-          message: `A new social media post has been shared: "${title}". Click on platform links to earn ${pointsReward || 2.5} points per platform!`,
-          type: "announcement",
-          link: "/dashboard",
-          isRead: false,
-        })
-      )
+      const notificationPromises = volunteers.map(async (volunteer: any) => {
+        try {
+          await Notification.create({
+            userId: volunteer._id,
+            title: "New NSS Social Media Post",
+            message: `A new social media post has been shared: "${title}". Click on all platform links to earn 10 points!`,
+            type: "announcement",
+            link: "/dashboard",
+            isRead: false,
+          })
+          return { success: true, volunteerId: volunteer._id }
+        } catch (err: any) {
+          console.error(`Error creating notification for volunteer ${volunteer._id}:`, err)
+          return { success: false, volunteerId: volunteer._id, error: err.message }
+        }
+      })
 
-      await Promise.all(notificationPromises)
-      console.log(`✓ Notifications sent to ${volunteers.length} volunteers for new social post`)
+      const results = await Promise.allSettled(notificationPromises)
+      const successCount = results.filter((r) => r.status === "fulfilled" && r.value.success).length
+      console.log(`✓ Notifications sent to ${successCount}/${volunteers.length} volunteers for new social post`)
     } catch (error: any) {
       console.error("Error sending notifications:", error)
       // Don't fail the request if notifications fail

@@ -6,6 +6,7 @@ export interface IPostView extends Document {
   viewedAt: Date
   clickedPlatforms: string[]
   platformPoints: { [key: string]: number }
+  pointsAwarded: boolean
   createdAt: Date
 }
 
@@ -33,6 +34,10 @@ const PostViewSchema = new Schema<IPostView>(
       type: Map,
       of: Number,
       default: {},
+    },
+    pointsAwarded: {
+      type: Boolean,
+      default: false,
     },
   },
   {

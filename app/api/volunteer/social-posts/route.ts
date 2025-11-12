@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
         viewedAt: new Date(),
         clickedPlatforms: [],
         platformPoints: {},
+        pointsAwarded: false,
       })
     }
 
@@ -123,33 +124,54 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Award 2.5 points per platform click
-    const pointsPerPlatform = 2.5
-    const pointsDoc = await VolunteerPoints.findOneAndUpdate(
-      { volunteerId: session.user.id },
-      {
-        $inc: { totalPoints: pointsPerPlatform },
-        $push: {
-          pointsHistory: {
-            points: pointsPerPlatform,
-            source: "social_post",
-            sourceId: post._id,
-            description: `Clicked ${platform} link for post: ${post.title}`,
-            earnedAt: new Date(),
-          },
-        },
-      },
-      { upsert: true, new: true },
-    )
-
     // Update post view with clicked platform
     postView.clickedPlatforms = [...clickedPlatforms, platform]
-    postView.platformPoints = {
-      ...(postView.platformPoints || {}),
-      [platform]: pointsPerPlatform,
-    }
     postView.viewedAt = new Date()
     await postView.save()
+
+    // Check if all 4 main platforms are clicked (Facebook, Instagram, Twitter, LinkedIn)
+    // Note: platformLinks is already defined above, so we reuse it
+    const mainPlatforms = ["facebook", "instagram", "twitter", "linkedin"]
+    const availableMainPlatforms = mainPlatforms.filter((p) => platformLinks[p])
+    const allMainPlatformsClicked = availableMainPlatforms.every((p) => postView.clickedPlatforms.includes(p))
+
+    // Award points only once when all main platforms are clicked
+    let pointsAwarded = false
+    let pointsEarned = 0
+    let pointsDoc = await VolunteerPoints.findOne({ volunteerId: session.user.id })
+
+    if (allMainPlatformsClicked && !postView.pointsAwarded) {
+      // Award 10 points total (once per post)
+      const totalPointsForPost = 10
+      pointsDoc = await VolunteerPoints.findOneAndUpdate(
+        { volunteerId: session.user.id },
+        {
+          $inc: { totalPoints: totalPointsForPost },
+          $push: {
+            pointsHistory: {
+              points: totalPointsForPost,
+              source: "social_post",
+              sourceId: post._id,
+              description: `Completed all platform clicks for post: ${post.title}`,
+              earnedAt: new Date(),
+            },
+          },
+        },
+        { upsert: true, new: true },
+      )
+
+      // Mark points as awarded for this post
+      postView.pointsAwarded = true
+      await postView.save()
+
+      pointsAwarded = true
+      pointsEarned = totalPointsForPost
+    } else {
+      // Just return current points without awarding
+      if (!pointsDoc) {
+        pointsDoc = await VolunteerPoints.findOne({ volunteerId: session.user.id })
+      }
+    }
 
     // Check for achievements
     const totalPoints = pointsDoc.totalPoints
@@ -178,9 +200,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      pointsAwarded: true,
-      pointsEarned: pointsPerPlatform,
-      totalPoints: pointsDoc.totalPoints,
+      pointsAwarded,
+      pointsEarned,
+      totalPoints: pointsDoc?.totalPoints || 0,
+      allPlatformsClicked: allMainPlatformsClicked,
     })
   } catch (error: any) {
     console.error("Error recording platform click:", error)
