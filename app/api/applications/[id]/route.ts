@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const application = await NSSApplication.findById(params.id)
       .populate("userId", "name email")
-      .populate("reviewedBy", "name")
+      .populate("reviewedBy", "name email")
 
     if (!application) {
       return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })

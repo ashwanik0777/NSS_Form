@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
 
     let applicationsQuery = NSSApplication.find(query)
       .populate("userId", "name email")
-      .populate("reviewedBy", "name")
+      .populate("reviewedBy", "name email")
       .sort({ createdAt: -1 })
 
     if (limit) {

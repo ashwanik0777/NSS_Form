@@ -58,6 +58,11 @@ interface Application {
   status: "submitted" | "under-review" | "approved" | "rejected"
   submittedAt: string
   reviewedAt?: string
+  reviewedBy?: {
+    _id: string
+    name: string
+    email?: string
+  }
   rejectionReason?: string
 }
 
@@ -269,7 +274,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                   Applicant
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Institution
+                  School & Department
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Status
@@ -277,6 +282,11 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Submitted
                 </th>
+                {isSuperAdmin && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Reviewed By
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
@@ -291,11 +301,32 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                       <div className="text-sm text-muted-foreground">{app.emailId}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-foreground">{app.institutionName}</td>
+                  <td className="px-6 py-4">
+                    <div>
+                      <div className="text-sm font-medium text-foreground">{app.schoolName || "—"}</div>
+                      <div className="text-sm text-muted-foreground">{app.departmentName || "—"}</div>
+                    </div>
+                  </td>
                   <td className="px-6 py-4">{getStatusBadge(app.status)}</td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
                     {new Date(app.submittedAt).toLocaleDateString("en-IN")}
                   </td>
+                  {isSuperAdmin && (
+                    <td className="px-6 py-4">
+                      {app.reviewedBy ? (
+                        <div>
+                          <div className="text-sm font-medium text-foreground">{app.reviewedBy.name}</div>
+                          {app.reviewedAt && (
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(app.reviewedAt).toLocaleDateString("en-IN")}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">
                       <button
@@ -664,6 +695,15 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Reviewed At</label>
                       <p className="text-foreground">{new Date(viewingApp.reviewedAt).toLocaleString("en-IN")}</p>
+                    </div>
+                  )}
+                  {viewingApp.reviewedBy && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Reviewed By</label>
+                      <p className="text-foreground font-medium">{viewingApp.reviewedBy.name || viewingApp.reviewedBy}</p>
+                      {viewingApp.reviewedBy.email && (
+                        <p className="text-sm text-muted-foreground">{viewingApp.reviewedBy.email}</p>
+                      )}
                     </div>
                   )}
                   {viewingApp.rejectionReason && (
