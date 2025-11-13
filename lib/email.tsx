@@ -118,6 +118,7 @@ export async function sendApplicationApprovedEmail(
         <b>Login Email:</b> ${credentials.email}<br/>
         <b>Password:</b> ${credentials.password}<br/>
         <i>Please change your password after first login.</i>
+         <b>https://nss-gbu.collcom.org/login</b>
       </p>
       <hr/>
     `;
@@ -136,6 +137,7 @@ export async function sendApplicationApprovedEmail(
           <h2 style="color: #059669;">🎉 Congratulations! Your Application is Approved</h2>
           <p>Dear ${name},</p>
           <p>We are pleased to inform you that your NSS volunteer application has been <strong>approved</strong>!</p>
+
           
           <div style="background-color: #ecfdf5; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #059669;">
             <h3 style="margin: 0 0 10px 0; color: #065f46;">Application Details:</h3>
