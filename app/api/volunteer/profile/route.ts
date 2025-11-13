@@ -10,8 +10,40 @@ export async function GET(_request: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
 
     await dbConnect()
-    const app = await NSSApplication.findOne({ userId: session.user.id }).lean()
-    if (!app || Array.isArray(app)) return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+    
+    // Try to find application by userId first
+    let app = await NSSApplication.findOne({ userId: session.user.id }).lean()
+    
+    // If not found, try to find by email (for newly created volunteers)
+    if (!app || Array.isArray(app)) {
+      app = await NSSApplication.findOne({ emailId: session.user.email }).lean()
+      // If found by email, update it with userId
+      if (app && !Array.isArray(app)) {
+        await NSSApplication.updateOne(
+          { _id: app._id },
+          { $set: { userId: session.user.id } }
+        )
+      }
+    }
+    
+    if (!app || Array.isArray(app)) {
+      // Return empty application structure so user can still fill profile
+      return NextResponse.json({ 
+        success: true, 
+        application: {}, 
+        completion: { percent: 0, missing: [
+          "Student Photo",
+          "Student Signature",
+          "Institution I-Card Number",
+          "High School Certificate",
+          "My Bharat Portal Registration",
+          "Facebook Profile URL",
+          "Instagram Profile URL",
+          "Twitter/X Profile URL",
+          "LinkedIn Profile URL"
+        ]} 
+      })
+    }
 
     const required: Array<[string, any]> = [
       ["photo", app.photo],
@@ -56,14 +88,34 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json()
     await dbConnect()
 
-    const app = await NSSApplication.findOneAndUpdate(
-      { userId: session.user.id },
-      { $set: body },
-      { new: true }
-    ).lean()
+    // Try to find application by userId first
+    let app = await NSSApplication.findOne({ userId: session.user.id }).lean()
+    
+    // If not found, try to find by email
+    if (!app || Array.isArray(app)) {
+      app = await NSSApplication.findOne({ emailId: session.user.email }).lean()
+    }
+    
+    // If still not found, create a new application entry
+    if (!app || Array.isArray(app)) {
+      app = await NSSApplication.create({
+        userId: session.user.id,
+        emailId: session.user.email,
+        nameEnglish: session.user.name || "",
+        ...body
+      })
+      app = app.toObject()
+    } else {
+      // Update existing application
+      app = await NSSApplication.findOneAndUpdate(
+        { _id: app._id },
+        { $set: { ...body, userId: session.user.id } },
+        { new: true }
+      ).lean()
+    }
 
     if (!app || Array.isArray(app)) {
-      return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+      return NextResponse.json({ success: false, message: "Failed to save profile" }, { status: 500 })
     }
 
     // Recalculate completion

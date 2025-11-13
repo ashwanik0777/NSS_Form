@@ -19,6 +19,7 @@ interface IDCardData {
   departmentName: string
   enrollment?: string
   institutionalIdCard?: string
+  formNo?: string
   
   // Project Info
   projectName?: string
@@ -156,19 +157,56 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
     size: 11,
     color: rgb(0, 0, 1),
   })
-  
-  frontPage.drawText("IDENTITY CARD", {
+
+  frontPage.drawText("E- IDENTITY CARD", {
     x: 110,
     y: logoY - 30,
     size: 9,
     color: rgb(0, 0, 0.95),
   })
+
+  // Serial Number (Year + Form Number) - Below title, right aligned
+  if (data.formNo) {
+    const currentYear = new Date().getFullYear()
+    const yearShort = currentYear.toString().slice(-2) // Last 2 digits of year (e.g., 2025 -> 25)
+    const serialNumber = `${yearShort}${data.formNo}`
+    
+    // Serial number box with border
+    const serialBoxX = cardWidth - 80
+    const serialBoxY = logoY - 18
+    const serialBoxW = 70
+    const serialBoxH = 11
+    
+    frontPage.drawRectangle({
+      x: serialBoxX,
+      y: serialBoxY,
+      width: serialBoxW,
+      height: serialBoxH,
+      borderWidth: 1,
+      borderColor: rgb(0.08, 0.25, 0.55),
+      color: rgb(1, 1, 1),
+    })
+    
+    frontPage.drawText("S. No:", {
+      x: serialBoxX + 5,
+      y: serialBoxY + 2,
+      size: 9,
+      color: rgb(0.4, 0.4, 0.4),
+    })
+    
+    frontPage.drawText(serialNumber, {
+      x: serialBoxX + 30,
+      y: serialBoxY + 2,
+      size: 9,
+      color: rgb(0.08, 0.25, 0.55),
+    })
+  }
   
   // Photo area (right side, properly positioned)
   const photoX = cardWidth - 80
   const photoY = cardHeight - 140
   const photoW = 65
-  const photoH = 80
+  const photoH = 70
   
   // Photo border with shadow effect
   frontPage.drawRectangle({
@@ -221,7 +259,7 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
   })
   
   // Institution Name
-  currentY -= 16
+  currentY -= 22
   frontPage.drawText("Institution:", {
     x: 10,
     y: currentY,
@@ -240,7 +278,7 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
   
   // School Name (if available)
   if (data.schoolName) {
-    currentY -= 24
+    currentY -= 22
     frontPage.drawText("School:", {
       x: 10,
       y: currentY,
@@ -259,7 +297,7 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
   }
   
   // Department
-  currentY -= (data.schoolName ? 24 : 16)
+  currentY -= (data.schoolName ? 22 : 15)
   frontPage.drawText("Department:", {
     x: 10,
     y: currentY,
@@ -278,7 +316,7 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
   
   // Roll Number / Enrollment
   if (data.institutionalIdCard) {
-    currentY -= 24
+    currentY -= 22
     frontPage.drawText("Roll No:", {
       x: 10,
       y: currentY,
@@ -295,7 +333,7 @@ export async function generateVolunteerIDCard(data: IDCardData): Promise<Uint8Ar
   
   // Project Name
   if (data.projectName) {
-    currentY -= 24
+    currentY -= 22
     frontPage.drawText("Project:", {
       x: 10,
       y: currentY,

@@ -49,6 +49,7 @@ export default function ProfileCompletionPage() {
 
   const fetchProfileData = async () => {
     try {
+      setLoading(true)
       const res = await fetch("/api/volunteer/profile")
       const data = await res.json()
       if (data.success) {
@@ -58,9 +59,44 @@ export default function ProfileCompletionPage() {
           application: data.application || {}
         })
         setFormData(data.application || {})
+      } else {
+        // If API returns error, still show empty form
+        setCompletion({
+          percent: 0,
+          missing: [
+            "Student Photo",
+            "Student Signature",
+            "Institution I-Card Number",
+            "High School Certificate",
+            "My Bharat Portal Registration",
+            "Facebook Profile URL",
+            "Instagram Profile URL",
+            "Twitter/X Profile URL",
+            "LinkedIn Profile URL"
+          ],
+          application: {}
+        })
+        setFormData({})
       }
     } catch (error) {
       console.error("Error fetching profile:", error)
+      // On error, show empty form
+      setCompletion({
+        percent: 0,
+        missing: [
+          "Student Photo",
+          "Student Signature",
+          "Institution I-Card Number",
+          "High School Certificate",
+          "My Bharat Portal Registration",
+          "Facebook Profile URL",
+          "Instagram Profile URL",
+          "Twitter/X Profile URL",
+          "LinkedIn Profile URL"
+        ],
+        application: {}
+      })
+      setFormData({})
     } finally {
       setLoading(false)
     }
