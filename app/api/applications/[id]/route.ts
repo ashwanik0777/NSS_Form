@@ -75,6 +75,30 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const { status, rejectionReason } = body
 
+    // Check unit capacity before approving
+    if (status === "approved") {
+      const application = await NSSApplication.findById(params.id)
+      if (!application) {
+        return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+      }
+
+      const MAX_STUDENTS_PER_UNIT = 100
+      const currentCount = await NSSApplication.countDocuments({
+        unitNo: application.unitNo,
+        status: "approved",
+      })
+
+      if (currentCount >= MAX_STUDENTS_PER_UNIT) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Cannot approve: Unit ${application.unitNo} is full. Maximum ${MAX_STUDENTS_PER_UNIT} students allowed per unit. Please transfer students to another unit first.`,
+          },
+          { status: 400 }
+        )
+      }
+    }
+
     // Derive reviewer ObjectId from the session when possible; fall back to email lookup.
     let reviewerObjectId: mongoose.Types.ObjectId | undefined
     if (session.user.id && mongoose.Types.ObjectId.isValid(session.user.id)) {

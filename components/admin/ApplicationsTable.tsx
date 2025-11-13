@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { ArrowRightLeft, AlertCircle, CheckCircle } from "lucide-react"
 
 interface Application {
   schoolName: string
@@ -65,14 +67,25 @@ interface ApplicationsTableProps {
   enrollment?: string
   schoolName?: string
   departmentName?: string
+  nameSearch?: string
 }
 
-export default function ApplicationsTable({ statusFilter = "all", unitNo = "all", enrollment = "all", schoolName = "", departmentName = "" }: ApplicationsTableProps) {
+export default function ApplicationsTable({ statusFilter = "all", unitNo = "all", enrollment = "all", schoolName = "", departmentName = "", nameSearch = "" }: ApplicationsTableProps) {
+  const { data: session } = useSession()
+  const user = session?.user as any
+  const isSuperAdmin = user?.role === "admin"
+  
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedApp, setSelectedApp] = useState<Application | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
+  const [showTransferModal, setShowTransferModal] = useState(false)
+  const [transferringApp, setTransferringApp] = useState<Application | null>(null)
+  const [newUnitNo, setNewUnitNo] = useState<string>("")
+  const [unitCapacity, setUnitCapacity] = useState<any>({})
+  const [loadingCapacity, setLoadingCapacity] = useState(false)
+  const [isTransferring, setIsTransferring] = useState(false)
   const [viewingApp, setViewingApp] = useState<Application | null>(null)
   const [reviewAction, setReviewAction] = useState<"approve" | "reject">("approve")
   const [rejectionReason, setRejectionReason] = useState("")
@@ -85,7 +98,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
   useEffect(() => {
     fetchApplications()
     setCurrentPage(1) // Reset to first page on filter change
-  }, [statusFilter, unitNo, enrollment, schoolName, departmentName])
+  }, [statusFilter, unitNo, enrollment, schoolName, departmentName, nameSearch])
 
   const fetchApplications = async () => {
     try {
@@ -95,6 +108,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
       if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
       if (schoolName) params.set('schoolName', schoolName)
       if (departmentName) params.set('departmentName', departmentName)
+      if (nameSearch) params.set('nameSearch', nameSearch)
 
       const response = await fetch(`/api/applications?${params.toString()}`)
       const data = await response.json()
@@ -105,6 +119,65 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
       console.error("Error fetching applications:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchUnitCapacity = async () => {
+    try {
+      setLoadingCapacity(true)
+      const response = await fetch('/api/applications/transfer-unit')
+      const data = await response.json()
+      if (data.success && data.units) {
+        const capacityMap: any = {}
+        data.units.forEach((unit: any) => {
+          capacityMap[unit.unitNo] = unit
+        })
+        setUnitCapacity(capacityMap)
+      }
+    } catch (error) {
+      console.error("Error fetching unit capacity:", error)
+    } finally {
+      setLoadingCapacity(false)
+    }
+  }
+
+  const handleTransferClick = async (app: Application) => {
+    setTransferringApp(app)
+    setNewUnitNo("")
+    setShowTransferModal(true)
+    await fetchUnitCapacity()
+  }
+
+  const handleTransfer = async () => {
+    if (!transferringApp || !newUnitNo) return
+
+    try {
+      setIsTransferring(true)
+      const response = await fetch('/api/applications/transfer-unit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: transferringApp._id,
+          newUnitNo: newUnitNo,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        alert(`Successfully transferred to Unit ${newUnitNo}`)
+        setShowTransferModal(false)
+        setTransferringApp(null)
+        setNewUnitNo("")
+        fetchApplications()
+        fetchUnitCapacity()
+      } else {
+        alert(data.message || "Transfer failed")
+      }
+    } catch (error) {
+      console.error("Error transferring unit:", error)
+      alert("Error transferring unit. Please try again.")
+    } finally {
+      setIsTransferring(false)
     }
   }
 
@@ -242,6 +315,16 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                           className={`text-sm font-medium transition-colors ${processingId ? "text-muted-foreground cursor-not-allowed" : "text-secondary hover:text-secondary/80"}`}
                         >
                           {processingId === app._id ? "Processing..." : "Review"}
+                        </button>
+                      )}
+                      {isSuperAdmin && app.status === "approved" && (
+                        <button
+                          onClick={() => handleTransferClick(app)}
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors flex items-center gap-1"
+                          title="Transfer to another unit"
+                        >
+                          <ArrowRightLeft className="w-3 h-3" />
+                          Transfer
                         </button>
                       )}
                     </div>
@@ -669,6 +752,102 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                 className={`px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/90"}`}
               >
                 {isSubmitting ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer Unit Modal */}
+      {showTransferModal && transferringApp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Transfer Unit</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Transfer <strong>{transferringApp.nameEnglish}</strong> from <strong>Unit {transferringApp.unitNo}</strong>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Select New Unit</label>
+                <select
+                  value={newUnitNo}
+                  onChange={(e) => setNewUnitNo(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                  disabled={isTransferring}
+                >
+                  <option value="">Select Unit</option>
+                  {["1", "2", "3", "4", "5"]
+                    .filter((unit) => unit !== transferringApp.unitNo)
+                    .map((unit) => {
+                      const capacity = unitCapacity[unit]
+                      const isFull = capacity?.isFull
+                      return (
+                        <option key={unit} value={unit} disabled={isFull}>
+                          Unit {unit} {isFull ? "(Full)" : capacity ? `(${capacity.count}/${capacity.maxCapacity})` : ""}
+                        </option>
+                      )
+                    })}
+                </select>
+              </div>
+
+              {newUnitNo && unitCapacity[newUnitNo] && (
+                <div className={`p-3 rounded-lg border ${
+                  unitCapacity[newUnitNo].isFull 
+                    ? "bg-red-50 border-red-200" 
+                    : "bg-blue-50 border-blue-200"
+                }`}>
+                  <div className="flex items-center gap-2 text-sm">
+                    {unitCapacity[newUnitNo].isFull ? (
+                      <>
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                        <span className="text-red-800">
+                          Unit {newUnitNo} is full ({unitCapacity[newUnitNo].count}/{unitCapacity[newUnitNo].maxCapacity})
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-blue-600" />
+                        <span className="text-blue-800">
+                          Unit {newUnitNo} has {unitCapacity[newUnitNo].available} available slots ({unitCapacity[newUnitNo].count}/{unitCapacity[newUnitNo].maxCapacity})
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {loadingCapacity && (
+                <div className="text-sm text-muted-foreground">Loading unit capacity...</div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowTransferModal(false)
+                  setTransferringApp(null)
+                  setNewUnitNo("")
+                }}
+                disabled={isTransferring}
+                className={`px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md ${
+                  isTransferring ? "opacity-50 cursor-not-allowed" : "hover:bg-muted"
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleTransfer}
+                disabled={isTransferring || !newUnitNo || (unitCapacity[newUnitNo]?.isFull)}
+                className={`px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md ${
+                  isTransferring || !newUnitNo || (unitCapacity[newUnitNo]?.isFull)
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-primary/90"
+                }`}
+              >
+                {isTransferring ? "Transferring..." : "Transfer"}
               </button>
             </div>
           </div>

@@ -1,4 +1,6 @@
-import React from "react";
+"use client"
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Facebook,
@@ -6,9 +8,49 @@ import {
   Camera,
   Linkedin,
   Youtube,
+  Eye,
 } from 'lucide-react';
 
 const Footer = () => {
+  const [viewerCount, setViewerCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    // Check if this is a unique visitor (first time visiting)
+    const hasVisited = typeof window !== "undefined" && localStorage.getItem("nss_has_visited")
+    
+    if (!hasVisited) {
+      // First time visitor - increment count
+      fetch("/api/viewer-count", {
+        method: "POST",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setViewerCount(data.count)
+            // Mark as visited
+            if (typeof window !== "undefined") {
+              localStorage.setItem("nss_has_visited", "true")
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error incrementing viewer count:", error)
+        })
+    } else {
+      // Returning visitor - just fetch current count
+      fetch("/api/viewer-count")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setViewerCount(data.count)
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching viewer count:", error)
+        })
+    }
+  }, [])
+
   return (
     <footer
       className="bg-[#0e1626] text-white px-6 md:px-20 py-10"
@@ -112,37 +154,40 @@ const Footer = () => {
             </a>
           </p>
           <div className="mt-4">
-            <label
-              htmlFor="newsletter-email"
-              className="font-semibold text-sm block mb-1"
-            >
-              Subscribe to Newsletter
-            </label>
+           <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            <span>
+               Visitors: <strong className="text-white">{viewerCount !== null ? viewerCount.toLocaleString() : "—"}</strong>
+            </span>
+          </div>
           </div>
         </section>
       </div>
 
       {/* Bottom Line */}
-      <div className="mt-6 border-t border-gray-700 pt-4 text-sm text-gray-400 flex flex-col md:flex-row justify-between">
-        <p>© 2025 Gautam Buddha University. All rights reserved.</p>
-        <div>
-          <p>
-            Designed and developed by{" "}
-            <Link href="/developers" className="hover:text-white font-semibold cursor-pointer transition-colors">
-              NSS Cell, Gautam Buddha University
-            </Link>{" "}
-          </p>
-        </div>
-        <div className="flex gap-4 mt-2 md:mt-0">
-          {["Privacy Policy", "Terms of Use", "Sitemap"].map((link) => (
-            <a
-              key={link}
-              href="#"
-              className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded"
-            >
-              {link}
-            </a>
-          ))}
+      <div className="mt-6 border-t border-gray-700 pt-4 text-sm text-gray-400">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p>© 2025 Gautam Buddha University. All rights reserved.</p>
+          
+          <div>
+            <p>
+              Designed and developed by{" "}
+              <Link href="/developers" className="hover:text-white font-semibold cursor-pointer transition-colors">
+                NSS Cell, Gautam Buddha University
+              </Link>{" "}
+            </p>
+          </div>
+          <div className="flex gap-4">
+            {["Privacy Policy", "Terms of Use", "Sitemap"].map((link) => (
+              <a
+                key={link}
+                href="#"
+                className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded"
+              >
+                {link}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

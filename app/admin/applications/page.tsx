@@ -19,11 +19,18 @@ export default function ApplicationsPage() {
   const [enrollment, setEnrollment] = useState<string>("all")
   const [schoolName, setSchoolName] = useState<string>("")
   const [departmentName, setDepartmentName] = useState<string>("")
+  const [nameSearch, setNameSearch] = useState<string>("")
   const [stats, setStats] = useState<any | null>(null)
+  const [schools, setSchools] = useState<string[]>([])
+  const [loadingSchools, setLoadingSchools] = useState(false)
 
   useEffect(() => {
     fetchStats()
-  }, [activeFilter, unitNo, enrollment, schoolName, departmentName])
+  }, [activeFilter, unitNo, enrollment, schoolName, departmentName, nameSearch])
+
+  useEffect(() => {
+    fetchSchools()
+  }, [])
 
   const fetchStats = async () => {
     const params = new URLSearchParams()
@@ -31,11 +38,27 @@ export default function ApplicationsPage() {
     if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
     if (schoolName) params.set('schoolName', schoolName)
     if (departmentName) params.set('departmentName', departmentName)
+    if (nameSearch) params.set('nameSearch', nameSearch)
     try {
       const res = await fetch(`/api/admin/applications-stats?${params.toString()}`)
       const data = await res.json()
       if (data.success) setStats(data)
     } catch {}
+  }
+
+  const fetchSchools = async () => {
+    try {
+      setLoadingSchools(true)
+      const res = await fetch('/api/applications/schools')
+      const data = await res.json()
+      if (data.success) {
+        setSchools(data.schools || [])
+      }
+    } catch (error) {
+      console.error('Error fetching schools:', error)
+    } finally {
+      setLoadingSchools(false)
+    }
   }
 
   return (
@@ -99,7 +122,7 @@ export default function ApplicationsPage() {
 
         {/* Advanced Filters */}
         <div className="bg-card rounded-xl border border-border p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Unit</label>
               <select value={unitNo} onChange={(e) => setUnitNo(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground">
@@ -121,11 +144,37 @@ export default function ApplicationsPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">School</label>
-              <input value={schoolName} onChange={(e) => setSchoolName(e.target.value)} placeholder="Search School" className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" />
+              <select 
+                value={schoolName} 
+                onChange={(e) => setSchoolName(e.target.value)} 
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                disabled={loadingSchools}
+              >
+                <option value="">All Schools</option>
+                {schools.map((school) => (
+                  <option key={school} value={school}>
+                    {school}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Department</label>
-              <input value={departmentName} onChange={(e) => setDepartmentName(e.target.value)} placeholder="Search Department" className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" />
+              <input 
+                value={departmentName} 
+                onChange={(e) => setDepartmentName(e.target.value)} 
+                placeholder="Search Department" 
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" 
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
+              <input 
+                value={nameSearch} 
+                onChange={(e) => setNameSearch(e.target.value)} 
+                placeholder="Search by Name" 
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" 
+              />
             </div>
           </div>
         </div>
@@ -137,6 +186,7 @@ export default function ApplicationsPage() {
           enrollment={enrollment}
           schoolName={schoolName}
           departmentName={departmentName}
+          nameSearch={nameSearch}
         />
       </div>
     </ProtectedRoute>

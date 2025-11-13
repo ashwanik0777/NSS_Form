@@ -35,6 +35,9 @@ export async function POST(request: NextRequest) {
     }
 
 
+    // Check unit capacity before creating application (only for approved status, but we check during approval)
+    // For now, we allow submission but will check during approval
+
     // Get next form number from DB
     let nextFormNo = "1001"
     const lastApp: any = await NSSApplication.findOne({}, { formNo: 1 })
@@ -166,6 +169,7 @@ export async function GET(request: NextRequest) {
     const enrollment = searchParams.get("enrollment") // first-year | second-year
     const schoolName = searchParams.get("schoolName")
     const departmentName = searchParams.get("departmentName")
+    const nameSearch = searchParams.get("nameSearch") // Search by applicant name
     // Remove default limit of 10, fetch all applications if limit not provided
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limitParam = searchParams.get("limit")
@@ -188,10 +192,14 @@ export async function GET(request: NextRequest) {
       query.enrollment = enrollment
     }
     if (schoolName && schoolName.trim()) {
-      query.schoolName = { $regex: new RegExp(`${schoolName.trim()}`, 'i') }
+      // Exact match for dropdown selection
+      query.schoolName = schoolName.trim()
     }
     if (departmentName && departmentName.trim()) {
       query.departmentName = { $regex: new RegExp(`${departmentName.trim()}`, 'i') }
+    }
+    if (nameSearch && nameSearch.trim()) {
+      query.nameEnglish = { $regex: new RegExp(`${nameSearch.trim()}`, 'i') }
     }
 
     let applicationsQuery = NSSApplication.find(query)
