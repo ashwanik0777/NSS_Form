@@ -316,7 +316,7 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   const coordX = 380, coordY = volY, coordW = 140, coordH = 40
   page2.drawRectangle({ x: coordX, y: coordY, width: coordW, height: coordH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
   try {
-    const coordBuf = loadLocalFile("/programOfficerSign.png")
+    const coordBuf = loadLocalFile("public\coordinatorSign.png")
     const coordImg = await pdfDoc.embedPng(coordBuf)
     page2.drawImage(coordImg, { x: coordX + 2, y: coordY + 2, width: coordW - 4, height: coordH - 4 })
   } catch {}
