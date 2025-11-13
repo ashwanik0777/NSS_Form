@@ -315,11 +315,31 @@ export async function generateNSSApplicationPDF(formData: FormData) {
 
   const coordX = 380, coordY = volY, coordW = 140, coordH = 40
   page2.drawRectangle({ x: coordX, y: coordY, width: coordW, height: coordH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
+  
+  // Try to load and embed coordinator signature
   try {
-    const coordBuf = loadLocalFile("public\coordinatorSign.png")
-    const coordImg = await pdfDoc.embedPng(coordBuf)
-    page2.drawImage(coordImg, { x: coordX + 2, y: coordY + 2, width: coordW - 4, height: coordH - 4 })
-  } catch {}
+    const coordPath = path.join(process.cwd(), "public", "coordinatorSign.png")
+    if (fs.existsSync(coordPath)) {
+      const coordBuf = fs.readFileSync(coordPath)
+      // Try PNG first, then JPG
+      try {
+        const coordImg = await pdfDoc.embedPng(coordBuf)
+        page2.drawImage(coordImg, { x: coordX + 2, y: coordY + 2, width: coordW - 4, height: coordH - 4 })
+      } catch (pngError) {
+        try {
+          const coordImg = await pdfDoc.embedJpg(coordBuf)
+          page2.drawImage(coordImg, { x: coordX + 2, y: coordY + 2, width: coordW - 4, height: coordH - 4 })
+        } catch (jpgError) {
+          console.error("Error embedding coordinator signature (both PNG and JPG failed):", jpgError)
+        }
+      }
+    } else {
+      console.warn("Coordinator signature file not found at:", coordPath)
+    }
+  } catch (e) {
+    console.error("Error loading coordinator signature:", e)
+    // If signature image fails to load, just show the box with label
+  }
   page2.drawText("Signature of Programme Coordinator", { x: coordX - 12, y: coordY - 15, size: 10, color: rgb(0.3, 0.3, 0.3) })
 
   return pdfDoc.save()

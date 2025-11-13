@@ -277,6 +277,9 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                   School & Department
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Unit
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -306,6 +309,11 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                       <div className="text-sm font-medium text-foreground">{app.schoolName || "—"}</div>
                       <div className="text-sm text-muted-foreground">{app.departmentName || "—"}</div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                      {app.unitNo}
+                    </span>
                   </td>
                   <td className="px-6 py-4">{getStatusBadge(app.status)}</td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">

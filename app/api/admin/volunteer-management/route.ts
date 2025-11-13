@@ -92,21 +92,23 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Get filter parameters
+    const unitNo = searchParams.get("unitNo")
+    const enrollment = searchParams.get("enrollment")
+    const schoolName = searchParams.get("schoolName")
+    const departmentName = searchParams.get("departmentName")
+    const nameSearch = searchParams.get("nameSearch")
+
+    // Build application filter query
+    const applicationFilter: any = { status: "approved" }
+    
     // Unit-based filtering for sub-admins
     let unitFilter: any = {}
     if (session.user.role === "sub-admin") {
       const user = await User.findById(session.user.id).select("assignedUnits").lean()
       const userAssignedUnits = (user as any)?.assignedUnits || []
       if (userAssignedUnits.length > 0) {
-        // Get volunteers from sub-admin's assigned units only
-        const applicationsInUnits = await NSSApplication.find({
-          status: "approved",
-          unitNo: { $in: userAssignedUnits },
-        })
-          .select("userId")
-          .lean()
-        const approvedUserIds = applicationsInUnits.map((app) => app.userId)
-        unitFilter = { _id: { $in: approvedUserIds } }
+        applicationFilter.unitNo = { $in: userAssignedUnits }
       } else {
         // No units assigned, return empty
         return NextResponse.json({
@@ -121,10 +123,25 @@ export async function GET(request: NextRequest) {
           },
         })
       }
+    } else if (unitNo && unitNo !== "all") {
+      applicationFilter.unitNo = unitNo
+    }
+    
+    if (enrollment && (enrollment === "first-year" || enrollment === "second-year")) {
+      applicationFilter.enrollment = enrollment
+    }
+    if (schoolName && schoolName.trim()) {
+      applicationFilter.schoolName = schoolName.trim()
+    }
+    if (departmentName && departmentName.trim()) {
+      applicationFilter.departmentName = { $regex: new RegExp(`${departmentName.trim()}`, 'i') }
+    }
+    if (nameSearch && nameSearch.trim()) {
+      applicationFilter.nameEnglish = { $regex: new RegExp(`${nameSearch.trim()}`, 'i') }
     }
 
-    // Get all volunteers with approved applications only
-    const approvedApplications = await NSSApplication.find({ status: "approved" })
+    // Get all volunteers with approved applications matching filters
+    const approvedApplications = await NSSApplication.find(applicationFilter)
       .select("userId")
       .lean()
     
@@ -132,7 +149,6 @@ export async function GET(request: NextRequest) {
 
     // Get only volunteers with approved applications
     const volunteers = await User.find({
-      ...unitFilter,
       _id: { $in: approvedUserIds },
       role: { $in: ["volunteer", "user"] }
     }).lean()
@@ -169,6 +185,9 @@ export async function GET(request: NextRequest) {
                 enrollment: application.enrollment,
                 departmentName: application.departmentName,
                 courseName: application.courseName,
+                schoolName: application.schoolName,
+                unitNo: application.unitNo,
+                submittedAt: application.submittedAt,
               }
             : null,
           stats: {

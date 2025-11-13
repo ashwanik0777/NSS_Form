@@ -54,7 +54,7 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
     colorClass: "text-sky-600",
     items: [
       { id: "users", label: "User Management", href: "/admin/users", icon: <Users className="w-5 h-5" />, permission: "users.view" },
-      { id: "volunteer-management", label: "Volunteer Management", href: "/admin/volunteer-management", icon: <UserCheck className="w-5 h-5" />, permission: "volunteers.view" },
+      { id: "volunteers", label: "Volunteers", href: "/admin/volunteers", icon: <UserCheck className="w-5 h-5" />, permission: "volunteers.view" },
     ],
   },
   {
@@ -92,7 +92,7 @@ const getItemColorClass = (id: string): string => {
       return "text-indigo-600"
     case "users":
       return "text-sky-600"
-    case "volunteer-management":
+    case "volunteers":
       return "text-blue-600"
     case "projects":
       return "text-emerald-600"

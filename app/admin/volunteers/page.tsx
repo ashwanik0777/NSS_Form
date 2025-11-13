@@ -1,210 +1,996 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import AdminHeader from "@/components/admin/AdminHeader"
-import { Users, Search, Download, UserPlus } from "lucide-react"
+import {
+  TrendingUp,
+  Users,
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
+  BarChart3,
+  Award,
+  Loader2,
+  X,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  GraduationCap,
+  FileText,
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+} from "lucide-react"
 
 interface Volunteer {
   _id: string
-  nameEnglish: string
-  emailId: string
-  institutionName: string
-  mobileNo: string
-  status: string
-  enrollmentType: string
-  submittedAt: string
+  name: string
+  email: string
+  application?: {
+    formNo: string
+    institutionName: string
+    status: string
+    nameEnglish: string
+    mobileNo: string
+    enrollment: string
+    departmentName: string
+    courseName: string
+    schoolName: string
+    unitNo: string
+    submittedAt: string
+  }
+  stats: {
+    projects: number
+    events: number
+    completedEvents: number
+    totalHours: number
+    attendanceRate: number
+  }
+}
+
+interface VolunteerDetail {
+  _id: string
+  name: string
+  email: string
+  application?: any
+  project?: any
+  stats: {
+    totalEvents: number
+    completedEvents: number
+    totalHours: number
+    attendanceRate: number
+  }
+  events: Array<{
+    _id: string
+    eventTitle: string
+    projectTitle: string
+    status: string
+    startTime?: string
+    endTime?: string
+    hoursWorked: number
+    workDescription?: string
+  }>
+}
+
+interface Task {
+  _id: string
+  title: string
+  description: string
+  assignedTo: {
+    _id: string
+    name: string
+    email: string
+  }
+  assignedBy: {
+    _id: string
+    name: string
+    email: string
+  }
+  unitNo: string
+  status: "pending" | "in-progress" | "completed" | "cancelled"
+  priority: "low" | "medium" | "high" | "urgent"
+  dueDate?: string
+  completedAt?: string
+  completionNotes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface Analytics {
+  totalVolunteers: number
+  totalActiveProjects: number
+  totalEvents: number
+  totalEventParticipations: number
+  avgAttendanceRate: number
 }
 
 export default function VolunteersPage() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([])
+  const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerDetail | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [showTaskForm, setShowTaskForm] = useState(false)
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    priority: "medium" as "low" | "medium" | "high" | "urgent",
+    dueDate: "",
+  })
+  const [submittingTask, setSubmittingTask] = useState(false)
+  const [activeTab, setActiveTab] = useState<"profile" | "tasks" | "events">("profile")
+  
+  // Filters
+  const [unitNo, setUnitNo] = useState<string>("all")
+  const [enrollment, setEnrollment] = useState<string>("all")
+  const [schoolName, setSchoolName] = useState<string>("")
+  const [departmentName, setDepartmentName] = useState<string>("")
+  const [nameSearch, setNameSearch] = useState<string>("")
+  const [stats, setStats] = useState<any | null>(null)
+  const [schools, setSchools] = useState<string[]>([])
+  const [loadingSchools, setLoadingSchools] = useState(false)
 
   useEffect(() => {
-    fetchVolunteers()
-  }, [statusFilter])
+    fetchData()
+    fetchStats()
+  }, [unitNo, enrollment, schoolName, departmentName, nameSearch])
 
-  const fetchVolunteers = async () => {
+  useEffect(() => {
+    fetchSchools()
+  }, [])
+
+  const fetchData = async () => {
     try {
-      const response = await fetch(`/api/applications?status=approved`)
-      const data = await response.json()
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (unitNo !== 'all') params.set('unitNo', unitNo)
+      if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
+      if (schoolName) params.set('schoolName', schoolName)
+      if (departmentName) params.set('departmentName', departmentName)
+      if (nameSearch) params.set('nameSearch', nameSearch)
+
+      const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
+      const data = await res.json()
       if (data.success) {
-        setVolunteers(data.applications)
+        setVolunteers(data.volunteers || [])
+        setAnalytics(data.analytics || null)
       }
     } catch (error) {
-      console.error("Error fetching volunteers:", error)
+      console.error("Error fetching data:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  const filteredVolunteers = volunteers.filter(
-    (volunteer) =>
-      volunteer.nameEnglish.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      volunteer.emailId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      volunteer.institutionName.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const fetchStats = async () => {
+    const params = new URLSearchParams()
+    params.set('status', 'approved')
+    if (unitNo !== 'all') params.set('unitNo', unitNo)
+    if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
+    if (schoolName) params.set('schoolName', schoolName)
+    if (departmentName) params.set('departmentName', departmentName)
+    if (nameSearch) params.set('nameSearch', nameSearch)
+    try {
+      const res = await fetch(`/api/admin/applications-stats?${params.toString()}`)
+      const data = await res.json()
+      if (data.success) setStats(data)
+    } catch {}
+  }
+
+  const fetchSchools = async () => {
+    try {
+      setLoadingSchools(true)
+      const res = await fetch('/api/applications/schools')
+      const data = await res.json()
+      if (data.success) {
+        setSchools(data.schools || [])
+      }
+    } catch (error) {
+      console.error('Error fetching schools:', error)
+    } finally {
+      setLoadingSchools(false)
+    }
+  }
+
+  const fetchVolunteerDetail = async (volunteerId: string) => {
+    try {
+      const res = await fetch(`/api/admin/volunteer-management?volunteerId=${volunteerId}`)
+      const data = await res.json()
+      if (data.success) {
+        setSelectedVolunteer(data.volunteer)
+        setShowDetailModal(true)
+        setActiveTab("profile")
+        fetchTasks(volunteerId)
+      }
+    } catch (error) {
+      console.error("Error fetching volunteer detail:", error)
+    }
+  }
+
+  const fetchTasks = async (volunteerId: string) => {
+    try {
+      const res = await fetch(`/api/admin/tasks?volunteerId=${volunteerId}`)
+      const data = await res.json()
+      if (data.success) {
+        setTasks(data.tasks || [])
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error)
+    }
+  }
+
+  const handleAssignTask = async () => {
+    if (!selectedVolunteer || !taskForm.title || !taskForm.description) {
+      return
+    }
+
+    setSubmittingTask(true)
+    try {
+      const res = await fetch("/api/admin/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...taskForm,
+          assignedTo: selectedVolunteer._id,
+          unitNo: selectedVolunteer.application?.unitNo,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setTaskForm({ title: "", description: "", priority: "medium", dueDate: "" })
+        setShowTaskForm(false)
+        fetchTasks(selectedVolunteer._id)
+      } else {
+        alert(data.message || "Failed to assign task")
+      }
+    } catch (error) {
+      console.error("Error assigning task:", error)
+      alert("Failed to assign task")
+    } finally {
+      setSubmittingTask(false)
+    }
+  }
+
+  const handleUpdateTaskStatus = async (taskId: string, status: string) => {
+    try {
+      const res = await fetch("/api/admin/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId, status }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        fetchTasks(selectedVolunteer?._id || "")
+      }
+    } catch (error) {
+      console.error("Error updating task:", error)
+    }
+  }
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm("Are you sure you want to delete this task?")) return
+
+    try {
+      const res = await fetch(`/api/admin/tasks?id=${taskId}`, {
+        method: "DELETE",
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        fetchTasks(selectedVolunteer?._id || "")
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error)
+    }
+  }
+
+  if (loading && volunteers.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin w-8 h-8 text-primary" />
+      </div>
+    )
+  }
 
   return (
-    <>
+    <ProtectedRoute requiredRole="sub-admin" requiredPermission="volunteers.view">
       <AdminHeader title="Volunteers" subtitle="Manage registered NSS volunteers" />
+      
+      <div className="p-6 space-y-6">
+        {/* Unit-wise Stat Cards */}
+        {stats && Object.keys(stats.units || {}).length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.keys(stats.units || {}).sort().map((unit) => {
+              const u = stats.units[unit]
+              return (
+                <div key={unit} className="bg-card rounded-xl border border-border p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-foreground">Unit {unit}</h3>
+                    <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{u.approved} Volunteers</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                      <div className="text-green-900 font-semibold">{u.approved}</div>
+                      <div className="text-green-700">Approved</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <div className="text-blue-900 font-semibold">{u.total}</div>
+                      <div className="text-blue-700">Total</div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
-      <div className="p-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <Users className="w-8 h-8 text-blue-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Volunteers</p>
-                <p className="text-2xl font-bold text-foreground">{volunteers.length}</p>
+        {/* Analytics Cards */}
+        {analytics && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Volunteers</p>
+                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.totalVolunteers}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
               </div>
             </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <UserPlus className="w-8 h-8 text-green-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">First Year</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {volunteers.filter((v) => v.enrollmentType === "first-year").length}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <Users className="w-8 h-8 text-orange-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Second Year</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {volunteers.filter((v) => v.enrollmentType === "second-year").length}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex items-center">
-              <Download className="w-8 h-8 text-purple-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">This Month</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {volunteers.filter((v) => new Date(v.submittedAt).getMonth() === new Date().getMonth()).length}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Search and Filters */}
-        <div className="bg-card rounded-lg border border-border p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search volunteers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Active Projects</p>
+                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.totalActiveProjects}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Events</p>
+                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.totalEvents}</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Avg. Attendance</p>
+                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.avgAttendanceRate}%</p>
+                </div>
+                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <Award className="w-6 h-6 text-yellow-600" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Advanced Filters */}
+        <div className="bg-card rounded-xl border border-border p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Unit</label>
+              <select value={unitNo} onChange={(e) => setUnitNo(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground">
+                <option value="all">All Units</option>
+                <option value="1">Unit 1</option>
+                <option value="2">Unit 2</option>
+                <option value="3">Unit 3</option>
+                <option value="4">Unit 4</option>
+                <option value="5">Unit 5</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Year</label>
+              <select value={enrollment} onChange={(e) => setEnrollment(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground">
+                <option value="all">All Years</option>
+                <option value="first-year">1st Year</option>
+                <option value="second-year">2nd Year</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">School</label>
+              <select 
+                value={schoolName} 
+                onChange={(e) => setSchoolName(e.target.value)} 
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                disabled={loadingSchools}
+              >
+                <option value="">All Schools</option>
+                {schools.map((school) => (
+                  <option key={school} value={school}>
+                    {school}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Department</label>
+              <input 
+                value={departmentName} 
+                onChange={(e) => setDepartmentName(e.target.value)} 
+                placeholder="Search Department" 
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" 
               />
             </div>
-            <div className="flex gap-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="all">All Status</option>
-                <option value="approved">Active</option>
-                <option value="suspended">Suspended</option>
-              </select>
-              <button className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </button>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
+              <input 
+                value={nameSearch} 
+                onChange={(e) => setNameSearch(e.target.value)} 
+                placeholder="Search by Name" 
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" 
+              />
             </div>
           </div>
         </div>
 
         {/* Volunteers Table */}
-        <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Volunteer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Institution
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Enrollment
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Volunteer</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">School & Department</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Unit</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Projects</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Events</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Hours</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Attendance</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredVolunteers.map((volunteer) => (
-                  <tr key={volunteer._id} className="hover:bg-muted/25 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                          <span className="text-primary-foreground font-medium">{volunteer.nameEnglish.charAt(0)}</span>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-foreground">{volunteer.nameEnglish}</div>
-                          <div className="text-sm text-muted-foreground">{volunteer.emailId}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-foreground">{volunteer.institutionName}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                        {volunteer.enrollmentType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-foreground">{volunteer.mobileNo}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {new Date(volunteer.submittedAt).toLocaleDateString("en-IN")}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex space-x-2">
-                        <button className="text-primary hover:text-primary/80 text-sm font-medium transition-colors">
-                          View
-                        </button>
-                        <button className="text-orange-600 hover:text-orange-500 text-sm font-medium transition-colors">
-                          Edit
-                        </button>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-12 text-center">
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="animate-spin w-8 h-8 text-primary" />
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : volunteers.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-12 text-center">
+                      <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <h3 className="mt-2 text-sm font-medium text-foreground">No volunteers found</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        No volunteers match the selected filters.
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  volunteers.map((volunteer) => (
+                    <tr key={volunteer._id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-medium text-foreground">{volunteer.application?.nameEnglish || volunteer.name}</p>
+                          <p className="text-sm text-muted-foreground">{volunteer.email}</p>
+                          {volunteer.application?.mobileNo && (
+                            <p className="text-xs text-muted-foreground">{volunteer.application.mobileNo}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <div>
+                          <p className="text-foreground font-medium">{volunteer.application?.schoolName || "—"}</p>
+                          <p className="text-xs text-muted-foreground">{volunteer.application?.departmentName || "—"}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                          {volunteer.application?.unitNo || "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                          {volunteer.stats.projects}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                          {volunteer.stats.events}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center text-sm text-foreground">
+                          <Clock className="w-4 h-4 mr-1" />
+                          {volunteer.stats.totalHours}h
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              volunteer.stats.attendanceRate >= 80
+                                ? "bg-green-100 text-green-800"
+                                : volunteer.stats.attendanceRate >= 50
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {volunteer.stats.attendanceRate}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => fetchVolunteerDetail(volunteer._id)}
+                          className="flex items-center px-3 py-1 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-
-          {filteredVolunteers.length === 0 && (
-            <div className="text-center py-12">
-              <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-medium text-foreground">No volunteers found</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {searchTerm ? "Try adjusting your search terms." : "No volunteers have been registered yet."}
-              </p>
-            </div>
-          )}
         </div>
+
+        {/* Volunteer Detail Modal */}
+        {showDetailModal && selectedVolunteer && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card rounded-xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-border">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{selectedVolunteer.name}</h2>
+                  <p className="text-muted-foreground flex items-center gap-2 mt-1">
+                    <Mail className="w-4 h-4" />
+                    {selectedVolunteer.email}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false)
+                    setSelectedVolunteer(null)
+                    setTasks([])
+                    setShowTaskForm(false)
+                  }}
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-border px-6">
+                <button
+                  onClick={() => setActiveTab("profile")}
+                  className={`px-4 py-3 font-medium transition-colors ${
+                    activeTab === "profile"
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Complete Profile
+                </button>
+                <button
+                  onClick={() => setActiveTab("tasks")}
+                  className={`px-4 py-3 font-medium transition-colors ${
+                    activeTab === "tasks"
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Tasks ({tasks.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("events")}
+                  className={`px-4 py-3 font-medium transition-colors ${
+                    activeTab === "events"
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Events ({selectedVolunteer.events.length})
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* Profile Tab */}
+                {activeTab === "profile" && (
+                  <div className="space-y-6">
+                    {/* Stats */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground">Total Events</p>
+                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalEvents}</p>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground">Completed</p>
+                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.completedEvents}</p>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground">Total Hours</p>
+                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalHours}h</p>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground">Attendance</p>
+                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
+                      </div>
+                    </div>
+
+                    {/* Complete Profile Information */}
+                    {selectedVolunteer.application && (
+                      <div className="bg-muted/50 rounded-lg p-6 space-y-6">
+                        <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                          <User className="w-5 h-5" />
+                          Complete Profile Information
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Form Number</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.formNo || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Unit Number</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.unitNo || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              Email
+                            </p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.email}</p>
+                          </div>
+                          {selectedVolunteer.application.mobileNo && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                Mobile Number
+                              </p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.mobileNo}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Name (English)</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.nameEnglish || selectedVolunteer.name}</p>
+                          </div>
+                          {selectedVolunteer.application.nameHindi && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Name (Hindi)</p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.nameHindi}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Institution
+                            </p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.institutionName || "N/A"}</p>
+                          </div>
+                          {selectedVolunteer.application.schoolName && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">School Name</p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.schoolName}</p>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.departmentName && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                                <GraduationCap className="w-3 h-3" />
+                                Department
+                              </p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.departmentName}</p>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.courseName && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Course</p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.courseName}</p>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.enrollment && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Enrollment</p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.enrollment}</p>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.institutionalIdCard && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Institution ID Card</p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.institutionalIdCard}</p>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.socialFacebook && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Facebook</p>
+                              <a href={selectedVolunteer.application.socialFacebook} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                View Profile
+                              </a>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.socialInstagram && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Instagram</p>
+                              <a href={selectedVolunteer.application.socialInstagram} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                View Profile
+                              </a>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.socialTwitter && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Twitter/X</p>
+                              <a href={selectedVolunteer.application.socialTwitter} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                View Profile
+                              </a>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.socialLinkedin && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">LinkedIn</p>
+                              <a href={selectedVolunteer.application.socialLinkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                View Profile
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Project Info */}
+                    {selectedVolunteer.project && (
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <h3 className="font-semibold text-foreground mb-2">Current Project</h3>
+                        <p className="text-foreground font-medium">{selectedVolunteer.project.title}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{selectedVolunteer.project.description}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tasks Tab */}
+                {activeTab === "tasks" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-foreground">Assigned Tasks</h3>
+                      <button
+                        onClick={() => setShowTaskForm(!showTaskForm)}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Assign New Task
+                      </button>
+                    </div>
+
+                    {/* Task Assignment Form */}
+                    {showTaskForm && (
+                      <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+                        <h4 className="font-semibold text-foreground">Assign New Task</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-foreground mb-1">Task Title *</label>
+                            <input
+                              type="text"
+                              value={taskForm.title}
+                              onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                              className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                              placeholder="Enter task title"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-foreground mb-1">Description *</label>
+                            <textarea
+                              value={taskForm.description}
+                              onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                              className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                              rows={3}
+                              placeholder="Enter task description"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-1">Priority</label>
+                              <select
+                                value={taskForm.priority}
+                                onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                              >
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-1">Due Date</label>
+                              <input
+                                type="datetime-local"
+                                value={taskForm.dueDate}
+                                onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleAssignTask}
+                              disabled={submittingTask || !taskForm.title || !taskForm.description}
+                              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                            >
+                              {submittingTask ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Assigning...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="w-4 h-4" />
+                                  Assign Task
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowTaskForm(false)
+                                setTaskForm({ title: "", description: "", priority: "medium", dueDate: "" })
+                              }}
+                              className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tasks List */}
+                    <div className="space-y-3">
+                      {tasks.length > 0 ? (
+                        tasks.map((task) => (
+                          <div key={task._id} className="bg-muted/50 rounded-lg p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-semibold text-foreground">{task.title}</h4>
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      task.priority === "urgent"
+                                        ? "bg-red-100 text-red-800"
+                                        : task.priority === "high"
+                                          ? "bg-orange-100 text-orange-800"
+                                          : task.priority === "medium"
+                                            ? "bg-yellow-100 text-yellow-800"
+                                            : "bg-blue-100 text-blue-800"
+                                    }`}
+                                  >
+                                    {task.priority}
+                                  </span>
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      task.status === "completed"
+                                        ? "bg-green-100 text-green-800"
+                                        : task.status === "in-progress"
+                                          ? "bg-blue-100 text-blue-800"
+                                          : task.status === "cancelled"
+                                            ? "bg-gray-100 text-gray-800"
+                                            : "bg-yellow-100 text-yellow-800"
+                                    }`}
+                                  >
+                                    {task.status}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+                                {task.dueDate && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Due: {new Date(task.dueDate).toLocaleString()}
+                                  </p>
+                                )}
+                                {task.completedAt && (
+                                  <p className="text-xs text-green-600 mt-1">
+                                    Completed: {new Date(task.completedAt).toLocaleString()}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                {task.status !== "completed" && task.status !== "cancelled" && (
+                                  <button
+                                    onClick={() => handleUpdateTaskStatus(task._id, "completed")}
+                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                    title="Mark as completed"
+                                  >
+                                    <CheckCircle className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDeleteTask(task._id)}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Delete task"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">No tasks assigned yet</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Events Tab */}
+                {activeTab === "events" && (
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-foreground">Event History</h3>
+                    <div className="space-y-3">
+                      {selectedVolunteer.events.length > 0 ? (
+                        selectedVolunteer.events.map((event) => (
+                          <div key={event._id} className="bg-muted/50 rounded-lg p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div>
+                                <p className="font-medium text-foreground">{event.eventTitle}</p>
+                                <p className="text-sm text-muted-foreground">{event.projectTitle}</p>
+                              </div>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  event.status === "completed"
+                                    ? "bg-green-100 text-green-800"
+                                    : event.status === "started"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {event.status}
+                              </span>
+                            </div>
+                            {event.workDescription && (
+                              <p className="text-sm text-muted-foreground mb-2">{event.workDescription}</p>
+                            )}
+                            <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                              {event.startTime && (
+                                <span>Start: {new Date(event.startTime).toLocaleString()}</span>
+                              )}
+                              {event.endTime && (
+                                <span>End: {new Date(event.endTime).toLocaleString()}</span>
+                              )}
+                              {event.hoursWorked > 0 && (
+                                <span className="flex items-center">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {event.hoursWorked}h
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">No events yet</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </ProtectedRoute>
   )
 }
