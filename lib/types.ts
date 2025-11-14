@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from "react"
+
 export interface FormData {
   [x: string]: any
 
@@ -44,7 +46,7 @@ export interface FormData {
   }
   myBharatPortalRegistered: boolean
   myBharatPortalId: string | null
-  myBharatPortalScreenshot?: File | null
+  myBharatPortalScreenshot?: string | File | null
 
   // Additional achievements section
   specialNSSAchievements?: string
@@ -61,9 +63,9 @@ export interface ValidationErrors {
 
 export interface StepProps {
   formData: FormData
-  setFormData: (data: FormData) => void
+  setFormData: Dispatch<SetStateAction<FormData>>
   errors: ValidationErrors
-  setErrors: (errors: ValidationErrors) => void
+  setErrors: Dispatch<SetStateAction<ValidationErrors>>
   onNext: () => void
   onPrevious: () => void
 }

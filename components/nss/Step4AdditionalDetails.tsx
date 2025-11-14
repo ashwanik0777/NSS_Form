@@ -15,6 +15,24 @@ export default function Step4AdditionalDetails({
   const [uploadError, setUploadError] = useState<{ [key: string]: string }>({})
 
   const handleInputChange = (field: string, value: string | boolean) => {
+    if (field === "myBharatPortalRegistered" && typeof value === "boolean") {
+      setFormData({
+        ...formData,
+        myBharatPortalRegistered: value,
+        myBharatPortalId: value ? formData.myBharatPortalId || "" : "",
+        myBharatPortalScreenshot: value ? formData.myBharatPortalScreenshot : null,
+      })
+      if (errors.myBharatPortalRegistered || errors.myBharatPortalId || errors.myBharatPortalScreenshot) {
+        setErrors({
+          ...errors,
+          myBharatPortalRegistered: "",
+          myBharatPortalId: "",
+          myBharatPortalScreenshot: "",
+        })
+      }
+      return
+    }
+
     setFormData({ ...formData, [field]: value })
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" })
@@ -110,16 +128,14 @@ export default function Step4AdditionalDetails({
     }
 
     // Validate My Bharat Portal Registration
-    if (formData.myBharatPortalRegistered === undefined || formData.myBharatPortalRegistered === null) {
-      stepErrors.myBharatPortalRegistered = "Please select My Bharat Portal registration status"
-    }
-
-    if (formData.myBharatPortalRegistered === true) {
-      if (!formData.myBharatPortalId?.trim()) {
+    if (formData.myBharatPortalRegistered !== true) {
+      stepErrors.myBharatPortalRegistered = "You must register on My Bharat Portal to continue"
+    } else {
+      if (!formData.myBharatPortalId || !formData.myBharatPortalId.toString().trim()) {
         stepErrors.myBharatPortalId = "My Bharat Portal ID is required"
       }
       if (!formData.myBharatPortalScreenshot) {
-        stepErrors.myBharatPortalScreenshot = "My Bharat Portal screenshot is required"
+        stepErrors.myBharatPortalScreenshot = "My Bharat Portal certificate is required"
       }
     }
 
@@ -386,6 +402,9 @@ export default function Step4AdditionalDetails({
                     4. Come back and select "Yes" with your ID and screenshot / वापस आकर "हाँ" का चयन करें और अपनी आईडी व स्क्रीनशॉट अपलोड करें
                   </p>
                 </div>
+                <p className="text-sm text-destructive font-medium mt-3">
+                  You cannot proceed until you register on My Bharat Portal and upload the required ID and certificate.
+                </p>
               </div>
             )}
           </div>

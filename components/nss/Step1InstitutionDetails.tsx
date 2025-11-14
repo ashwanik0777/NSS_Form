@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import type { StepProps } from "@/lib/types"
 
 // Coordinator data with their respective units
@@ -18,6 +19,13 @@ const coordinatorData = [
 	},
 ]
 
+type UnitCapacityInfo = {
+	count: number
+	maxCapacity: number
+	available: number
+	isFull: boolean
+}
+
 export default function Step1InstitutionDetails({
 	formData,
 	setFormData,
@@ -25,6 +33,71 @@ export default function Step1InstitutionDetails({
 	setErrors,
 	onNext,
 }: StepProps) {
+	const [unitCapacities, setUnitCapacities] = useState<Record<string, UnitCapacityInfo>>({})
+	const [unitCapacityLoading, setUnitCapacityLoading] = useState(true)
+	const [unitCapacityError, setUnitCapacityError] = useState("")
+
+	useEffect(() => {
+		let isMounted = true
+
+		const fetchUnitCapacities = async () => {
+			try {
+				setUnitCapacityLoading(true)
+				const response = await fetch("/api/public/unit-capacity")
+				const data = await response.json()
+
+				if (!response.ok || !data.success) {
+					throw new Error(data.message || "Failed to load unit capacity")
+				}
+
+				if (!Array.isArray(data.units)) {
+					throw new Error("Invalid unit capacity response")
+				}
+
+				if (isMounted) {
+					const capacityMap: Record<string, UnitCapacityInfo> = {}
+					data.units.forEach((unit: UnitCapacityInfo & { unitNo: string }) => {
+						capacityMap[unit.unitNo] = {
+							count: unit.count,
+							maxCapacity: unit.maxCapacity,
+							available: unit.available,
+							isFull: unit.isFull,
+						}
+					})
+					setUnitCapacities(capacityMap)
+					setUnitCapacityError("")
+				}
+			} catch (error) {
+				console.error("Error fetching unit capacity:", error)
+				if (isMounted) {
+					setUnitCapacityError("Unable to load unit capacity right now. Please refresh before submitting.")
+				}
+			} finally {
+				if (isMounted) {
+					setUnitCapacityLoading(false)
+				}
+			}
+		}
+
+		fetchUnitCapacities()
+
+		return () => {
+			isMounted = false
+		}
+	}, [])
+
+	useEffect(() => {
+		if (!formData.unitNo) return
+		const capacity = unitCapacities[formData.unitNo]
+		if (capacity?.isFull) {
+			setErrors((prev) => ({
+				...prev,
+				unitNo: `Unit ${formData.unitNo} is full. Please select another unit.`,
+			}))
+			setFormData((prev) => ({ ...prev, unitNo: "" }))
+		}
+	}, [formData.unitNo, unitCapacities, setErrors, setFormData])
+
 	const handleInputChange = (field: string, value: string) => {
 		setFormData({ ...formData, [field]: value })
 		if (errors[field]) {
@@ -58,6 +131,24 @@ export default function Step1InstitutionDetails({
 		return selectedCoordinator ? selectedCoordinator.units : []
 	}
 
+	const isUnitFull = (unitNo: string) => {
+		const info = unitCapacities[unitNo]
+		return info ? info.isFull : false
+	}
+
+	const seatsLeft = (unitNo: string) => {
+		const info = unitCapacities[unitNo]
+		return typeof info?.available === "number" ? info.available : null
+	}
+
+	const coordinatorUnits = getAvailableUnits()
+	const allCoordinatorUnitsFull =
+		coordinatorUnits.length > 0 &&
+		coordinatorUnits.every((unit) => {
+			const info = unitCapacities[unit]
+			return info ? info.isFull : false
+		})
+
 	const handleNext = () => {
 		const stepErrors: any = {}
 
@@ -73,6 +164,14 @@ export default function Step1InstitutionDetails({
 		}
 		if (!formData.unitNo.trim()) {
 			stepErrors.unitNo = "Unit number is required"
+		} else if (isUnitFull(formData.unitNo)) {
+			stepErrors.unitNo = `Unit ${formData.unitNo} is full. Please select another unit.`
+		}
+
+		if (coordinatorUnits.length > 0 && allCoordinatorUnitsFull) {
+			stepErrors.unitNo =
+				stepErrors.unitNo ||
+				"All units under the selected coordinator are currently full. Please contact the NSS office for assistance."
 		}
 
 		if (Object.keys(stepErrors).length > 0) {
@@ -195,12 +294,34 @@ export default function Step1InstitutionDetails({
 								: "Please select coordinator first"}
 						</option>
 						{getAvailableUnits().map((unit) => (
-							<option key={unit} value={unit}>
+							<option key={unit} value={unit} disabled={isUnitFull(unit)}>
 								Unit {unit} / इकाई {unit}
+								{unitCapacities[unit]
+									? unitCapacities[unit].isFull
+										? " (Full)"
+										: ` (${unitCapacities[unit].available} seats left)`
+									: ""}
 							</option>
 						))}
 					</select>
 					{errors.unitNo && <p className="text-sm text-destructive">{errors.unitNo}</p>}
+					{unitCapacityLoading && (
+						<p className="text-xs text-muted-foreground mt-1">Checking unit availability...</p>
+					)}
+					{unitCapacityError && (
+						<p className="text-sm text-destructive mt-1">{unitCapacityError}</p>
+					)}
+					{formData.unitNo && !isUnitFull(formData.unitNo) && seatsLeft(formData.unitNo) !== null && (
+						<p className="text-xs text-emerald-700 mt-1">
+							Seats available in Unit {formData.unitNo}: {seatsLeft(formData.unitNo)}
+						</p>
+					)}
+					{formData.programOfficerName && allCoordinatorUnitsFull && (
+						<p className="text-xs text-destructive mt-1">
+							All units under this coordinator are currently full. Please contact the NSS office or try another
+							coordinator if available.
+						</p>
+					)}
 				</div>
 			</div>
 

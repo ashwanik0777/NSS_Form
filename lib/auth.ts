@@ -45,11 +45,24 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.role = user.role
         token.permissions = user.permissions
         token.mustChangePassword = (user as any).mustChangePassword
+      }
+      if (trigger === "update" && token?.sub) {
+        try {
+          await dbConnect()
+          const refreshedUser = await User.findById(token.sub).select("role permissions mustChangePassword")
+          if (refreshedUser) {
+            token.role = refreshedUser.role
+            token.permissions = refreshedUser.permissions
+            token.mustChangePassword = refreshedUser.mustChangePassword
+          }
+        } catch (error) {
+          console.error("Error refreshing auth token:", error)
+        }
       }
       return token
     },

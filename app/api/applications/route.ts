@@ -8,6 +8,9 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
+const MAX_STUDENTS_PER_UNIT = 100
+const ACTIVE_UNIT_STATUSES = ["submitted", "under-review", "approved"]
+
 export async function POST(request: NextRequest) {
   try {
     await dbConnect()
@@ -35,8 +38,28 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Check unit capacity before creating application (only for approved status, but we check during approval)
-    // For now, we allow submission but will check during approval
+    const selectedUnitNo = formData.unitNo?.trim()
+    if (!selectedUnitNo) {
+      return NextResponse.json(
+        { success: false, message: "Unit number is required before submission" },
+        { status: 400 },
+      )
+    }
+
+    const currentUnitCount = await NSSApplication.countDocuments({
+      unitNo: selectedUnitNo,
+      status: { $in: ACTIVE_UNIT_STATUSES },
+    })
+
+    if (currentUnitCount >= MAX_STUDENTS_PER_UNIT) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Unit ${selectedUnitNo} is full. Please select another unit before submitting your application.`,
+        },
+        { status: 400 },
+      )
+    }
 
     // Get next form number from DB
     let nextFormNo = "1001"

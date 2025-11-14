@@ -71,10 +71,51 @@ export const validateStep3 = (data: FormData): ValidationErrors => {
   return errors
 }
 
+export const validateStep4 = (data: FormData): ValidationErrors => {
+  const errors: ValidationErrors = {}
+
+  if (!data.nssEnrollmentYear) {
+    errors.nssEnrollmentYear = "NSS enrollment year is required"
+  }
+
+  if (data.attendedSpecialCamp) {
+    if (!data.specialCampDetails?.villageName?.trim()) {
+      errors.specialCampVillage = "Village/Urban Slum name is required"
+    }
+    if (!data.specialCampDetails?.date) {
+      errors.specialCampDate = "Camp date is required"
+    }
+    if (!data.specialCampDetails?.venue?.trim()) {
+      errors.specialCampVenue = "Camp venue is required"
+    }
+    if (!data.specialCampProof) {
+      errors.specialCampProof = "Camp proof certificate is required"
+    }
+  }
+
+  if (data.myBharatPortalRegistered !== true) {
+    errors.myBharatPortalRegistered = "My Bharat Portal registration is mandatory"
+  } else {
+    if (!data.myBharatPortalId || !data.myBharatPortalId.toString().trim()) {
+      errors.myBharatPortalId = "My Bharat Portal ID is required"
+    }
+    if (!data.myBharatPortalScreenshot) {
+      errors.myBharatPortalScreenshot = "My Bharat Portal certificate is required"
+    }
+  }
+
+  if (data.attendedELP && !data.elpProof) {
+    errors.elpProof = "ELP proof is required"
+  }
+
+  return errors
+}
+
 export const validateAllSteps = (data: FormData): ValidationErrors => {
   return {
     ...validateStep1(data),
     ...validateStep2(data),
     ...validateStep3(data),
+    ...validateStep4(data),
   }
 }

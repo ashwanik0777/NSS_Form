@@ -53,7 +53,7 @@ const initialFormData: FormData = {
   photo: null,
   signature: null,
   addressType: "",
-  myBharatPortalId: null
+  myBharatPortalId: ""
 }
 
 const stepTitles = [
