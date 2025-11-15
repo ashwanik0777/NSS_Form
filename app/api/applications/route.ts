@@ -61,6 +61,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check for duplicate email (check if user already has an application)
+    const existingEmailApp = await NSSApplication.findOne({
+      emailId: formData.emailId?.toLowerCase().trim(),
+    })
+    if (existingEmailApp) {
+      // If it's a different user, reject
+      if (existingEmailApp.userId.toString() !== user._id.toString()) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "An application with this email address already exists. Please use a different email.",
+            errors: { emailId: "This email is already registered" },
+          },
+          { status: 400 },
+        )
+      }
+      // If same user, allow update (will be handled by save/update logic)
+    }
+
+    // Check for duplicate mobile number
+    const existingMobileApp = await NSSApplication.findOne({
+      mobileNo: formData.mobileNo?.trim(),
+    })
+    if (existingMobileApp) {
+      // If it's a different user, reject
+      if (existingMobileApp.userId.toString() !== user._id.toString()) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "An application with this mobile number already exists. Please use a different mobile number.",
+            errors: { mobileNo: "This mobile number is already registered" },
+          },
+          { status: 400 },
+        )
+      }
+      // If same user, allow update (will be handled by save/update logic)
+    }
+
     // Get next form number from DB
     let nextFormNo = "1001"
     const lastApp: any = await NSSApplication.findOne({}, { formNo: 1 })

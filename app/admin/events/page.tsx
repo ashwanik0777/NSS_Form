@@ -38,6 +38,7 @@ export default function EventsPage() {
     maxParticipants: "",
     status: "upcoming",
     attendanceExtensionMinutes: "",
+    nssHours: "",
   })
   const { data: session } = useSession()
   const isSuperAdmin = (session?.user as any)?.role === "admin"
@@ -100,6 +101,7 @@ export default function EventsPage() {
         attendanceExtensionMinutes: isSuperAdmin && formData.attendanceExtensionMinutes
           ? parseInt(formData.attendanceExtensionMinutes)
           : undefined,
+        nssHours: formData.nssHours ? parseFloat(formData.nssHours) : undefined,
       }
 
       // Add location coordinates if provided
@@ -151,6 +153,8 @@ export default function EventsPage() {
         coordinator: "",
         maxParticipants: "",
         status: "upcoming",
+        attendanceExtensionMinutes: "",
+        nssHours: "",
       })
       await fetchData()
       setSubmitting(false)
@@ -179,6 +183,7 @@ export default function EventsPage() {
       maxParticipants: event.maxParticipants?.toString() || "",
       status: event.status || "upcoming",
       attendanceExtensionMinutes: event.attendanceExtensionMinutes?.toString() || "",
+      nssHours: event.nssHours?.toString() || "",
     })
     setShowModal(true)
   }
@@ -263,6 +268,7 @@ export default function EventsPage() {
               maxParticipants: "",
               status: "upcoming",
               attendanceExtensionMinutes: "",
+              nssHours: "",
             })
             setError(null)
             setShowModal(true)
@@ -642,6 +648,24 @@ export default function EventsPage() {
                     </p>
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    NSS Hours <span className="text-muted-foreground">(Optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={formData.nssHours}
+                    onChange={(e) => setFormData({ ...formData, nssHours: e.target.value })}
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="Enter NSS hours for this event"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Number of NSS hours volunteers will earn for attending this event
+                  </p>
+                </div>
               </div>
               </form>
             </div>

@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, description, projectId, eventDate, location, startTime, endTime, coordinator, maxParticipants } = body
+    const { title, description, projectId, eventDate, location, startTime, endTime, coordinator, maxParticipants, nssHours } = body
 
     if (!title || !description || !projectId || !eventDate) {
       return NextResponse.json(
@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
       maxParticipants,
       status: "upcoming",
       currentParticipants: 0,
+      nssHours: nssHours ? parseFloat(nssHours) : undefined,
     })
 
     await event.save()
@@ -238,6 +239,11 @@ export async function PATCH(request: NextRequest) {
     if (updateData.eventDate) updateData.eventDate = new Date(updateData.eventDate)
     if (updateData.startTime) updateData.startTime = new Date(updateData.startTime)
     if (updateData.endTime) updateData.endTime = new Date(updateData.endTime)
+    
+    // Convert nssHours to number if present
+    if (updateData.nssHours !== undefined) {
+      updateData.nssHours = updateData.nssHours ? parseFloat(updateData.nssHours) : undefined
+    }
 
     const event = await Event.findByIdAndUpdate(eventId, updateData, { new: true })
 

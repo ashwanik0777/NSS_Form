@@ -17,6 +17,7 @@ export interface IEvent extends Document {
   currentParticipants: number
   status: "upcoming" | "ongoing" | "completed" | "cancelled"
   attendanceExtensionMinutes?: number // Super admin can extend attendance submission time
+  nssHours?: number // NSS hours awarded for this event
   createdAt: Date
   updatedAt: Date
 }
@@ -75,6 +76,10 @@ const EventSchema = new Schema<IEvent>(
     attendanceExtensionMinutes: {
       type: Number,
       default: 0, // Default 30 minutes, can be extended by super admin
+    },
+    nssHours: {
+      type: Number,
+      min: 0,
     },
   },
   {

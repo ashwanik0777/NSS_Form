@@ -136,6 +136,8 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       type: String,
       required: true,
       match: /^[6-9]\d{9}$/,
+      unique: true,
+      sparse: true, // Allow null/undefined but enforce uniqueness for non-null values
     },
     emailId: {
       type: String,
@@ -143,6 +145,8 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       lowercase: true,
       trim: true,
       match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      unique: true,
+      sparse: true, // Allow null/undefined but enforce uniqueness for non-null values
     },
     departmentName: {
       type: String,
