@@ -61,8 +61,14 @@ export async function GET(_request: NextRequest) {
             projectId: projectAssignment.projectId,
             status: { $in: ["upcoming", "ongoing"] },
           }),
-          VolunteerEvent.countDocuments({ volunteerId: session.user.id, status: "completed" }),
-          VolunteerEvent.countDocuments({ volunteerId: session.user.id, status: "absent" }),
+          VolunteerEvent.countDocuments({
+            volunteerId: session.user.id,
+            $or: [{ reviewStatus: "approved" }, { reviewStatus: { $exists: false }, hoursWorked: { $gt: 0 } }],
+          }),
+          VolunteerEvent.countDocuments({
+            volunteerId: session.user.id,
+            $or: [{ status: "absent" }, { reviewStatus: "rejected" }],
+          }),
           VolunteerEvent.countDocuments({ volunteerId: session.user.id }),
         ])
 

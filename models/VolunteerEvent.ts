@@ -21,6 +21,11 @@ export interface IVolunteerEvent extends Document {
   status: "registered" | "started" | "completed" | "absent"
   workDescription?: string
   hoursWorked?: number
+  pendingHours?: number
+  reviewStatus: "pending" | "approved" | "rejected"
+  reviewNotes?: string
+  reviewedBy?: mongoose.Types.ObjectId
+  reviewedAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -77,6 +82,27 @@ const VolunteerEventSchema = new Schema<IVolunteerEvent>(
     },
     hoursWorked: {
       type: Number,
+      default: 0,
+    },
+    pendingHours: {
+      type: Number,
+      default: 0,
+    },
+    reviewStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    reviewNotes: {
+      type: String,
+      trim: true,
+    },
+    reviewedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    reviewedAt: {
+      type: Date,
     },
   },
   {

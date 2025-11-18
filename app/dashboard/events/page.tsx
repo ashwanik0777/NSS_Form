@@ -35,11 +35,15 @@ interface MyEvent {
   eventTitle: string
   projectTitle: string
   status: string
+  reviewStatus?: "pending" | "approved" | "rejected"
+  reviewNotes?: string
+  reviewedAt?: string
   startTime?: string
   endTime?: string
   startPhoto?: string
   endPhoto?: string
   hoursWorked: number
+  pendingHours?: number
   workDescription?: string
 }
 
@@ -252,17 +256,36 @@ export default function EventsPage() {
                     <h3 className="font-semibold text-foreground">{event.eventTitle}</h3>
                     <p className="text-sm text-muted-foreground">{event.projectTitle}</p>
                   </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      event.status === "completed"
-                        ? "bg-green-100 text-green-800"
-                        : event.status === "started"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {event.status}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        event.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : event.status === "started"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {event.status}
+                    </span>
+                    {event.status === "completed" && event.reviewStatus && (
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                          event.reviewStatus === "approved"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : event.reviewStatus === "rejected"
+                              ? "bg-red-50 text-red-700 border-red-200"
+                              : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                        }`}
+                      >
+                        {event.reviewStatus === "approved"
+                          ? "Approved"
+                          : event.reviewStatus === "rejected"
+                            ? "Rejected"
+                            : "Under Review"}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {event.startTime && (
@@ -279,11 +302,28 @@ export default function EventsPage() {
                   </div>
                 )}
 
-                {event.hoursWorked > 0 && (
+                {event.status === "completed" && (
                   <div className="flex items-center text-sm text-foreground mb-2">
                     <Clock className="w-4 h-4 mr-2" />
-                    Hours Worked: {event.hoursWorked}h
+                    {event.reviewStatus === "approved" && event.hoursWorked > 0
+                      ? `Approved Hours: ${event.hoursWorked}h`
+                      : event.reviewStatus === "pending"
+                        ? `Pending Approval: ${event.pendingHours || 0}h eligible`
+                        : event.reviewStatus === "rejected"
+                          ? `Rejected${event.reviewNotes ? `: ${event.reviewNotes}` : ""}`
+                          : `Hours: ${event.hoursWorked || 0}h`}
                   </div>
+                )}
+
+                {event.status === "completed" && event.reviewStatus === "pending" && (
+                  <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 mb-3">
+                    Attendance submitted and awaiting admin approval.
+                  </p>
+                )}
+                {event.status === "completed" && event.reviewStatus === "rejected" && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
+                    {event.reviewNotes ? event.reviewNotes : "Attendance rejected by admin."}
+                  </p>
                 )}
 
                 {event.workDescription && (

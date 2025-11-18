@@ -95,11 +95,17 @@ export async function GET(request: NextRequest) {
         eventTitle: e.eventId?.title || "Unknown",
         projectTitle: e.projectId?.title || "Unknown",
         status: e.status,
+        reviewStatus: e.reviewStatus || "pending",
+        reviewNotes: e.reviewNotes,
+        reviewedAt: e.reviewedAt,
         startTime: e.startTime,
         endTime: e.endTime,
         startPhoto: e.startPhoto,
         endPhoto: e.endPhoto,
+        startLocation: e.startLocation,
+        endLocation: e.endLocation,
         hoursWorked: e.hoursWorked || 0,
+        pendingHours: e.pendingHours || 0,
         workDescription: e.workDescription,
       })),
     })
@@ -236,6 +242,12 @@ export async function POST(request: NextRequest) {
       }
       volunteerEvent.startTime = new Date()
       volunteerEvent.status = "started"
+      volunteerEvent.reviewStatus = "pending"
+      volunteerEvent.reviewNotes = undefined
+      volunteerEvent.reviewedBy = undefined as any
+      volunteerEvent.reviewedAt = undefined
+      volunteerEvent.hoursWorked = 0
+      volunteerEvent.pendingHours = 0
       await volunteerEvent.save()
 
       return NextResponse.json({
@@ -341,6 +353,7 @@ export async function POST(request: NextRequest) {
       const endWasOnTime = new Date(volunteerEvent.endTime) <= endDeadline
 
       // Only calculate hours if both were on time
+      let calculatedHours = 0
       if (startWasOnTime && endWasOnTime && volunteerEvent.startTime && volunteerEvent.endTime) {
         const actualHours =
           (new Date(volunteerEvent.endTime).getTime() - new Date(volunteerEvent.startTime).getTime()) /
@@ -354,11 +367,18 @@ export async function POST(request: NextRequest) {
         }
 
         // Hours worked is minimum of actual attendance and max event duration
-        volunteerEvent.hoursWorked = Math.min(Math.max(0, Math.round(actualHours * 10) / 10), maxHours)
+        calculatedHours = Math.min(Math.max(0, Math.round(actualHours * 10) / 10), maxHours)
       } else {
-        // Late attendance - no hours added
-        volunteerEvent.hoursWorked = 0
+        // Late attendance - no hours added unless admin decides otherwise
+        calculatedHours = 0
       }
+
+      volunteerEvent.pendingHours = calculatedHours
+      volunteerEvent.hoursWorked = 0
+      volunteerEvent.reviewStatus = "pending"
+      volunteerEvent.reviewNotes = undefined
+      volunteerEvent.reviewedBy = undefined as any
+      volunteerEvent.reviewedAt = undefined
 
       if (workDescription) {
         volunteerEvent.workDescription = workDescription
@@ -369,10 +389,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: startWasOnTime && endWasOnTime
-          ? "Event completed successfully. Working hours have been added."
-          : "Event completed, but working hours were not added due to late attendance submission.",
+          ? "Attendance submitted successfully and is now pending admin review."
+          : "Attendance submitted (late). Admin will review and decide on working hours.",
         volunteerEvent,
-        hoursAdded: startWasOnTime && endWasOnTime,
+        hoursEligible: calculatedHours > 0,
+        pendingHours: volunteerEvent.pendingHours,
       })
     } else {
       return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 })

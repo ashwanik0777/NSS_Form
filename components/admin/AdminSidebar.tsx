@@ -25,6 +25,7 @@ import {
   Share2,
   LucideProjector,
   Book,
+  CheckCircle2,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -65,6 +66,13 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
     items: [
       { id: "projects", label: "Projects", href: "/admin/projects", icon: <Book className="w-5 h-5" />, permission: "events.view" },
       { id: "events", label: "Events", href: "/admin/events", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
+      {
+        id: "attendance",
+        label: "Attendance Review",
+        href: "/admin/attendance",
+        icon: <CheckCircle2 className="w-5 h-5" />,
+        permission: "events.manage",
+      },
       { id: "meetings", label: "Meetings", href: "/admin/meetings", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
       { id: "announcements", label: "Announcements", href: "/admin/announcements", icon: <Megaphone className="w-5 h-5" />, permission: "announcements.view" },
       { id: "social-posts", label: "Social Media Posts", href: "/admin/social-posts", icon: <Share2 className="w-5 h-5" />, permission: "social.view" },
@@ -99,6 +107,8 @@ const getItemColorClass = (id: string): string => {
       return "text-emerald-600"
     case "events":
       return "text-pink-600"
+    case "attendance":
+      return "text-green-600"
     case "meetings":
       return "text-orange-600"
     case "announcements":

@@ -62,7 +62,10 @@ export async function GET(request: NextRequest) {
         .lean()
 
       const totalEvents = events.length
-      const completedEvents = events.filter((e: any) => e.status === "completed").length
+      const approvedEvents = events.filter(
+        (e: any) => e.reviewStatus === "approved" || (!e.reviewStatus && (e.hoursWorked || 0) > 0),
+      )
+      const completedEvents = approvedEvents.length
       const totalHours = events.reduce((sum: number, e: any) => sum + (e.hoursWorked || 0), 0)
       const attendanceRate = totalEvents > 0 ? (completedEvents / totalEvents) * 100 : 0
 
@@ -83,10 +86,16 @@ export async function GET(request: NextRequest) {
             eventTitle: e.eventId?.title || "Unknown Event",
             projectTitle: e.projectId?.title || "Unknown Project",
             status: e.status,
+             reviewStatus: e.reviewStatus || "pending",
+             reviewNotes: e.reviewNotes,
+             reviewedAt: e.reviewedAt,
             startTime: e.startTime,
             endTime: e.endTime,
             hoursWorked: e.hoursWorked || 0,
+            pendingHours: e.pendingHours || 0,
             workDescription: e.workDescription,
+            startPhoto: e.startPhoto,
+            endPhoto: e.endPhoto,
           })),
         },
       })
@@ -162,7 +171,7 @@ export async function GET(request: NextRequest) {
         const eventCount = await VolunteerEvent.countDocuments({ volunteerId: volunteer._id })
         const completedEvents = await VolunteerEvent.countDocuments({
           volunteerId: volunteer._id,
-          status: "completed",
+          $or: [{ reviewStatus: "approved" }, { reviewStatus: { $exists: false }, hoursWorked: { $gt: 0 } }],
         })
         const totalHours = await VolunteerEvent.aggregate([
           { $match: { volunteerId: volunteer._id } },

@@ -6,6 +6,8 @@ import Event from "@/models/Event"
 import VolunteerProject from "@/models/VolunteerProject"
 import User from "@/models/User"
 import NSSApplication from "@/models/NSSApplication"
+import EventRegistration from "@/models/EventRegistration"
+import VolunteerEvent from "@/models/VolunteerEvent"
 import { sendEventNotificationEmail } from "@/lib/email"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
@@ -35,6 +37,56 @@ export async function GET(_request: NextRequest) {
       .sort({ eventDate: -1, createdAt: -1 })
       .lean()
 
+    const eventIds = events.map((event) => event._id)
+
+    let registrationStats: any[] = []
+    let attendanceStats: any[] = []
+
+    if (eventIds.length > 0) {
+      registrationStats = await EventRegistration.aggregate([
+        { $match: { eventId: { $in: eventIds } } },
+        {
+          $group: {
+            _id: "$eventId",
+            total: { $sum: 1 },
+            registered: {
+              $sum: { $cond: [{ $eq: ["$registrationStatus", "registered"] }, 1, 0] },
+            },
+            pending: {
+              $sum: { $cond: [{ $eq: ["$registrationStatus", "pending"] }, 1, 0] },
+            },
+            declined: {
+              $sum: { $cond: [{ $eq: ["$registrationStatus", "declined"] }, 1, 0] },
+            },
+          },
+        },
+      ])
+
+      attendanceStats = await VolunteerEvent.aggregate([
+        { $match: { eventId: { $in: eventIds } } },
+        {
+          $group: {
+            _id: "$eventId",
+            total: { $sum: 1 },
+            approved: {
+              $sum: { $cond: [{ $eq: ["$reviewStatus", "approved"] }, 1, 0] },
+            },
+            pending: {
+              $sum: { $cond: [{ $eq: ["$reviewStatus", "pending"] }, 1, 0] },
+            },
+            rejected: {
+              $sum: { $cond: [{ $eq: ["$reviewStatus", "rejected"] }, 1, 0] },
+            },
+          },
+        },
+      ])
+    }
+
+    const registrationStatsMap = new Map(
+      registrationStats.map((stat: any) => [stat._id.toString(), stat]),
+    )
+    const attendanceStatsMap = new Map(attendanceStats.map((stat: any) => [stat._id.toString(), stat]))
+
     const now = new Date()
     const updatedEvents = []
 
@@ -61,6 +113,19 @@ export async function GET(_request: NextRequest) {
         }
       }
 
+      const registrationStat = registrationStatsMap.get(event._id.toString()) || {
+        total: 0,
+        registered: 0,
+        pending: 0,
+        declined: 0,
+      }
+      const attendanceStat = attendanceStatsMap.get(event._id.toString()) || {
+        total: 0,
+        approved: 0,
+        pending: 0,
+        rejected: 0,
+      }
+
       updatedEvents.push({
         _id: event._id,
         title: event.title,
@@ -78,6 +143,15 @@ export async function GET(_request: NextRequest) {
         attendanceExtensionMinutes: event.attendanceExtensionMinutes,
         createdAt: event.createdAt,
         updatedAt: event.updatedAt,
+        participantStats: {
+          totalRegistrations: registrationStat.total || 0,
+          registered: registrationStat.registered || 0,
+          pending: registrationStat.pending || 0,
+          declined: registrationStat.declined || 0,
+          approvedAttendance: attendanceStat.approved || 0,
+          pendingAttendance: attendanceStat.pending || 0,
+          rejectedAttendance: attendanceStat.rejected || 0,
+        },
       })
     }
 

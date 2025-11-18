@@ -24,7 +24,7 @@ export default function EventsPage() {
     videoUrls: [""],
     sendToEmail: "",
   })
-  const [formData, setFormData] = useState({
+  const createEmptyForm = () => ({
     title: "",
     description: "",
     projectId: "",
@@ -36,14 +36,19 @@ export default function EventsPage() {
     endTime: "",
     coordinator: "",
     maxParticipants: "",
-    status: "upcoming",
     attendanceExtensionMinutes: "",
     nssHours: "",
   })
+  const [formData, setFormData] = useState(createEmptyForm)
   const { data: session } = useSession()
   const isSuperAdmin = (session?.user as any)?.role === "admin"
   const [projects, setProjects] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false)
+  const [participantsEvent, setParticipantsEvent] = useState<any>(null)
+  const [participantsData, setParticipantsData] = useState<any>(null)
+  const [participantsLoading, setParticipantsLoading] = useState(false)
+  const [participantsError, setParticipantsError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -73,6 +78,35 @@ export default function EventsPage() {
     }
   }
 
+  const handleViewParticipants = async (event: any) => {
+    setParticipantsEvent(event)
+    setParticipantsData(null)
+    setParticipantsError(null)
+    setShowParticipantsModal(true)
+    setParticipantsLoading(true)
+    try {
+      const res = await fetch(`/api/admin/events/participants?eventId=${event._id}`)
+      const data = await res.json()
+      if (data.success) {
+        setParticipantsData(data)
+      } else {
+        setParticipantsError(data.message || "Failed to load participants")
+      }
+    } catch (err) {
+      console.error("Participants fetch error:", err)
+      setParticipantsError("Failed to load participants")
+    } finally {
+      setParticipantsLoading(false)
+    }
+  }
+
+  const closeParticipantsModal = () => {
+    setShowParticipantsModal(false)
+    setParticipantsEvent(null)
+    setParticipantsData(null)
+    setParticipantsError(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
@@ -97,7 +131,6 @@ export default function EventsPage() {
         endTime: formData.endTime || undefined,
         coordinator: formData.coordinator || undefined,
         maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
-        status: formData.status,
         attendanceExtensionMinutes: isSuperAdmin && formData.attendanceExtensionMinutes
           ? parseInt(formData.attendanceExtensionMinutes)
           : undefined,
@@ -140,22 +173,7 @@ export default function EventsPage() {
       // Close modal and refresh data
       setShowModal(false)
       setEditingEvent(null)
-      setFormData({
-        title: "",
-        description: "",
-        projectId: "",
-        eventDate: "",
-        location: "",
-        locationLat: "",
-        locationLng: "",
-        startTime: "",
-        endTime: "",
-        coordinator: "",
-        maxParticipants: "",
-        status: "upcoming",
-        attendanceExtensionMinutes: "",
-        nssHours: "",
-      })
+      setFormData(createEmptyForm())
       await fetchData()
       setSubmitting(false)
     } catch (error) {
@@ -181,7 +199,6 @@ export default function EventsPage() {
       endTime: event.endTime ? new Date(event.endTime).toISOString().slice(0, 16) : "",
       coordinator: event.coordinator || "",
       maxParticipants: event.maxParticipants?.toString() || "",
-      status: event.status || "upcoming",
       attendanceExtensionMinutes: event.attendanceExtensionMinutes?.toString() || "",
       nssHours: event.nssHours?.toString() || "",
     })
@@ -254,22 +271,7 @@ export default function EventsPage() {
         <button
           onClick={() => {
             setEditingEvent(null)
-            setFormData({
-              title: "",
-              description: "",
-              projectId: "",
-              eventDate: "",
-              location: "",
-              locationLat: "",
-              locationLng: "",
-              startTime: "",
-              endTime: "",
-              coordinator: "",
-              maxParticipants: "",
-              status: "upcoming",
-              attendanceExtensionMinutes: "",
-              nssHours: "",
-            })
+            setFormData(createEmptyForm())
             setError(null)
             setShowModal(true)
           }}
@@ -339,10 +341,33 @@ export default function EventsPage() {
                         "N/A"
                       )}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {event.currentParticipants || 0} / {event.maxParticipants || "∞"}
-                      </span>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="space-y-1 text-foreground">
+                        <div className="flex items-center gap-2 font-semibold">
+                          <Users className="w-4 h-4 text-primary" />
+                          <span>
+                            {event?.participantStats?.registered ?? event.currentParticipants ?? 0} /{" "}
+                            {event.maxParticipants || "∞"}
+                          </span>
+                        </div>
+                        {event.status === "completed" ? (
+                          <p className="text-xs text-muted-foreground">
+                            Verified Attendance:{" "}
+                            {(event.participantStats?.approvedAttendance || 0).toString()} /{" "}
+                            {(event.participantStats?.registered || 0).toString()}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            Pending Approvals: {event.participantStats?.pendingAttendance || 0}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleViewParticipants(event)}
+                        className="mt-2 inline-flex items-center px-3 py-1.5 text-xs font-medium border border-border rounded-lg hover:bg-muted transition-colors"
+                      >
+                        View Participants
+                      </button>
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -616,18 +641,18 @@ export default function EventsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  >
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                <div className="md:col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+                  <p className="font-semibold">Status Automation</p>
+                  <p className="mt-1">
+                    Event status automatically switches between upcoming, ongoing, and completed based on the
+                    scheduled date and time. You only need to provide accurate timings—no manual status changes required.
+                  </p>
+                  {editingEvent && (
+                    <p className="mt-2">
+                      Current Status:{" "}
+                      <span className="font-semibold capitalize">{editingEvent.status || "upcoming"}</span>
+                    </p>
+                  )}
                 </div>
 
                 {isSuperAdmin && (
@@ -702,6 +727,138 @@ export default function EventsPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Participants Modal */}
+      {showParticipantsModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl border border-border max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Participants</p>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {participantsData?.event?.title || participantsEvent?.title || "Event"}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Status: {participantsData?.event?.status || participantsEvent?.status || "upcoming"}
+                </p>
+              </div>
+              <button
+                onClick={closeParticipantsModal}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                aria-label="Close participants modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 overflow-y-auto">
+              {participantsError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  {participantsError}
+                </div>
+              )}
+              {participantsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : participantsData ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="bg-muted/40 border border-border rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground mb-1">Registered</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {participantsData.summary.registered}
+                      </p>
+                    </div>
+                    <div className="bg-muted/40 border border-border rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground mb-1">Declined</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {participantsData.summary.declined}
+                      </p>
+                    </div>
+                    <div className="bg-muted/40 border border-border rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground mb-1">Verified Attendance</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {participantsData.summary.approvedAttendance} / {participantsData.summary.registered || 0}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto border border-border rounded-xl">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/40">
+                        <tr>
+                          <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Volunteer</th>
+                          <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Registration</th>
+                          <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Attendance</th>
+                          <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {participantsData.participants.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
+                              No participants found.
+                            </td>
+                          </tr>
+                        ) : (
+                          participantsData.participants.map((participant: any) => (
+                            <tr key={participant.volunteerId} className="hover:bg-muted/30 transition-colors">
+                              <td className="px-4 py-3">
+                                <p className="font-medium text-foreground">{participant.name}</p>
+                                <p className="text-xs text-muted-foreground">{participant.email}</p>
+                              </td>
+                              <td className="px-4 py-3 capitalize">
+                                {participant.registrationStatus?.replace("-", " ")}
+                                {participant.declineReason && (
+                                  <span className="block text-xs text-muted-foreground">
+                                    Reason: {participant.declineReason}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm">
+                                  {participant.attendanceReviewStatus && participant.attendanceReviewStatus !== "not-submitted" ? (
+                                    <span className="capitalize">
+                                      {participant.attendanceReviewStatus === "approved"
+                                        ? "Approved"
+                                        : participant.attendanceReviewStatus === "pending"
+                                          ? "Pending Review"
+                                          : "Rejected"}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground">Not Submitted</span>
+                                  )}
+                                </div>
+                                {(participant.hoursWorked || participant.pendingHours) > 0 && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {participant.hoursWorked > 0 && <span>Hours: {participant.hoursWorked}h</span>}
+                                    {participant.pendingHours > 0 && (
+                                      <span className="block">
+                                        Pending Hours: {participant.pendingHours}h
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-xs text-muted-foreground">
+                                {participant.reviewNotes || "—"}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                !participantsError && (
+                  <p className="text-sm text-muted-foreground">No participant data available.</p>
+                )
+              )}
             </div>
           </div>
         </div>
