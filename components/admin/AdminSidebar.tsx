@@ -69,6 +69,7 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
       { id: "announcements", label: "Announcements", href: "/admin/announcements", icon: <Megaphone className="w-5 h-5" />, permission: "announcements.view" },
       { id: "social-posts", label: "Social Media Posts", href: "/admin/social-posts", icon: <Share2 className="w-5 h-5" />, permission: "social.view" },
       { id: "grievances", label: "Grievances", href: "/admin/grievances", icon: <FileText className="w-5 h-5" />, permission: "volunteers.view" },
+      { id: "reports", label: "Reports & Issues", href: "/admin/reports", icon: <FileText className="w-5 h-5" />, permission: "volunteers.view" },
     ],
   },
   {

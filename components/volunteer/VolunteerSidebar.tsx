@@ -71,6 +71,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <FileText className="w-5 h-5" />,
   },
   {
+    id: "reports",
+    label: "Reports & Issues",
+    href: "/dashboard/reports",
+    icon: <FileText className="w-5 h-5" />,
+  },
+  {
     id: "tasks",
     label: "Tasks",
     href: "/dashboard/tasks",
