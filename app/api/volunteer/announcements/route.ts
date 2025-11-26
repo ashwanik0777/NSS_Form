@@ -26,10 +26,20 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ success: true, announcements: [], notifications: [] })
     }
 
+    const unitNo = application.unitNo
+    const buildAudienceFilter = () => {
+      const clauses: any[] = [{ targetType: { $exists: false } }, { targetType: "all" }]
+      if (unitNo) {
+        clauses.push({ targetType: "units", targetUnits: unitNo })
+      }
+      return { $or: clauses }
+    }
+
     // Get active announcements and notifications
     const announcements = await Announcement.find({
       status: "active",
       type: { $in: ["announcement", "general"] },
+      ...buildAudienceFilter(),
     })
       .populate("createdBy", "name")
       .sort({ createdAt: -1 })
@@ -39,6 +49,7 @@ export async function GET(_request: NextRequest) {
     const globalNotifications = await Announcement.find({
       status: "active",
       type: "notification",
+      ...buildAudienceFilter(),
     })
       .populate("createdBy", "name")
       .sort({ createdAt: -1 })

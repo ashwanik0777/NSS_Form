@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import {
   FolderKanban,
@@ -53,6 +54,9 @@ export default function ProjectManagementPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [projectVolunteers, setProjectVolunteers] = useState<Volunteer[]>([])
+  const [removingVolunteerId, setRemovingVolunteerId] = useState<string | null>(null)
+  const { data: session } = useSession()
+  const isSuperAdmin = (session?.user as any)?.role === "admin"
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -94,6 +98,38 @@ export default function ProjectManagementPage() {
       }
     } catch (error) {
       console.error("Error fetching volunteers:", error)
+    }
+  }
+
+  const handleRemoveVolunteer = async (volunteerId: string) => {
+    if (!selectedProject) return
+    if (!confirm("Remove this volunteer from the project? They will be able to select another project afterwards.")) {
+      return
+    }
+
+    try {
+      setRemovingVolunteerId(volunteerId)
+      const res = await fetch("/api/admin/project-volunteers", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "remove",
+          projectId: selectedProject._id,
+          volunteerId,
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        alert(data.message || "Failed to remove volunteer")
+      } else {
+        await fetchProjectVolunteers(selectedProject._id)
+        await fetchProjects()
+      }
+    } catch (error) {
+      console.error("Error removing volunteer:", error)
+      alert("Failed to remove volunteer")
+    } finally {
+      setRemovingVolunteerId(null)
     }
   }
 
@@ -493,15 +529,26 @@ export default function ProjectManagementPage() {
               {projectVolunteers.map((volunteer) => (
                 <div
                   key={volunteer._id}
-                  className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                  className="flex items-center justify-between gap-3 p-4 bg-muted/50 rounded-lg"
                 >
                   <div>
                     <p className="font-medium text-foreground">{volunteer.name}</p>
                     <p className="text-sm text-muted-foreground">{volunteer.email}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Joined: {new Date(volunteer.selectedAt).toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm text-muted-foreground whitespace-nowrap">
+                      Joined: {new Date(volunteer.selectedAt).toLocaleDateString()}
+                    </p>
+                    {isSuperAdmin && (
+                      <button
+                        onClick={() => handleRemoveVolunteer(volunteer._id)}
+                        className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                        disabled={removingVolunteerId === volunteer._id}
+                      >
+                        {removingVolunteerId === volunteer._id ? "Removing..." : "Remove"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

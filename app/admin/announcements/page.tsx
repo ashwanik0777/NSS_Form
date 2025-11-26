@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Megaphone, Plus, Edit, Trash2, Loader2, X, Save, Bell, Mail } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { useSession } from "next-auth/react"
+import { Megaphone, Plus, Edit, Trash2, Loader2, X, Save, Mail, Target } from "lucide-react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 export default function AnnouncementsPage() {
@@ -16,8 +17,14 @@ export default function AnnouncementsPage() {
     type: "announcement",
     sendEmail: false,
     status: "active",
+    targetType: "all",
+    targetUnits: [] as string[],
   })
   const [error, setError] = useState<string | null>(null)
+  const { data: session } = useSession()
+  const isSuperAdmin = (session?.user as any)?.role === "admin"
+
+  const unitOptions = useMemo(() => ["1", "2", "3", "4", "5"], [])
 
   useEffect(() => {
     fetchData()
@@ -39,6 +46,16 @@ export default function AnnouncementsPage() {
     }
   }
 
+  const handleUnitToggle = (unit: string) => {
+    setFormData((prev) => {
+      const exists = prev.targetUnits.includes(unit)
+      return {
+        ...prev,
+        targetUnits: exists ? prev.targetUnits.filter((u) => u !== unit) : [...prev.targetUnits, unit],
+      }
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
@@ -47,6 +64,11 @@ export default function AnnouncementsPage() {
     try {
       if (!formData.title || !formData.content) {
         setError("Title and content are required")
+        setSubmitting(false)
+        return
+      }
+      if (isSuperAdmin && formData.targetType === "units" && formData.targetUnits.length === 0) {
+        setError("Please select at least one unit for targeted announcements")
         setSubmitting(false)
         return
       }
@@ -76,13 +98,15 @@ export default function AnnouncementsPage() {
 
       setShowModal(false)
       setEditingAnnouncement(null)
-      setFormData({
-        title: "",
-        content: "",
-        type: "announcement",
-        sendEmail: false,
-        status: "active",
-      })
+    setFormData({
+      title: "",
+      content: "",
+      type: "announcement",
+      sendEmail: false,
+      status: "active",
+      targetType: "all",
+      targetUnits: [],
+    })
       await fetchData()
       setSubmitting(false)
     } catch (error) {
@@ -100,6 +124,8 @@ export default function AnnouncementsPage() {
       type: announcement.type || "announcement",
       sendEmail: announcement.sendEmail || false,
       status: announcement.status || "active",
+      targetType: announcement.targetType || "all",
+      targetUnits: announcement.targetUnits || [],
     })
     setShowModal(true)
   }
@@ -168,6 +194,8 @@ export default function AnnouncementsPage() {
               type: "announcement",
               sendEmail: false,
               status: "active",
+              targetType: "all",
+              targetUnits: [],
             })
             setError(null)
             setShowModal(true)
@@ -205,6 +233,12 @@ export default function AnnouncementsPage() {
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium flex items-center gap-1">
                     <Mail className="w-3 h-3" />
                     Emailed
+                  </span>
+                )}
+                {announcement.targetType === "units" && Array.isArray(announcement.targetUnits) && announcement.targetUnits.length > 0 && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium flex items-center gap-1">
+                    <Target className="w-3 h-3" />
+                    Units {announcement.targetUnits.join(", ")}
                   </span>
                 )}
                 <span
@@ -325,6 +359,63 @@ export default function AnnouncementsPage() {
                   </select>
                 </div>
               </div>
+
+              {isSuperAdmin && (
+                <div className="border border-border rounded-lg p-4 space-y-3 bg-muted/30">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    Audience Targeting
+                  </p>
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <label className="flex items-center gap-2 text-sm font-medium">
+                      <input
+                        type="radio"
+                        name="targetType"
+                        value="all"
+                        checked={formData.targetType === "all"}
+                        onChange={() => setFormData({ ...formData, targetType: "all", targetUnits: [] })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      All approved volunteers
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium">
+                      <input
+                        type="radio"
+                        name="targetType"
+                        value="units"
+                        checked={formData.targetType === "units"}
+                        onChange={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            targetType: "units",
+                            targetUnits: prev.targetUnits.length ? prev.targetUnits : [unitOptions[0]],
+                          }))
+                        }
+                        className="w-4 h-4 text-primary"
+                      />
+                      Specific units
+                    </label>
+                  </div>
+                  {formData.targetType === "units" && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {unitOptions.map((unit) => (
+                        <label key={unit} className="flex items-center gap-2 text-sm border border-border rounded-md px-3 py-2 bg-background">
+                          <input
+                            type="checkbox"
+                            checked={formData.targetUnits.includes(unit)}
+                            onChange={() => handleUnitToggle(unit)}
+                            className="w-4 h-4 text-primary"
+                          />
+                          Unit {unit}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {formData.targetType === "units" && formData.targetUnits.length === 0 && (
+                    <p className="text-xs text-red-500">Select at least one unit.</p>
+                  )}
+                </div>
+              )}
 
               <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg border border-border">
                 <input

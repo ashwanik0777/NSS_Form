@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, content, type, sendEmail } = body
+    const { title, content, type, sendEmail, targetType, targetUnits } = body
 
     if (!title || !content) {
       return NextResponse.json(
@@ -75,6 +75,22 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
+    const isSuperAdmin = session.user.role === "admin"
+    const normalizedTargetType =
+      isSuperAdmin && targetType === "units" && Array.isArray(targetUnits) && targetUnits.length > 0
+        ? "units"
+        : "all"
+    const normalizedTargetUnits =
+      normalizedTargetType === "units"
+        ? Array.from(
+            new Set(
+              (targetUnits || [])
+                .map((unit: string) => unit?.toString().trim())
+                .filter((unit: string) => unit.length > 0),
+            ),
+          )
+        : []
+
     // Create announcement
     const announcement = new Announcement({
       title,
@@ -83,6 +99,8 @@ export async function POST(request: NextRequest) {
       sendEmail: sendEmail || false,
       createdBy: session.user.id,
       status: "active",
+      targetType: normalizedTargetType,
+      targetUnits: normalizedTargetUnits,
     })
 
     await announcement.save()
@@ -90,8 +108,13 @@ export async function POST(request: NextRequest) {
     // Send emails if requested
     if (sendEmail) {
       try {
-        // Get all approved volunteers only
-        const approvedApplications = await NSSApplication.find({ status: "approved" })
+        const applicationQuery: Record<string, any> = { status: "approved" }
+        if (normalizedTargetType === "units" && normalizedTargetUnits.length > 0) {
+          applicationQuery.unitNo = { $in: normalizedTargetUnits }
+        }
+
+        // Get approved volunteers based on targeting
+        const approvedApplications = await NSSApplication.find(applicationQuery)
           .select("userId emailId nameEnglish")
           .lean()
 
@@ -206,9 +229,42 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    const isSuperAdmin = session.user.role === "admin"
+    let normalizedTargetType: "all" | "units" | undefined
+    let normalizedTargetUnits: string[] | undefined
+
+    if (isSuperAdmin) {
+      if (updateData.targetType === "units" && Array.isArray(updateData.targetUnits) && updateData.targetUnits.length > 0) {
+        normalizedTargetType = "units"
+        normalizedTargetUnits = Array.from(
+          new Set(
+            updateData.targetUnits
+              .map((unit: string) => unit?.toString().trim())
+              .filter((unit: string) => unit.length > 0),
+          ),
+        )
+      } else if (updateData.targetType) {
+        normalizedTargetType = "all"
+        normalizedTargetUnits = []
+      }
+    } else {
+      delete updateData.targetType
+      delete updateData.targetUnits
+    }
+
     await dbConnect()
 
-    const announcement = await Announcement.findByIdAndUpdate(announcementId, updateData, { new: true })
+    const updatePayload: Record<string, any> = { ...updateData }
+    if (isSuperAdmin) {
+      if (normalizedTargetType) {
+        updatePayload.targetType = normalizedTargetType
+        updatePayload.targetUnits = normalizedTargetType === "units" ? normalizedTargetUnits : []
+      } else if (normalizedTargetType === "all") {
+        updatePayload.targetUnits = []
+      }
+    }
+
+    const announcement = await Announcement.findByIdAndUpdate(announcementId, updatePayload, { new: true })
 
     if (!announcement) {
       return NextResponse.json({ success: false, message: "Announcement not found" }, { status: 404 })
