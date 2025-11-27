@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
+import mongoose from "mongoose"
 import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import VolunteerEvent from "@/models/VolunteerEvent"
@@ -18,16 +19,38 @@ export async function GET(_request: NextRequest) {
 
     await dbConnect()
 
+    let volunteerObjectId: mongoose.Types.ObjectId
+    try {
+      volunteerObjectId = new mongoose.Types.ObjectId(session.user.id)
+    } catch {
+      return NextResponse.json({ success: false, message: "Invalid user id" }, { status: 400 })
+    }
+
     // Get volunteer's project
     const projectAssignment = await VolunteerProject.findOne({
-      volunteerId: session.user.id,
+      volunteerId: volunteerObjectId,
       status: "active",
     }).lean()
 
-    // Calculate total hours
+    // Calculate total hours - sum both approved hoursWorked and pendingHours
     const hoursAggregation = await VolunteerEvent.aggregate([
-      { $match: { volunteerId: session.user.id } },
-      { $group: { _id: null, total: { $sum: "$hoursWorked" } } },
+      { $match: { volunteerId: volunteerObjectId } },
+      {
+        $project: {
+          totalHours: {
+            $add: [
+              { $ifNull: ["$hoursWorked", 0] },
+              { $ifNull: ["$pendingHours", 0] }
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$totalHours" }
+        }
+      }
     ])
 
     const totalHours = hoursAggregation[0]?.total || 0
@@ -62,14 +85,14 @@ export async function GET(_request: NextRequest) {
             status: { $in: ["upcoming", "ongoing"] },
           }),
           VolunteerEvent.countDocuments({
-            volunteerId: session.user.id,
+            volunteerId: volunteerObjectId,
             $or: [{ reviewStatus: "approved" }, { reviewStatus: { $exists: false }, hoursWorked: { $gt: 0 } }],
           }),
           VolunteerEvent.countDocuments({
-            volunteerId: session.user.id,
+            volunteerId: volunteerObjectId,
             $or: [{ status: "absent" }, { reviewStatus: "rejected" }],
           }),
-          VolunteerEvent.countDocuments({ volunteerId: session.user.id }),
+          VolunteerEvent.countDocuments({ volunteerId: volunteerObjectId }),
         ])
 
       upcomingEvents = upcomingList
@@ -84,7 +107,7 @@ export async function GET(_request: NextRequest) {
 
     // Task stats summary
     const taskPipeline = [
-      { $match: { assignedTo: session.user.id } },
+      { $match: { assignedTo: volunteerObjectId } },
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]
     const taskAggregation = await Task.aggregate(taskPipeline)
@@ -106,9 +129,9 @@ export async function GET(_request: NextRequest) {
           ? { projectId: projectAssignment.projectId, status: { $in: ["upcoming", "ongoing"] } }
           : { status: { $in: ["upcoming", "ongoing"] } },
       ),
-      VolunteerMeeting.countDocuments({ volunteerId: session.user.id, status: "attended" }),
-      VolunteerMeeting.countDocuments({ volunteerId: session.user.id, status: "absent" }),
-      VolunteerMeeting.countDocuments({ volunteerId: session.user.id }),
+      VolunteerMeeting.countDocuments({ volunteerId: volunteerObjectId, status: "attended" }),
+      VolunteerMeeting.countDocuments({ volunteerId: volunteerObjectId, status: "absent" }),
+      VolunteerMeeting.countDocuments({ volunteerId: volunteerObjectId }),
     ])
     meetingsSummary = {
       total: meetingTotals,
@@ -118,9 +141,12 @@ export async function GET(_request: NextRequest) {
       registered: meetingRegistered,
     }
 
+    const roundedHours = Math.round(totalHours * 10) / 10
+
     return NextResponse.json({
       success: true,
-      totalHours: Math.round(totalHours * 10) / 10,
+      totalHours: roundedHours,
+      hoursWorked: roundedHours,
       tasks: tasksSummary,
       events: eventsSummary,
       meetings: meetingsSummary,

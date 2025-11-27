@@ -211,6 +211,15 @@ export async function GET(request: NextRequest) {
       })
     )
 
+    // Sort volunteers: highest hours first, then attendance rate
+    volunteersWithStats.sort((a, b) => {
+      const hourDiff = (b.stats?.totalHours || 0) - (a.stats?.totalHours || 0)
+      if (hourDiff !== 0) {
+        return hourDiff
+      }
+      return (b.stats?.attendanceRate || 0) - (a.stats?.attendanceRate || 0)
+    })
+
     // Overall analytics
     const totalVolunteers = volunteers.length
     const totalActiveProjects = await VolunteerProject.countDocuments({ status: "active" })

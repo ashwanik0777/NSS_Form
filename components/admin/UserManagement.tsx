@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { PERMISSION_CATEGORIES, getPermissionsByCategory } from "@/lib/permissions"
 
 interface User {
@@ -11,7 +11,9 @@ interface User {
   permissions: string[]
   createdAt: string
   updatedAt: string
-  status?: string 
+  status?: string
+  hierarchy?: string
+  assignedUnits?: string[]
 }
 
 export default function UserManagement() {
@@ -25,14 +27,67 @@ export default function UserManagement() {
     name: "",
     email: "",
     role: "sub-admin" as "admin" | "sub-admin" | "user",
+    hierarchy: "",
     permissions: [] as string[],
     password: "",
     assignedUnits: [] as string[],
   })
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const [searching, setSearching] = useState(false)
+
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  const searchVolunteers = async (query: string) => {
+    if (!query || query.trim().length < 2) {
+      setSearchResults([])
+      setShowSearchResults(false)
+      return
+    }
+
+    setSearching(true)
+    try {
+      const response = await fetch(`/api/admin/users/search-volunteers?q=${encodeURIComponent(query)}`)
+      const data = await response.json()
+      if (data.success) {
+        setSearchResults(data.volunteers || [])
+        setShowSearchResults(true)
+      }
+    } catch (error) {
+      console.error("Error searching volunteers:", error)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    setFormData((prev) => ({ ...prev, name: value }))
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      searchVolunteers(value)
+    }, 300)
+  }
+
+  const selectVolunteer = (volunteer: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      name: volunteer.name,
+      email: volunteer.email,
+    }))
+    setSearchQuery(volunteer.name)
+    setShowSearchResults(false)
+    setSearchResults([])
+  }
 
   const fetchUsers = async () => {
     try {
@@ -63,7 +118,10 @@ export default function UserManagement() {
       const data = await response.json()
       if (data.success) {
         setShowCreateModal(false)
-        setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
+        setFormData({ name: "", email: "", role: "sub-admin", hierarchy: "", permissions: [], password: "", assignedUnits: [] })
+        setSearchQuery("")
+        setShowSearchResults(false)
+        setSearchResults([])
         fetchUsers()
         alert("Sub-Admin created successfully! Email sent with login credentials.")
       } else {
@@ -93,7 +151,10 @@ export default function UserManagement() {
       if (data.success) {
         setShowEditModal(false)
         setSelectedUser(null)
-        setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
+        setFormData({ name: "", email: "", role: "sub-admin", hierarchy: "", permissions: [], password: "", assignedUnits: [] })
+        setSearchQuery("")
+        setShowSearchResults(false)
+        setSearchResults([])
         fetchUsers()
       } else {
         alert("Error updating user: " + data.message)
@@ -130,10 +191,12 @@ export default function UserManagement() {
       name: user.name,
       email: user.email,
       role: user.role,
+      hierarchy: (user as any).hierarchy || "",
       permissions: user.permissions,
       password: "",
       assignedUnits: (user as any).assignedUnits || [],
     })
+    setSearchQuery(user.name)
     setShowEditModal(true)
   }
 
@@ -273,15 +336,41 @@ export default function UserManagement() {
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="relative">
                   <label className="block text-sm font-medium text-foreground mb-2">Name</label>
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={() => {
+                      if (searchResults.length > 0) setShowSearchResults(true)
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowSearchResults(false), 200)
+                    }}
                     className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
-                    placeholder="Enter full name"
+                    placeholder="Type name to search volunteers..."
                   />
+                  {showSearchResults && searchResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {searchResults.map((volunteer) => (
+                        <button
+                          key={volunteer._id}
+                          type="button"
+                          onClick={() => selectVolunteer(volunteer)}
+                          className="w-full text-left px-4 py-2 hover:bg-muted transition-colors border-b border-border last:border-b-0"
+                        >
+                          <div className="font-medium text-foreground">{volunteer.name}</div>
+                          <div className="text-sm text-muted-foreground">{volunteer.email}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searching && (
+                    <div className="absolute right-3 top-9 text-muted-foreground">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Email</label>
@@ -290,9 +379,26 @@ export default function UserManagement() {
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                     className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
-                    placeholder="Enter email address"
+                    placeholder="Email will auto-fill when you select a volunteer"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Hierarchy/Role</label>
+                <select
+                  value={formData.hierarchy}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, hierarchy: e.target.value }))}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
+                >
+                  <option value="">Select role</option>
+                  <option value="president">President</option>
+                  <option value="vice-president">Vice President</option>
+                  <option value="secretary">Secretary</option>
+                  <option value="treasurer">Treasurer</option>
+                  <option value="coordinator">Coordinator</option>
+                  <option value="member">Member</option>
+                </select>
               </div>
 
               <div>
@@ -386,7 +492,10 @@ export default function UserManagement() {
               <button
                 onClick={() => {
                   setShowCreateModal(false)
-                  setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
+                  setFormData({ name: "", email: "", role: "sub-admin", hierarchy: "", permissions: [], password: "", assignedUnits: [] })
+        setSearchQuery("")
+        setShowSearchResults(false)
+        setSearchResults([])
                 }}
                 className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-muted"
               >
@@ -510,7 +619,10 @@ export default function UserManagement() {
                 onClick={() => {
                   setShowEditModal(false)
                   setSelectedUser(null)
-                  setFormData({ name: "", email: "", role: "sub-admin", permissions: [], password: "", assignedUnits: [] })
+                  setFormData({ name: "", email: "", role: "sub-admin", hierarchy: "", permissions: [], password: "", assignedUnits: [] })
+        setSearchQuery("")
+        setShowSearchResults(false)
+        setSearchResults([])
                 }}
                 className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md hover:bg-muted"
               >

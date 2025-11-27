@@ -28,10 +28,19 @@ export async function GET(request: NextRequest) {
 
     await dbConnect()
 
-    // Fetch all users except those with role "user" (temp users), exclude password field
-    const users = await User.find({ role: { $ne: "user" } })
+    // Fetch admins and sub-admins; filter sub-admins with permissions later to avoid invalid $size usage
+    const allUsers = await User.find({
+      role: { $in: ["admin", "sub-admin"] },
+    })
       .select("-password")
       .sort({ createdAt: -1 })
+
+    const users = allUsers.filter((user: any) => {
+      if (user.role === "admin") {
+        return true
+      }
+      return Array.isArray(user.permissions) && user.permissions.length > 0
+    })
 
     return NextResponse.json({
       success: true,
@@ -65,7 +74,7 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     const body = await request.json()
-    const { name, email, role, permissions, password, assignedUnits } = body
+    const { name, email, role, hierarchy, permissions, password, assignedUnits } = body
 
     // Validate required fields
     if (!name || !email || !role) {
@@ -96,6 +105,7 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       role,
+      hierarchy: hierarchy || undefined,
       permissions: permissions || [],
       assignedUnits: assignedUnits || [],
       mustChangePassword,

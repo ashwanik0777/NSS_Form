@@ -161,11 +161,19 @@ export async function POST(request: NextRequest) {
 
                 const volunteerName = application?.nameEnglish || volunteer.name || "Volunteer"
 
+                // Convert URLs to clickable links in content
+                const linkifyContent = (text: string) => {
+                  const urlRegex = /(https?:\/\/[^\s]+)/g
+                  return text.replace(urlRegex, '<a href="$1" style="color: #1e40af; text-decoration: underline;" target="_blank" rel="noopener noreferrer">$1</a>')
+                }
+
+                const htmlContent = linkifyContent(content.replace(/\n/g, "<br>"))
+
                 try {
                   await sendCustomEmail(
                     volunteerEmail,
                     `NSS Announcement: ${title}`,
-                    `<h2 style="color: #1e40af; margin-bottom: 15px;">${title}</h2><p>Dear ${volunteerName},</p><p style="line-height: 1.6;">${content.replace(/\n/g, "<br>")}</p><p style="margin-top: 20px;">Best regards,<br>NSS Team</p>`
+                    `<h2 style="color: #1e40af; margin-bottom: 15px;">${title}</h2><p>Dear ${volunteerName},</p><p style="line-height: 1.6;">${htmlContent}</p><p style="margin-top: 20px;">Best regards,<br>NSS Team</p>`
                   )
                   console.log(`✓ Email sent successfully to ${volunteerEmail} (${volunteerName})`)
                   successCount++
@@ -177,7 +185,7 @@ export async function POST(request: NextRequest) {
 
               await Promise.allSettled(emailPromises)
               console.log(
-                `📊 Email sending completed: ${successCount} successful, ${failCount} failed out of ${volunteers.length} total volunteers`
+                `📊 Email sending completed: ${successCount} successful, ${failCount} failed out of ${approvedApplications.length} total applications`
               )
             }
           }

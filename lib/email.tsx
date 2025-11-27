@@ -440,3 +440,197 @@ export async function sendApplicationRejectedEmail(to: string, data: Application
 
   await transporter.sendMail(mailOptions)
 }
+
+// Generic custom email function
+export async function sendCustomEmail(to: string, subject: string, htmlContent: string) {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #1e40af; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">NSS Announcement</h1>
+        </div>
+        <div style="padding: 20px; background-color: white;">
+          ${htmlContent}
+        </div>
+        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+          <p>This email was sent from NSS Registration System</p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}
+
+// Event and Attendance Email Functions
+interface EventDayReminderData {
+  name: string
+  eventTitle: string
+  eventDate: string
+  startTime: string
+  location?: string
+}
+
+export async function sendEventDayReminderEmail(to: string, data: EventDayReminderData) {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: `Event Reminder: ${data.eventTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #1e40af; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">Event Reminder</h1>
+        </div>
+        <div style="padding: 20px; background-color: white;">
+          <h2 style="color: #1e40af; margin-top: 0;">📅 Event Reminder</h2>
+          <p>Dear ${data.name},</p>
+          <p>This is a reminder that you have an event scheduled for today.</p>
+          
+          <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e40af;">
+            <h3 style="margin: 0 0 15px 0; color: #1e3a8a;">Event Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563; width: 140px;">Event:</td>
+                <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">${data.eventTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Date:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${new Date(data.eventDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Time:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${new Date(data.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</td>
+              </tr>
+              ${data.location ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Location:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${data.location}</td>
+              </tr>
+              ` : ""}
+            </table>
+          </div>
+
+          <p style="margin-top: 20px; color: #dc2626; font-weight: bold;">⚠️ Important: Please join on time at ${data.location || "the specified location"}, otherwise you will be added to the defaulter list.</p>
+          
+          <p>Best regards,<br>NSS Team</p>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+          <p>This email was sent from NSS Registration System</p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}
+
+interface AttendanceReminderData {
+  name: string
+  eventTitle: string
+  eventDate: string
+  startTime: string
+}
+
+export async function sendAttendanceReminderEmail(to: string, data: AttendanceReminderData) {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: `URGENT: Mark Your Attendance - ${data.eventTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #dc2626; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">⚠️ Attendance Reminder</h1>
+        </div>
+        <div style="padding: 20px; background-color: white;">
+          <h2 style="color: #dc2626; margin-top: 0;">Mark Your Attendance Now</h2>
+          <p>Dear ${data.name},</p>
+          <p>The event has started and you need to mark your attendance immediately.</p>
+          
+          <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <h3 style="margin: 0 0 15px 0; color: #991b1b;">Event Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563; width: 140px;">Event:</td>
+                <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">${data.eventTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Date:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${new Date(data.eventDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Start Time:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${new Date(data.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="margin-top: 20px; color: #dc2626; font-weight: bold;">⚠️ URGENT: Please mark your starting attendance immediately through your dashboard. If you fail to mark your attendance within 30 minutes, you will be added to the defaulter list.</p>
+          
+          <p>Best regards,<br>NSS Team</p>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+          <p>This email was sent from NSS Registration System</p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}
+
+interface EndAttendanceReminderData {
+  name: string
+  eventTitle: string
+  eventDate: string
+  endTime: string
+}
+
+export async function sendEndAttendanceReminderEmail(to: string, data: EndAttendanceReminderData) {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: `URGENT: Mark Your End Attendance - ${data.eventTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #dc2626; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">⚠️ End Attendance Reminder</h1>
+        </div>
+        <div style="padding: 20px; background-color: white;">
+          <h2 style="color: #dc2626; margin-top: 0;">Mark Your End Attendance Now</h2>
+          <p>Dear ${data.name},</p>
+          <p>The event has ended and you need to mark your end attendance immediately.</p>
+          
+          <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <h3 style="margin: 0 0 15px 0; color: #991b1b;">Event Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563; width: 140px;">Event:</td>
+                <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">${data.eventTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Date:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${new Date(data.eventDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">End Time:</td>
+                <td style="padding: 8px 0; color: #1f2937;">${new Date(data.endTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="margin-top: 20px; color: #dc2626; font-weight: bold;">⚠️ URGENT: Please mark your end attendance immediately through your dashboard. If you fail to mark your end attendance within 30 minutes, your working hours will not be added to your record.</p>
+          
+          <p>Best regards,<br>NSS Team</p>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+          <p>This email was sent from NSS Registration System</p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}

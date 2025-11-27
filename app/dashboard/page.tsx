@@ -64,7 +64,7 @@ export default function VolunteerDashboard() {
   const [completion, setCompletion] = useState<ProfileCompletion | null>(null)
   const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null)
   const [loading, setLoading] = useState(true)
-  const [totalHours, setTotalHours] = useState(0)
+  const [hoursWorked, setHoursWorked ] = useState(0)
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
   const [taskStats, setTaskStats] = useState<any | null>(null)
   const [eventStats, setEventStats] = useState<any | null>(null)
@@ -133,7 +133,7 @@ export default function VolunteerDashboard() {
       }
 
       if (statsData.success) {
-        setTotalHours(statsData.totalHours || 0)
+        setHoursWorked(statsData.hoursWorked ?? statsData.totalHours ?? 0)
         setUpcomingEvents(statsData.upcomingEvents || [])
         setTaskStats(statsData.tasks || null)
         setEventStats(statsData.events || null)
@@ -255,7 +255,7 @@ export default function VolunteerDashboard() {
             </h3>
             <Clock className="w-5 h-5 text-primary" />
           </div>
-          <p className="text-3xl font-bold text-foreground mb-2">{totalHours.toFixed(1)}</p>
+          <p className="text-3xl font-bold text-foreground mb-2">{hoursWorked.toFixed(1)}</p>
           <p className="text-xs text-muted-foreground">Cumulative volunteering hours</p>
           {completion && (
             <div className="mt-4 pt-3 border-t border-border/60">
@@ -285,18 +285,34 @@ export default function VolunteerDashboard() {
             <div className="text-sm text-muted-foreground">No announcements right now</div>
           ) : (
             <div className="space-y-3">
-              {announcements.slice(0, 2).map((announcement) => (
-                <div key={announcement._id} className="p-3 bg-muted/40 rounded-lg border border-border/40">
-                  <p className="text-sm font-semibold text-foreground line-clamp-1">{announcement.title}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{announcement.content}</p>
-                  <p className="text-[11px] text-muted-foreground mt-2">
-                    {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </p>
-                </div>
-              ))}
+              {announcements.slice(0, 2).map((announcement) => {
+                // Convert URLs to clickable links
+                const linkify = (text: string) => {
+                  const urlRegex = /(https?:\/\/[^\s]+)/g
+                  const parts = text.split(urlRegex)
+                  return parts.map((part, i) => 
+                    urlRegex.test(part) ? (
+                      <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {part}
+                      </a>
+                    ) : (
+                      <span key={i}>{part}</span>
+                    )
+                  )
+                }
+                return (
+                  <div key={announcement._id} className="p-3 bg-muted/40 rounded-lg border border-border/40">
+                    <p className="text-sm font-semibold text-foreground line-clamp-1">{announcement.title}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{linkify(announcement.content)}</p>
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </p>
+                  </div>
+                )
+              })}
             </div>
           )}
           {hasMoreAnnouncements && (
@@ -1012,22 +1028,40 @@ export default function VolunteerDashboard() {
               )}
             </div>
             <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-              {displayAnnouncements.map((announcement) => (
+              {displayAnnouncements.map((announcement) => {
+                // Convert URLs to clickable links
+                const linkify = (text: string) => {
+                  const urlRegex = /(https?:\/\/[^\s]+)/g
+                  const parts = text.split(urlRegex)
+                  return parts.map((part, i) => 
+                    urlRegex.test(part) ? (
+                      <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {part}
+                      </a>
+                    ) : (
+                      <span key={i}>{part}</span>
+                    )
+                  )
+                }
+                return (
                 <div
                   key={announcement._id}
                   className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800"
                 >
                   <p className="font-semibold text-sm text-foreground mb-2">{announcement.title}</p>
-                  <p className="text-xs text-muted-foreground mb-2 line-clamp-3">{announcement.content}</p>
+                  <div className="text-xs text-muted-foreground mb-2 line-clamp-3">
+                    {linkify(announcement.content)}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-              ))}
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+              )
+              })}
             </div>
           </div>
         )} */}
