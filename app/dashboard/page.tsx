@@ -187,6 +187,7 @@ export default function VolunteerDashboard() {
   }
 
   const user = session?.user as any
+
   const sortedNotifications = [...notifications].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
@@ -204,6 +205,9 @@ export default function VolunteerDashboard() {
   )
   const displayAnnouncements = viewAllAnnouncements ? sortedAnnouncements : sortedAnnouncements.slice(0, 5)
   const hasMoreAnnouncements = sortedAnnouncements.length > displayAnnouncements.length
+
+  const latestAnnouncement = sortedAnnouncements[0]
+  const latestNotification = sortedNotifications[0]
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       submitted: { label: "Submitted", color: "bg-blue-100 text-blue-800 border-blue-200", icon: FileText },
@@ -226,7 +230,7 @@ export default function VolunteerDashboard() {
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-xl p-6 md:p-8 border border-primary/20">
+      <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-xl p-6 md:p-8 border border-primary/20 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center">
@@ -243,7 +247,45 @@ export default function VolunteerDashboard() {
             </div>
           )}
         </div>
+
       </div>
+      
+        {/* Live ticker for latest announcement & notification */}
+        {(latestAnnouncement || latestNotification) && (
+          <div className="mt-2 bg-background/60 border border-primary/20 rounded-lg px-4 py-2 text-xs md:text-sm flex items-center gap-4 overflow-hidden">
+            {latestAnnouncement && (
+              <div className="flex items-center gap-2 min-w-0">
+                <Megaphone className="w-4 h-4 text-primary flex-shrink-0" />
+                <div className="whitespace-nowrap animate-[marquee_18s_linear_infinite]">
+                  <span className="font-semibold mr-2">Announcement:</span>
+                  <span className="opacity-90">
+                    {latestAnnouncement.title} -{" "}
+                    {new Date(latestAnnouncement.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+            {latestNotification && (
+              <div className="hidden md:flex items-center gap-2 min-w-0">
+                <Bell className="w-4 h-4 text-primary flex-shrink-0" />
+                <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite]">
+                  <span className="font-semibold mr-2">Notification:</span>
+                  <span className="opacity-90">
+                    {latestNotification.title} -{" "}
+                    {new Date(latestNotification.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+   
 
       {/* Top Summary Bar */}
       <div className="grid grid-cols-1 xl:grid-cols-4 md:grid-cols-2 gap-4">

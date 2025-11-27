@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { eventId, notificationType } = body // "day_reminder" | "1hour_before" | "30min_before" | "30min_after_start" | "30min_after_end"
+    const { eventId, notificationType } = body // "day_reminder" | "1hour_before" | "30min_before_start" | "30min_before_end"
 
     if (!eventId || !notificationType) {
       return NextResponse.json({ success: false, message: "Event ID and notification type are required" }, { status: 400 })
@@ -79,19 +79,19 @@ export async function POST(request: NextRequest) {
           link: "/dashboard/events",
         })
         notifications.push(volunteer._id.toString())
-      } else if (notificationType === "1hour_before" || notificationType === "30min_before") {
-        // Dashboard notification only (no email)
+      } else if (notificationType === "1hour_before" || notificationType === "30min_before_start") {
+        // Dashboard notification only (no email) before event start
         const timeText = notificationType === "1hour_before" ? "1 hour" : "30 minutes"
         await Notification.create({
           userId: volunteer._id,
           title: "Event Starting Soon",
-          message: `The event "${event.title}" will start in ${timeText}. Please join on time at ${event.location || "the specified location"}, otherwise you will be added to the defaulter list.`,
+          message: `The event "${event.title}" will start in ${timeText}. Please join on time and remember to mark your attendance. Attendance is allowed from 1 hour before start until 1 hour after end.`,
           type: "event_reminder",
           link: "/dashboard/events",
         })
         notifications.push(volunteer._id.toString())
-      } else if (notificationType === "30min_after_start") {
-        // Check if they marked start attendance
+      } else if (notificationType === "30min_before_start") {
+        // 30 minutes before start: check if they have NOT marked start attendance yet
         const volunteerEvent = await VolunteerEvent.findOne({
           volunteerId: volunteer._id,
           eventId,
@@ -121,8 +121,8 @@ export async function POST(request: NextRequest) {
           })
           notifications.push(volunteer._id.toString())
         }
-      } else if (notificationType === "30min_after_end") {
-        // Check if they marked end attendance
+      } else if (notificationType === "30min_before_end") {
+        // 30 minutes before end: check if they have NOT marked end attendance yet
         const volunteerEvent = await VolunteerEvent.findOne({
           volunteerId: volunteer._id,
           eventId,

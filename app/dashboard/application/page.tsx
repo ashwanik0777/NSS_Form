@@ -79,8 +79,8 @@ export default function ApplicationPage() {
         Back to Dashboard
       </Link>
 
-      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm space-y-6">
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground flex items-center">
             <FileText className="w-6 h-6 mr-3 text-primary" />
             My Application
@@ -98,25 +98,74 @@ export default function ApplicationPage() {
           )}
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Application Number</p>
-              <p className="text-lg font-semibold text-foreground">{application.formNo}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <p className="text-lg font-semibold text-foreground capitalize">{application.status.replace("-", " ")}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Institution</p>
-              <p className="text-lg font-semibold text-foreground">{application.institutionName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Name</p>
-              <p className="text-lg font-semibold text-foreground">{application.nameEnglish}</p>
-            </div>
+        {/* Basic summary */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground">Application Number</p>
+            <p className="text-lg font-semibold text-foreground">{application.formNo}</p>
           </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Status</p>
+            <p className="text-lg font-semibold text-foreground capitalize">
+              {application.status.replace("-", " ")}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Institution</p>
+            <p className="text-lg font-semibold text-foreground">{application.institutionName}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Name (English)</p>
+            <p className="text-lg font-semibold text-foreground">{application.nameEnglish}</p>
+          </div>
+        </div>
+
+        {/* Full application details (excluding profile-completion uploads) */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border pt-4">
+          <div>
+            <p className="text-xs text-muted-foreground">Unit Number</p>
+            <p className="text-sm font-medium text-foreground">{application.unitNo || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Enrollment</p>
+            <p className="text-sm font-medium text-foreground">{application.enrollment || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">School</p>
+            <p className="text-sm font-medium text-foreground">{application.schoolName || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Department</p>
+            <p className="text-sm font-medium text-foreground">{application.departmentName || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Course</p>
+            <p className="text-sm font-medium text-foreground">{application.courseName || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Mobile Number</p>
+            <p className="text-sm font-medium text-foreground">{application.mobileNo || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Email</p>
+            <p className="text-sm font-medium text-foreground">{application.emailId || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Submitted At</p>
+            <p className="text-sm font-medium text-foreground">
+              {application.submittedAt
+                ? new Date(application.submittedAt).toLocaleString("en-IN")
+                : "—"}
+            </p>
+          </div>
+          {application.reviewedAt && (
+            <div>
+              <p className="text-xs text-muted-foreground">Reviewed At</p>
+              <p className="text-sm font-medium text-foreground">
+                {new Date(application.reviewedAt).toLocaleString("en-IN")}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

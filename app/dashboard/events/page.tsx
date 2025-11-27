@@ -66,6 +66,7 @@ export default function EventsPage() {
   const [registrationAction, setRegistrationAction] = useState<"register" | "decline">("register")
   const [declineReason, setDeclineReason] = useState("")
   const [registering, setRegistering] = useState(false)
+  const [attendanceWindowMessage, setAttendanceWindowMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === "loading") return
@@ -160,6 +161,9 @@ export default function EventsPage() {
     try {
       const loc = await getCurrentLocation()
       setLocation(loc)
+      setAttendanceWindowMessage(
+        "You can mark attendance from 1 hour before event start until 1 hour after event end.",
+      )
       setShowModal(true)
     } catch (error) {
       alert("Failed to get location. Please enable location services.")
@@ -175,6 +179,9 @@ export default function EventsPage() {
     try {
       const loc = await getCurrentLocation()
       setLocation(loc)
+      setAttendanceWindowMessage(
+        "You can mark attendance from 1 hour before event start until 1 hour after event end.",
+      )
       setShowModal(true)
     } catch (error) {
       alert("Failed to get location. Please enable location services.")
@@ -207,6 +214,7 @@ export default function EventsPage() {
         setPhoto(null)
         setLocation(null)
         setWorkDescription("")
+        setAttendanceWindowMessage(null)
         fetchEvents()
       } else {
         alert(data.message || "Failed to update event")

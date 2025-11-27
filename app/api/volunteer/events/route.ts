@@ -165,6 +165,17 @@ export async function POST(request: NextRequest) {
       eventId: eventId,
     })
 
+    // Compute global attendance window: 1 hour before start to 1 hour after end (+ optional extension)
+    const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
+    const baseEventEnd = event.endTime
+      ? new Date(event.endTime)
+      : new Date(eventStartTime.getTime() + 3 * 60 * 60 * 1000) // fallback 3 hours after start
+    const allowedFrom = new Date(eventStartTime.getTime() - 60 * 60 * 1000) // 1 hour before start
+    const allowedUntilBase = new Date(baseEventEnd.getTime() + 60 * 60 * 1000) // 1 hour after end
+    const allowedUntil = new Date(
+      allowedUntilBase.getTime() + (event.attendanceExtensionMinutes || 0) * 60 * 1000,
+    )
+
     if (action === "start") {
       if (!photo || !location) {
         return NextResponse.json(
@@ -186,18 +197,16 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Check time window (30 minutes from event start + extension)
+      // Check global attendance time window
       const now = new Date()
-      const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
-      const extensionMinutes = (event.attendanceExtensionMinutes || 0) + 30 // Default 30 min + extension
-      const deadlineTime = new Date(eventStartTime.getTime() + extensionMinutes * 60 * 1000)
-
-      if (now > deadlineTime) {
+      if (now < allowedFrom || now > allowedUntil) {
         return NextResponse.json(
           {
             success: false,
-            message: `Attendance submission closed. The deadline was ${deadlineTime.toLocaleString()}. Please contact admin if you need an extension.`,
-            deadlineTime,
+            message:
+              "Attendance window is closed. You can mark attendance only from 1 hour before event start until 1 hour after event end. Please contact admin if you need an extension.",
+            allowedFrom,
+            allowedUntil,
           },
           { status: 400 }
         )
@@ -267,18 +276,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: "Event not started" }, { status: 400 })
       }
 
-      // Check time window (30 minutes from event end + extension)
+      // Check global attendance time window
       const nowEnd = new Date()
-      const eventEndTimeEnd = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
-      const extensionMinutesEnd = (event.attendanceExtensionMinutes || 0) + 30 // Default 30 min + extension
-      const deadlineTime = new Date(eventEndTimeEnd.getTime() + extensionMinutesEnd * 60 * 1000)
-
-      if (nowEnd > deadlineTime) {
+      if (nowEnd < allowedFrom || nowEnd > allowedUntil) {
         return NextResponse.json(
           {
             success: false,
-            message: `End attendance submission closed. The deadline was ${deadlineTime.toLocaleString()}. Your working hours will not be added. Please contact admin if you need an extension.`,
-            deadlineTime,
+            message:
+              "End attendance window is closed. You can mark attendance only from 1 hour before event start until 1 hour after event end. Please contact admin if you need an extension.",
+            allowedFrom,
+            allowedUntil,
           },
           { status: 400 }
         )
@@ -340,21 +347,16 @@ export async function POST(request: NextRequest) {
       volunteerEvent.endTime = new Date()
       volunteerEvent.status = "completed"
 
-      // Check if both start and end attendance were within time windows
-      const startTimeWindow = 30 + (event.attendanceExtensionMinutes || 0)
-      const endTimeWindow = 30 + (event.attendanceExtensionMinutes || 0)
-      const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
-      const eventEndTime = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
-      
-      const startDeadline = new Date(eventStartTime.getTime() + startTimeWindow * 60 * 1000)
-      const endDeadline = new Date(eventEndTime.getTime() + endTimeWindow * 60 * 1000)
-      
-      const startWasOnTime = volunteerEvent.startTime && new Date(volunteerEvent.startTime) <= startDeadline
-      const endWasOnTime = new Date(volunteerEvent.endTime) <= endDeadline
+      const eventEndTime = baseEventEnd
 
-      // Only calculate hours if both were on time
+      // Only calculate hours if both start and end were within the global window
       let calculatedHours = 0
-      if (startWasOnTime && endWasOnTime && volunteerEvent.startTime && volunteerEvent.endTime) {
+      if (
+        volunteerEvent.startTime &&
+        volunteerEvent.endTime &&
+        new Date(volunteerEvent.startTime) >= allowedFrom &&
+        new Date(volunteerEvent.endTime) <= allowedUntil
+      ) {
         const actualHours =
           (new Date(volunteerEvent.endTime).getTime() - new Date(volunteerEvent.startTime).getTime()) /
           (1000 * 60 * 60)
@@ -388,9 +390,10 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: startWasOnTime && endWasOnTime
-          ? "Attendance submitted successfully and is now pending admin review."
-          : "Attendance submitted (late). Admin will review and decide on working hours.",
+        message:
+          calculatedHours > 0
+            ? "Attendance submitted successfully and is now pending admin review."
+            : "Attendance submitted (outside ideal time). Admin will review and decide on working hours.",
         volunteerEvent,
         hoursEligible: calculatedHours > 0,
         pendingHours: volunteerEvent.pendingHours,

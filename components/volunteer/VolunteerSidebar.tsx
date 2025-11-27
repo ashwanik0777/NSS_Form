@@ -32,61 +32,61 @@ const sidebarItems: SidebarItem[] = [
     id: "dashboard",
     label: "Dashboard",
     href: "/dashboard",
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    icon: <LayoutDashboard className="w-5 h-5 text-sky-500" />,
   },
   {
     id: "profile",
     label: "Complete Profile",
     href: "/dashboard/profile",
-    icon: <User className="w-5 h-5" />,
+    icon: <User className="w-5 h-5 text-emerald-500" />,
   },
   {
     id: "projects",
     label: "NSS Projects",
     href: "/dashboard/projects",
-    icon: <FolderKanban className="w-5 h-5" />,
+    icon: <FolderKanban className="w-5 h-5 text-purple-500" />,
   },
   {
     id: "application",
     label: "My Application",
     href: "/dashboard/application",
-    icon: <FileText className="w-5 h-5" />,
+    icon: <FileText className="w-5 h-5 text-indigo-500" />,
   },
   {
     id: "id-card",
     label: "ID Card",
     href: "/dashboard/id-card",
-    icon: <CreditCard className="w-5 h-5" />,
+    icon: <CreditCard className="w-5 h-5 text-amber-500" />,
   },
   {
     id: "events",
     label: "Events",
     href: "/dashboard/events",
-    icon: <Calendar className="w-5 h-5" />,
+    icon: <Calendar className="w-5 h-5 text-rose-500" />,
   },
   {
     id: "grievances",
     label: "Grievances",
     href: "/dashboard/grievances",
-    icon: <FileText className="w-5 h-5" />,
+    icon: <FileText className="w-5 h-5 text-orange-500" />,
   },
   {
     id: "reports",
     label: "Reports & Issues",
     href: "/dashboard/reports",
-    icon: <FileText className="w-5 h-5" />,
+    icon: <FileText className="w-5 h-5 text-fuchsia-500" />,
   },
   {
     id: "tasks",
     label: "Tasks",
     href: "/dashboard/tasks",
-    icon: <FileText className="w-5 h-5" />,
+    icon: <FileText className="w-5 h-5 text-teal-500" />,
   },
   {
     id: "settings",
     label: "Settings",
     href: "/dashboard/settings",
-    icon: <Settings className="w-5 h-5" />,
+    icon: <Settings className="w-5 h-5 text-slate-500" />,
   },
 ]
 
@@ -189,17 +189,16 @@ export default function VolunteerSidebar() {
           <div className="p-4 border-t border-border/50">
             <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 mb-3 flex items-center justify-center">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mr-3">
-                  {/* <Award className="w-4 h-4 text-white" /> */}
+                <div className="w-10 h-10 bg-gradient-to-br from-primary via-secondary to-amber-500 rounded-xl flex items-center justify-center mr-3 shadow-md">
                   {/* user photo */}
                   {user?.image ? (
                     <img
                       src={user.photo}
                       alt={user.name || "Profile Photo"}
-                      className="w-8 h-8 rounded-lg object-cover"
+                      className="w-10 h-10 rounded-xl object-cover"
                     />
                   ) : (
-                    <User className="w-4 h-4 text-white" />
+                    <Award className="w-5 h-5 text-white" />
                   )}
                   
                   {/* user name */}

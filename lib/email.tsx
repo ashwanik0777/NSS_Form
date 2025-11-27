@@ -545,9 +545,9 @@ export async function sendAttendanceReminderEmail(to: string, data: AttendanceRe
           <h1 style="color: white; margin: 0;">⚠️ Attendance Reminder</h1>
         </div>
         <div style="padding: 20px; background-color: white;">
-          <h2 style="color: #dc2626; margin-top: 0;">Mark Your Attendance Now</h2>
+          <h2 style="color: #dc2626; margin-top: 0;">Event Starting Soon - Mark Your Attendance</h2>
           <p>Dear ${data.name},</p>
-          <p>The event has started and you need to mark your attendance immediately.</p>
+          <p>The event is about to start and you need to mark your starting attendance on time.</p>
           
           <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
             <h3 style="margin: 0 0 15px 0; color: #991b1b;">Event Details:</h3>
@@ -567,7 +567,11 @@ export async function sendAttendanceReminderEmail(to: string, data: AttendanceRe
             </table>
           </div>
 
-          <p style="margin-top: 20px; color: #dc2626; font-weight: bold;">⚠️ URGENT: Please mark your starting attendance immediately through your dashboard. If you fail to mark your attendance within 30 minutes, you will be added to the defaulter list.</p>
+          <p style="margin-top: 20px; color: #dc2626; font-weight: bold;">
+            ⚠️ Please mark your starting attendance through your dashboard before the event window closes.
+            Attendance is allowed from <strong>1 hour before</strong> the event start time until <strong>1 hour after</strong> the event end time. 
+            If you fail to mark your attendance in this window, you may be marked as defaulter.
+          </p>
           
           <p>Best regards,<br>NSS Team</p>
         </div>
@@ -599,9 +603,9 @@ export async function sendEndAttendanceReminderEmail(to: string, data: EndAttend
           <h1 style="color: white; margin: 0;">⚠️ End Attendance Reminder</h1>
         </div>
         <div style="padding: 20px; background-color: white;">
-          <h2 style="color: #dc2626; margin-top: 0;">Mark Your End Attendance Now</h2>
+          <h2 style="color: #dc2626; margin-top: 0;">Event Ending Soon - Mark Your End Attendance</h2>
           <p>Dear ${data.name},</p>
-          <p>The event has ended and you need to mark your end attendance immediately.</p>
+          <p>The event is about to end and you need to mark your end attendance on time.</p>
           
           <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
             <h3 style="margin: 0 0 15px 0; color: #991b1b;">Event Details:</h3>
@@ -621,7 +625,11 @@ export async function sendEndAttendanceReminderEmail(to: string, data: EndAttend
             </table>
           </div>
 
-          <p style="margin-top: 20px; color: #dc2626; font-weight: bold;">⚠️ URGENT: Please mark your end attendance immediately through your dashboard. If you fail to mark your end attendance within 30 minutes, your working hours will not be added to your record.</p>
+          <p style="margin-top: 20px; color: #dc2626; font-weight: bold;">
+            ⚠️ Please mark your end attendance through your dashboard before the event window closes.
+            Attendance is allowed from <strong>1 hour before</strong> the event start time until <strong>1 hour after</strong> the event end time. 
+            If you fail to mark your end attendance in this window, your working hours may not be added to your record.
+          </p>
           
           <p>Best regards,<br>NSS Team</p>
         </div>
