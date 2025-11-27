@@ -29,8 +29,9 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url)
     const volunteerId = searchParams.get("volunteerId")
+    const format = searchParams.get("format") // "excel" | "pdf" | undefined
 
-    if (volunteerId) {
+    if (volunteerId && !format) {
       // Get detailed info for a specific volunteer
       const volunteer = await User.findById(volunteerId).lean()
       if (!volunteer || (volunteer.role !== "volunteer" && volunteer.role !== "user")) {
@@ -210,6 +211,51 @@ export async function GET(request: NextRequest) {
         }
       })
     )
+
+    // If export requested, return file instead of JSON
+    if (format === "excel" || format === "pdf") {
+      const rows = volunteersWithStats.map((v: any) => ({
+        name: v.application?.nameEnglish || v.name || "",
+        email: v.email || "",
+        mobileNo: v.application?.mobileNo || "",
+        schoolName: v.application?.schoolName || "",
+        departmentName: v.application?.departmentName || "",
+        courseName: v.application?.courseName || "",
+        year: v.application?.enrollment || "",
+        rollNumber: v.application?.formNo || "",
+        unitNo: v.application?.unitNo || "",
+      }))
+
+      // Build a simple tab-separated text that Excel can open,
+      // and reuse for PDF (tabular text).
+      const header =
+        "Name\tEmail\tMobile No\tSchool\tDepartment\tCourse\tYear\tRoll Number\tUnit\n"
+      const body = rows
+        .map(
+          (r) =>
+            `${r.name}\t${r.email}\t${r.mobileNo}\t${r.schoolName}\t${r.departmentName}\t${r.courseName}\t${r.year}\t${r.rollNumber}\t${r.unitNo}`,
+        )
+        .join("\n")
+      const content = header + body + "\n"
+
+      const fileNameBase =
+        (searchParams.get("unitNo") && searchParams.get("unitNo") !== "all")
+          ? `volunteers_unit_${searchParams.get("unitNo")}`
+          : "volunteers_all_units"
+
+      const headers =
+        format === "excel"
+          ? {
+              "Content-Type": "application/vnd.ms-excel; charset=utf-8",
+              "Content-Disposition": `attachment; filename="${fileNameBase}.xls"`,
+            }
+          : {
+              "Content-Type": "text/plain; charset=utf-8",
+              "Content-Disposition": `attachment; filename="${fileNameBase}.txt"`,
+            }
+
+      return new NextResponse(content, { status: 200, headers })
+    }
 
     // Sort volunteers: highest hours first, then attendance rate
     volunteersWithStats.sort((a, b) => {

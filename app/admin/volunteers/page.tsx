@@ -25,6 +25,7 @@ import {
   Edit,
   Trash2,
   Save,
+  Download,
 } from "lucide-react"
 
 interface Volunteer {
@@ -135,6 +136,7 @@ export default function VolunteersPage() {
   const [stats, setStats] = useState<any | null>(null)
   const [schools, setSchools] = useState<string[]>([])
   const [loadingSchools, setLoadingSchools] = useState(false)
+  const [exporting, setExporting] = useState<"excel" | "pdf" | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -195,6 +197,42 @@ export default function VolunteersPage() {
       console.error('Error fetching schools:', error)
     } finally {
       setLoadingSchools(false)
+    }
+  }
+
+  const handleExport = async (format: "excel" | "pdf") => {
+    try {
+      setExporting(format)
+      const params = new URLSearchParams()
+      params.set("format", format)
+      if (unitNo !== "all") params.set("unitNo", unitNo)
+      if (enrollment === "first-year" || enrollment === "second-year") params.set("enrollment", enrollment)
+      if (schoolName) params.set("schoolName", schoolName)
+      if (departmentName) params.set("departmentName", departmentName)
+      if (nameSearch) params.set("nameSearch", nameSearch)
+
+      const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
+      if (!res.ok) {
+        alert("Failed to export data")
+        return
+      }
+
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      const fileNameBase =
+        unitNo !== "all" ? `volunteers_unit_${unitNo}` : "volunteers_all_units"
+      a.download = `${fileNameBase}.${format === "excel" ? "xlsx" : "pdf"}`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Export error:", error)
+      alert("Failed to export data")
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -305,6 +343,34 @@ export default function VolunteersPage() {
       <AdminHeader title="Volunteers" subtitle="Manage registered NSS volunteers" />
       
       <div className="p-6 space-y-6">
+        {/* Export Controls */}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => handleExport("excel")}
+            disabled={exporting !== null}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50"
+          >
+            {exporting === "excel" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Export (Excel)
+          </button>
+          <button
+            onClick={() => handleExport("pdf")}
+            disabled={exporting !== null}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50"
+          >
+            {exporting === "pdf" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
+            Export (PDF)
+          </button>
+        </div>
+
         {/* Unit-wise Stat Cards */}
         {stats && Object.keys(stats.units || {}).length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

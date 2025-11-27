@@ -201,7 +201,7 @@ export default function VolunteerDashboard() {
     readNotifications.length > limitedReadNotifications.length
 
   const sortedAnnouncements = [...announcements].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
   const displayAnnouncements = viewAllAnnouncements ? sortedAnnouncements : sortedAnnouncements.slice(0, 5)
   const hasMoreAnnouncements = sortedAnnouncements.length > displayAnnouncements.length
@@ -249,43 +249,44 @@ export default function VolunteerDashboard() {
         </div>
 
       </div>
-      
-        {/* Live ticker for latest announcement & notification */}
-        {(latestAnnouncement || latestNotification) && (
-          <div className="mt-2 bg-background/60 border border-primary/20 rounded-lg px-4 py-2 text-xs md:text-sm flex items-center gap-4 overflow-hidden">
-            {latestAnnouncement && (
-              <div className="flex items-center gap-2 min-w-0">
-                <Megaphone className="w-4 h-4 text-primary flex-shrink-0" />
+
+      {/* Live ticker for latest announcement & notification */}
+      {(latestAnnouncement || latestNotification) && (
+        <div className="bg-background/60 border border-primary/20 rounded-lg px-4 py-2 text-xs md:text-sm flex items-center gap-6 overflow-hidden">
+          {latestAnnouncement && (
+            <div className="flex items-center gap-2 min-w-0">
+              <Megaphone className="w-4 h-4 text-primary flex-shrink-0" />
+              <div className="flex-1 overflow-hidden">
                 <div className="whitespace-nowrap animate-[marquee_18s_linear_infinite]">
                   <span className="font-semibold mr-2">Announcement:</span>
                   <span className="opacity-90">
-                    {latestAnnouncement.title} -{" "}
-                    {new Date(latestAnnouncement.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                    })}
+                    {latestAnnouncement.title}
+                    {latestAnnouncement.content && " - "}
+                    {latestAnnouncement.content && latestAnnouncement.content.slice(0, 120)}
+                    {latestAnnouncement.content && latestAnnouncement.content.length > 120 && "..."}
                   </span>
                 </div>
               </div>
-            )}
-            {latestNotification && (
-              <div className="hidden md:flex items-center gap-2 min-w-0">
-                <Bell className="w-4 h-4 text-primary flex-shrink-0" />
+            </div>
+          )}
+          {latestNotification && (
+            <div className="hidden md:flex items-center gap-2 min-w-0">
+              <Bell className="w-4 h-4 text-primary flex-shrink-0" />
+              <div className="flex-1 overflow-hidden">
                 <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite]">
                   <span className="font-semibold mr-2">Notification:</span>
                   <span className="opacity-90">
-                    {latestNotification.title} -{" "}
-                    {new Date(latestNotification.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                    })}
+                    {latestNotification.title}
+                    {latestNotification.content && " - "}
+                    {latestNotification.content && latestNotification.content.slice(0, 120)}
+                    {latestNotification.content && latestNotification.content.length > 120 && "..."}
                   </span>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-   
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Top Summary Bar */}
       <div className="grid grid-cols-1 xl:grid-cols-4 md:grid-cols-2 gap-4">
