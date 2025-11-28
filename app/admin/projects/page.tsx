@@ -68,24 +68,40 @@ export default function ProjectManagementPage() {
     status: "active",
     category: "",
   })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalProjects, setTotalProjects] = useState(0)
+  const projectsPerPage = 10
 
   useEffect(() => {
-    fetchProjects()
-  }, [])
+    fetchProjects(currentPage)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage])
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (page = currentPage) => {
     try {
-      const res = await fetch("/api/admin/projects")
+      const res = await fetch(`/api/admin/projects?page=${page}&limit=${projectsPerPage}`)
       const data = await res.json()
       if (data.success) {
         setProjects(data.projects || [])
         setAnalytics(data.analytics || null)
+        const computedPages = Math.max(1, data.pagination?.pages || 1)
+        setTotalPages(computedPages)
+        setTotalProjects(data.pagination?.total || data.projects?.length || 0)
+        if (page > computedPages && computedPages > 0) {
+          setCurrentPage(computedPages)
+        }
       }
     } catch (error) {
       console.error("Error fetching projects:", error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return
+    setCurrentPage(page)
   }
 
   const fetchProjectVolunteers = async (projectId: string) => {
@@ -123,7 +139,7 @@ export default function ProjectManagementPage() {
         alert(data.message || "Failed to remove volunteer")
       } else {
         await fetchProjectVolunteers(selectedProject._id)
-        await fetchProjects()
+        await fetchProjects(currentPage)
       }
     } catch (error) {
       console.error("Error removing volunteer:", error)
@@ -163,7 +179,7 @@ export default function ProjectManagementPage() {
           status: "active",
           category: "",
         })
-        fetchProjects()
+        fetchProjects(currentPage)
       }
     } catch (error) {
       console.error("Error saving project:", error)
@@ -196,7 +212,7 @@ export default function ProjectManagementPage() {
 
       const data = await res.json()
       if (data.success) {
-        fetchProjects()
+        fetchProjects(currentPage)
       }
     } catch (error) {
       console.error("Error deleting project:", error)
@@ -361,6 +377,33 @@ export default function ProjectManagementPage() {
             </tbody>
           </table>
         </div>
+        {totalProjects > 0 && (
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-6 py-4 border-t border-border bg-muted/50">
+            <div className="text-sm text-muted-foreground">
+              Showing {(currentPage - 1) * projectsPerPage + 1}–
+              {Math.min(currentPage * projectsPerPage, totalProjects)} of {totalProjects} projects
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Modal */}

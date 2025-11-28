@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
     await dbConnect()
     const { searchParams } = new URL(request.url)
     const projectId = searchParams.get("id")
+    const pageParam = Number.parseInt(searchParams.get("page") || "1")
+    const limitParam = Number.parseInt(searchParams.get("limit") || "10")
+    const page = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam
+    const limit = Number.isNaN(limitParam) || limitParam < 1 ? 10 : limitParam
+    const skip = (page - 1) * limit
 
     if (projectId) {
       // Get single project with volunteers
@@ -51,20 +56,37 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get all projects with volunteer counts
-    const projects = await NSSProject.find().sort({ createdAt: -1 }).lean()
-    const projectsWithCounts = await Promise.all(
-      projects.map(async (project) => {
-        const volunteerCount = await VolunteerProject.countDocuments({
-          projectId: project._id,
-          status: "active",
-        })
-        return {
-          ...project,
-          actualVolunteerCount: volunteerCount,
-        }
-      })
-    )
+    // Get all projects with volunteer counts (paginated)
+    const totalProjectsCount = await NSSProject.countDocuments()
+
+    const projects = await NSSProject.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+
+    const projectIds = projects.map((project) => project._id)
+    let volunteerCountsMap: Record<string, number> = {}
+
+    if (projectIds.length > 0) {
+      const volunteerCounts = await VolunteerProject.aggregate([
+        { $match: { projectId: { $in: projectIds }, status: "active" } },
+        { $group: { _id: "$projectId", count: { $sum: 1 } } },
+      ])
+
+      volunteerCountsMap = volunteerCounts.reduce(
+        (acc, item) => {
+          acc[item._id.toString()] = item.count
+          return acc
+        },
+        {} as Record<string, number>,
+      )
+    }
+
+    const projectsWithCounts = projects.map((project) => ({
+      ...project,
+      actualVolunteerCount: volunteerCountsMap[project._id.toString()] || 0,
+    }))
 
     // Analytics
     const totalVolunteers = await VolunteerProject.countDocuments({ status: "active" })
@@ -90,9 +112,15 @@ export async function GET(request: NextRequest) {
       success: true,
       projects: projectsWithCounts,
       analytics: {
-        totalProjects: projects.length,
+        totalProjects: totalProjectsCount,
         totalVolunteers,
         mostPopularProject: popularProjectData,
+      },
+      pagination: {
+        page,
+        limit,
+        total: totalProjectsCount,
+        pages: Math.max(1, Math.ceil(totalProjectsCount / limit)),
       },
     })
   } catch (error) {

@@ -99,14 +99,18 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const applicationsPerPage = 10
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalApplications, setTotalApplications] = useState(0)
 
   useEffect(() => {
-    fetchApplications()
-    setCurrentPage(1) // Reset to first page on filter change
+    setCurrentPage(1)
+    fetchApplications(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, unitNo, enrollment, schoolName, departmentName, nameSearch])
 
-  const fetchApplications = async () => {
+  const fetchApplications = async (page = currentPage) => {
     try {
+      setLoading(true)
       const params = new URLSearchParams()
       params.set('status', statusFilter)
       if (unitNo !== 'all') params.set('unitNo', unitNo)
@@ -114,17 +118,27 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
       if (schoolName) params.set('schoolName', schoolName)
       if (departmentName) params.set('departmentName', departmentName)
       if (nameSearch) params.set('nameSearch', nameSearch)
+      params.set('page', page.toString())
+      params.set('limit', applicationsPerPage.toString())
 
       const response = await fetch(`/api/applications?${params.toString()}`)
       const data = await response.json()
       if (data.success) {
-        setApplications(data.applications)
+        setApplications(data.applications || [])
+        setTotalPages(data.pagination?.pages || 1)
+        setTotalApplications(data.pagination?.total || data.applications?.length || 0)
       }
     } catch (error) {
       console.error("Error fetching applications:", error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return
+    setCurrentPage(page)
+    fetchApplications(page)
   }
 
   const fetchUnitCapacity = async () => {
@@ -249,11 +263,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
     )
   }
 
-  // Pagination logic
-  const indexOfLastApp = currentPage * applicationsPerPage
-  const indexOfFirstApp = indexOfLastApp - applicationsPerPage
-  const currentApplications = applications.slice(indexOfFirstApp, indexOfLastApp)
-  const totalPages = Math.ceil(applications.length / applicationsPerPage)
+  const currentApplications = applications
 
   if (loading) {
     return (
@@ -375,25 +385,31 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
         </div>
 
         {/* Pagination Controls */}
-        {applications.length > 0 && (
-          <div className="flex justify-between items-center px-6 py-4 border-t border-border bg-muted/50">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
-            >
-              Next
-            </button>
+        {totalApplications > 0 && (
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-6 py-4 border-t border-border bg-muted/50">
+            <div className="text-sm text-muted-foreground">
+              Showing {(currentPage - 1) * applicationsPerPage + 1}–
+              {Math.min(currentPage * applicationsPerPage, totalApplications)} of {totalApplications} applications
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
 

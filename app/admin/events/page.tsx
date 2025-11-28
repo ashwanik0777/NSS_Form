@@ -49,12 +49,17 @@ export default function EventsPage() {
   const [participantsData, setParticipantsData] = useState<any>(null)
   const [participantsLoading, setParticipantsLoading] = useState(false)
   const [participantsError, setParticipantsError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalEvents, setTotalEvents] = useState(0)
+  const eventsPerPage = 10
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData(currentPage)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage])
 
-  const fetchData = async () => {
+  const fetchData = async (page = currentPage) => {
     try {
       setLoading(true)
       // Fetch projects for dropdown
@@ -65,10 +70,16 @@ export default function EventsPage() {
       }
 
       // Fetch events
-      const eventsRes = await fetch("/api/admin/events")
+      const eventsRes = await fetch(`/api/admin/events?page=${page}&limit=${eventsPerPage}`)
       const eventsData = await eventsRes.json()
       if (eventsData.success) {
         setEvents(eventsData.events || [])
+        const computedPages = Math.max(1, eventsData.pagination?.pages || 1)
+        setTotalPages(computedPages)
+        setTotalEvents(eventsData.pagination?.total || eventsData.events?.length || 0)
+        if (page > computedPages && computedPages > 0) {
+          setCurrentPage(computedPages)
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -76,6 +87,11 @@ export default function EventsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return
+    setCurrentPage(page)
   }
 
   const handleViewParticipants = async (event: any) => {
@@ -174,7 +190,7 @@ export default function EventsPage() {
       setShowModal(false)
       setEditingEvent(null)
       setFormData(createEmptyForm())
-      await fetchData()
+      await fetchData(currentPage)
       setSubmitting(false)
     } catch (error) {
       console.error("Error saving event:", error)
@@ -222,7 +238,7 @@ export default function EventsPage() {
         return
       }
 
-      await fetchData()
+      await fetchData(currentPage)
     } catch (error) {
       console.error("Error deleting event:", error)
       alert("Failed to delete event")
@@ -448,6 +464,33 @@ export default function EventsPage() {
               </tbody>
             </table>
           </div>
+          {totalEvents > 0 && (
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-6 py-4 border-t border-border bg-muted/50">
+              <div className="text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * eventsPerPage + 1}–
+                {Math.min(currentPage * eventsPerPage, totalEvents)} of {totalEvents} events
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

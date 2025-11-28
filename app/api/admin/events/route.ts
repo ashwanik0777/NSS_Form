@@ -11,7 +11,7 @@ import VolunteerEvent from "@/models/VolunteerEvent"
 import { sendEventNotificationEmail } from "@/lib/email"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id) {
@@ -32,9 +32,18 @@ export async function GET(_request: NextRequest) {
 
     await dbConnect()
 
+    const { searchParams } = new URL(request.url)
+    const pageParam = Number.parseInt(searchParams.get("page") || "1")
+    const limitParam = Number.parseInt(searchParams.get("limit") || "20")
+    const page = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam
+    const limit = Number.isNaN(limitParam) || limitParam < 1 ? 20 : limitParam
+    const skip = (page - 1) * limit
+
     const events = await Event.find()
       .populate("projectId")
       .sort({ eventDate: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean()
 
     const eventIds = events.map((event) => event._id)
@@ -155,9 +164,17 @@ export async function GET(_request: NextRequest) {
       })
     }
 
+    const totalEvents = await Event.countDocuments()
+
     return NextResponse.json({
       success: true,
       events: updatedEvents,
+      pagination: {
+        page,
+        limit,
+        total: totalEvents,
+        pages: Math.max(1, Math.ceil(totalEvents / limit)),
+      },
     })
   } catch (error) {
     console.error("Events fetch error:", error)
