@@ -8,6 +8,7 @@ import VolunteerEvent from "@/models/VolunteerEvent"
 import Event from "@/models/Event"
 import NSSApplication from "@/models/NSSApplication"
 import NSSProject from "@/models/NSSProject"
+import { generateVolunteerExportPDF } from "@/lib/generateVolunteerExportPDF"
 
 export async function GET(request: NextRequest) {
   try {
@@ -108,6 +109,8 @@ export async function GET(request: NextRequest) {
     const schoolName = searchParams.get("schoolName")
     const departmentName = searchParams.get("departmentName")
     const nameSearch = searchParams.get("nameSearch")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "20")
 
     // Build application filter query
     const applicationFilter: any = { status: "approved" }
@@ -226,35 +229,46 @@ export async function GET(request: NextRequest) {
         unitNo: v.application?.unitNo || "",
       }))
 
-      // Build a simple tab-separated text that Excel can open,
-      // and reuse for PDF (tabular text).
-      const header =
-        "Name\tEmail\tMobile No\tSchool\tDepartment\tCourse\tYear\tRoll Number\tUnit\n"
-      const body = rows
-        .map(
-          (r) =>
-            `${r.name}\t${r.email}\t${r.mobileNo}\t${r.schoolName}\t${r.departmentName}\t${r.courseName}\t${r.year}\t${r.rollNumber}\t${r.unitNo}`,
-        )
-        .join("\n")
-      const content = header + body + "\n"
-
       const fileNameBase =
         (searchParams.get("unitNo") && searchParams.get("unitNo") !== "all")
           ? `volunteers_unit_${searchParams.get("unitNo")}`
           : "volunteers_all_units"
 
-      const headers =
-        format === "excel"
-          ? {
-              "Content-Type": "application/vnd.ms-excel; charset=utf-8",
-              "Content-Disposition": `attachment; filename="${fileNameBase}.xls"`,
-            }
-          : {
-              "Content-Type": "text/plain; charset=utf-8",
-              "Content-Disposition": `attachment; filename="${fileNameBase}.txt"`,
-            }
+      if (format === "pdf") {
+        // Generate actual PDF
+        const unitInfo =
+          searchParams.get("unitNo") && searchParams.get("unitNo") !== "all"
+            ? `Unit ${searchParams.get("unitNo")} Volunteers`
+            : "All Units Volunteers"
+        const pdfBytes = await generateVolunteerExportPDF(rows, unitInfo)
 
-      return new NextResponse(content, { status: 200, headers })
+        return new NextResponse(pdfBytes, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="${fileNameBase}.pdf"`,
+          },
+        })
+      } else {
+        // Excel format (tab-separated)
+        const header =
+          "Name\tEmail\tMobile No\tSchool\tDepartment\tCourse\tYear\tRoll Number\tUnit\n"
+        const body = rows
+          .map(
+            (r) =>
+              `${r.name}\t${r.email}\t${r.mobileNo}\t${r.schoolName}\t${r.departmentName}\t${r.courseName}\t${r.year}\t${r.rollNumber}\t${r.unitNo}`,
+          )
+          .join("\n")
+        const content = header + body + "\n"
+
+        return new NextResponse(content, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/vnd.ms-excel; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${fileNameBase}.xls"`,
+          },
+        })
+      }
     }
 
     // Sort volunteers: highest hours first, then attendance rate
@@ -266,8 +280,14 @@ export async function GET(request: NextRequest) {
       return (b.stats?.attendanceRate || 0) - (a.stats?.attendanceRate || 0)
     })
 
+    // Pagination
+    const totalVolunteers = volunteersWithStats.length
+    const totalPages = Math.ceil(totalVolunteers / limit)
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedVolunteers = volunteersWithStats.slice(startIndex, endIndex)
+
     // Overall analytics
-    const totalVolunteers = volunteers.length
     const totalActiveProjects = await VolunteerProject.countDocuments({ status: "active" })
     const totalEvents = await Event.countDocuments()
     const totalEventParticipations = await VolunteerEvent.countDocuments()
@@ -281,7 +301,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      volunteers: volunteersWithStats,
+      volunteers: paginatedVolunteers,
+      totalVolunteers,
+      totalPages,
+      currentPage: page,
       analytics: {
         totalVolunteers,
         totalActiveProjects,

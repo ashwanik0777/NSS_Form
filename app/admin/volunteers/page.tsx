@@ -26,6 +26,8 @@ import {
   Trash2,
   Save,
   Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 
 interface Volunteer {
@@ -137,11 +139,22 @@ export default function VolunteersPage() {
   const [schools, setSchools] = useState<string[]>([])
   const [loadingSchools, setLoadingSchools] = useState(false)
   const [exporting, setExporting] = useState<"excel" | "pdf" | null>(null)
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [exportUnit, setExportUnit] = useState<string>("all")
+  const [exportFormat, setExportFormat] = useState<"excel" | "pdf">("excel")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalVolunteers, setTotalVolunteers] = useState(0)
+  const itemsPerPage = 20
+
+  useEffect(() => {
+    setCurrentPage(1) // Reset to first page when filters change
+  }, [unitNo, enrollment, schoolName, departmentName, nameSearch])
 
   useEffect(() => {
     fetchData()
     fetchStats()
-  }, [unitNo, enrollment, schoolName, departmentName, nameSearch])
+  }, [unitNo, enrollment, schoolName, departmentName, nameSearch, currentPage])
 
   useEffect(() => {
     fetchSchools()
@@ -156,12 +169,16 @@ export default function VolunteersPage() {
       if (schoolName) params.set('schoolName', schoolName)
       if (departmentName) params.set('departmentName', departmentName)
       if (nameSearch) params.set('nameSearch', nameSearch)
+      params.set('page', currentPage.toString())
+      params.set('limit', itemsPerPage.toString())
 
       const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
       const data = await res.json()
       if (data.success) {
         setVolunteers(data.volunteers || [])
         setAnalytics(data.analytics || null)
+        setTotalPages(data.totalPages || 1)
+        setTotalVolunteers(data.totalVolunteers || 0)
       }
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -200,16 +217,12 @@ export default function VolunteersPage() {
     }
   }
 
-  const handleExport = async (format: "excel" | "pdf") => {
+  const handleExport = async () => {
     try {
-      setExporting(format)
+      setExporting(exportFormat)
       const params = new URLSearchParams()
-      params.set("format", format)
-      if (unitNo !== "all") params.set("unitNo", unitNo)
-      if (enrollment === "first-year" || enrollment === "second-year") params.set("enrollment", enrollment)
-      if (schoolName) params.set("schoolName", schoolName)
-      if (departmentName) params.set("departmentName", departmentName)
-      if (nameSearch) params.set("nameSearch", nameSearch)
+      params.set("format", exportFormat)
+      if (exportUnit !== "all") params.set("unitNo", exportUnit)
 
       const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
       if (!res.ok) {
@@ -222,12 +235,13 @@ export default function VolunteersPage() {
       const a = document.createElement("a")
       a.href = url
       const fileNameBase =
-        unitNo !== "all" ? `volunteers_unit_${unitNo}` : "volunteers_all_units"
-      a.download = `${fileNameBase}.${format === "excel" ? "xlsx" : "pdf"}`
+        exportUnit !== "all" ? `volunteers_unit_${exportUnit}` : "volunteers_all_units"
+      a.download = `${fileNameBase}.${exportFormat === "excel" ? "xls" : "pdf"}`
       document.body.appendChild(a)
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
+      setShowExportModal(false)
     } catch (error) {
       console.error("Export error:", error)
       alert("Failed to export data")
@@ -346,28 +360,12 @@ export default function VolunteersPage() {
         {/* Export Controls */}
         <div className="flex justify-end gap-3">
           <button
-            onClick={() => handleExport("excel")}
+            onClick={() => setShowExportModal(true)}
             disabled={exporting !== null}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            {exporting === "excel" ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4" />
-            )}
-            Export (Excel)
-          </button>
-          <button
-            onClick={() => handleExport("pdf")}
-            disabled={exporting !== null}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50"
-          >
-            {exporting === "pdf" ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <FileText className="w-4 h-4" />
-            )}
-            Export (PDF)
+            <Download className="w-4 h-4" />
+            Export
           </button>
         </div>
 
@@ -615,6 +613,61 @@ export default function VolunteersPage() {
             </table>
           </div>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-card rounded-xl border border-border px-6 py-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVolunteers)} of {totalVolunteers} volunteers
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || loading}
+                className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      disabled={loading}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border hover:bg-muted"
+                      } disabled:opacity-50`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Volunteer Detail Modal */}
         {showDetailModal && selectedVolunteer && (
@@ -1052,6 +1105,133 @@ export default function VolunteersPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Export Modal */}
+        {showExportModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card rounded-xl border border-border max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-foreground">Export Volunteers</h2>
+                <button
+                  onClick={() => {
+                    setShowExportModal(false)
+                    setExportUnit("all")
+                    setExportFormat("excel")
+                  }}
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Unit Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Select Unit
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                      <input
+                        type="radio"
+                        name="exportUnit"
+                        value="all"
+                        checked={exportUnit === "all"}
+                        onChange={(e) => setExportUnit(e.target.value)}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <span className="text-foreground">All Units</span>
+                    </label>
+                    {[1, 2, 3, 4, 5].map((unit) => (
+                      <label
+                        key={unit}
+                        className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                      >
+                        <input
+                          type="radio"
+                          name="exportUnit"
+                          value={unit.toString()}
+                          checked={exportUnit === unit.toString()}
+                          onChange={(e) => setExportUnit(e.target.value)}
+                          className="w-4 h-4 text-primary"
+                        />
+                        <span className="text-foreground">Unit {unit}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Format Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Select Format
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors border-border hover:bg-muted/50">
+                      <input
+                        type="radio"
+                        name="exportFormat"
+                        value="excel"
+                        checked={exportFormat === "excel"}
+                        onChange={(e) => setExportFormat(e.target.value as "excel" | "pdf")}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-green-600" />
+                        <span className="text-foreground font-medium">Excel</span>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors border-border hover:bg-muted/50">
+                      <input
+                        type="radio"
+                        name="exportFormat"
+                        value="pdf"
+                        checked={exportFormat === "pdf"}
+                        onChange={(e) => setExportFormat(e.target.value as "excel" | "pdf")}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-red-600" />
+                        <span className="text-foreground font-medium">PDF</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={handleExport}
+                    disabled={exporting !== null}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    {exporting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        Export
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowExportModal(false)
+                      setExportUnit("all")
+                      setExportFormat("excel")
+                    }}
+                    className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
