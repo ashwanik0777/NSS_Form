@@ -30,6 +30,22 @@ import {
   ChevronRight,
 } from "lucide-react"
 
+const formatDate = (value?: string | Date) => {
+  if (!value) return "N/A"
+  try {
+    const dateValue = typeof value === "string" ? value : value.toString()
+    return new Date(dateValue).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+  } catch {
+    return typeof value === "string" ? value : "N/A"
+  }
+}
+
+const boolToText = (value?: boolean) => {
+  if (value === true) return "Yes"
+  if (value === false) return "No"
+  return "N/A"
+}
+
 interface Volunteer {
   _id: string
   name: string
@@ -870,6 +886,98 @@ export default function VolunteersPage() {
                             </div>
                           )}
                         </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Date of Birth</p>
+                            <p className="text-foreground font-medium">{formatDate(selectedVolunteer.application.dateOfBirth)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Gender</p>
+                            <p className="text-foreground font-medium text-capitalize">{selectedVolunteer.application.gender || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Category</p>
+                            <p className="text-foreground font-medium text-uppercase">{selectedVolunteer.application.category || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Blood Group</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.bloodGroup || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">NSS Enrollment Year</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.nssEnrollmentYear || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Program Officer</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.programOfficerName || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">High School Roll No.</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.highSchoolRollNo || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Current Semester/Class</p>
+                            <p className="text-foreground font-medium">{selectedVolunteer.application.classSemester || "N/A"}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Address Type</p>
+                            <p className="text-foreground font-medium capitalize">{selectedVolunteer.application.addressType || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">My Bharat Registered</p>
+                            <p className="text-foreground font-medium">{boolToText(selectedVolunteer.application.myBharatPortalRegistered)}</p>
+                          </div>
+                          {selectedVolunteer.application.hostelAddress && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm text-muted-foreground mb-1">Hostel Address</p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.hostelAddress}</p>
+                            </div>
+                          )}
+                          {selectedVolunteer.application.homeAddress && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm text-muted-foreground mb-1">Home Address</p>
+                              <p className="text-foreground font-medium">{selectedVolunteer.application.homeAddress}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Attended Special Camp</p>
+                            <p className="text-foreground font-medium">{boolToText(selectedVolunteer.application.attendedSpecialCamp)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Attended ELP</p>
+                            <p className="text-foreground font-medium">{boolToText(selectedVolunteer.application.attendedELP)}</p>
+                          </div>
+                        </div>
+
+                        {selectedVolunteer.application.specialCampDetails && (
+                          <div className="border border-border rounded-lg p-4 bg-white/30">
+                            <p className="text-sm font-semibold text-foreground mb-3">Special Camp Details</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground mb-1">Village</p>
+                                <p className="font-medium text-foreground">
+                                  {selectedVolunteer.application.specialCampDetails.villageName || "N/A"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground mb-1">Venue</p>
+                                <p className="font-medium text-foreground">
+                                  {selectedVolunteer.application.specialCampDetails.venue || "N/A"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground mb-1">Date</p>
+                                <p className="font-medium text-foreground">
+                                  {formatDate(selectedVolunteer.application.specialCampDetails.date)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 

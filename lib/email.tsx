@@ -249,6 +249,86 @@ export async function sendReportSubmittedEmail(to: string, data: ReportSubmitted
   await transporter.sendMail(mailOptions)
 }
 
+interface PasswordResetOTPData {
+  name: string
+  otp: string
+}
+
+export async function sendPasswordResetOTPEmail(to: string, data: PasswordResetOTPData) {
+  const appUrl = process.env.NEXTAUTH_URL || "https://nss.gov.in"
+
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: "NSS Volunteer Password Reset Verification",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #1d4ed8; padding: 20px; text-align: center; color: #fff;">
+          <h2 style="margin: 0;">NSS Volunteer Security</h2>
+        </div>
+        <div style="padding: 24px; background-color: #ffffff;">
+          <p>Namaste ${data.name.split(" ")[0] || "Volunteer"},</p>
+          <p>We received a request from the NSS administration team to reset the password for your volunteer portal account.</p>
+          <p style="margin: 16px 0;">Please share the following One-Time Password (OTP) with the NSS administrator to continue:</p>
+          <div style="background: #f3f4f6; padding: 18px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 6px; border-radius: 8px; color: #111827;">
+            ${data.otp}
+          </div>
+          <p style="margin: 18px 0 4px 0; color: #ef4444; font-weight: 600;">Important:</p>
+          <ul style="color: #4b5563; padding-left: 20px; line-height: 1.6;">
+            <li>This OTP will expire in <strong>10 minutes</strong>.</li>
+            <li>Do not share this code with anyone else.</li>
+            <li>If you did not request this change, please contact your NSS coordinator immediately.</li>
+          </ul>
+          <p>After the NSS team verifies this OTP, you will receive a confirmation email with your temporary password and instructions.</p>
+          <p style="margin-top: 20px;">Regards,<br/>NSS Digital Support Team<br/><a href="${appUrl}" style="color: #1d4ed8;">${appUrl}</a></p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}
+
+interface PasswordResetConfirmationData {
+  name: string
+  temporaryPassword: string
+}
+
+export async function sendPasswordResetConfirmationEmail(to: string, data: PasswordResetConfirmationData) {
+  const loginUrl = `${process.env.NEXTAUTH_URL || "https://nss.gov.in"}/login`
+
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: "NSS Volunteer Password Reset Successful",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #047857; padding: 20px; text-align: center; color: #fff;">
+          <h2 style="margin: 0;">Password Reset Completed</h2>
+        </div>
+        <div style="padding: 24px; background-color: #ffffff;">
+          <p>Dear ${data.name},</p>
+          <p>Your NSS volunteer portal password has been reset by the administration team after verifying your OTP.</p>
+          <div style="background: #ecfdf5; padding: 18px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0 0 8px 0; font-weight: 600; color: #065f46;">Temporary Login Password</p>
+            <p style="font-size: 20px; font-weight: bold; color: #047857; letter-spacing: 1px;">${data.temporaryPassword}</p>
+          </div>
+          <p>Please use this password to log in and update it immediately for your security.</p>
+          <ol style="color: #4b5563; padding-left: 20px; line-height: 1.6;">
+            <li>Go to <a href="${loginUrl}" style="color: #2563eb;">${loginUrl}</a>.</li>
+            <li>Login with your registered email and the temporary password above.</li>
+            <li>Follow the prompt to set a new personal password.</li>
+          </ol>
+          <p>If you did not authorize this change, contact your NSS coordinator right away.</p>
+          <p style="margin-top: 20px;">Stay secure,<br/>NSS Digital Support Team</p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}
+
 interface ReportStatusUpdateData {
   name: string
   reportId: string

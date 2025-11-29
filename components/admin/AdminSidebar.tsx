@@ -26,6 +26,7 @@ import {
   LucideProjector,
   Book,
   CheckCircle2,
+  LockKeyhole,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -34,6 +35,7 @@ interface SidebarItem {
   icon: React.ReactNode
   href: string
   permission?: string
+  superAdminOnly?: boolean
 }
 
 const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorClass: string; items: SidebarItem[] }[] = [
@@ -95,6 +97,7 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
     items: [
       { id: "social-links", label: "NSS Social Links", href: "/admin/social-links", icon: <TrendingUp className="w-5 h-5" />, permission: "social.view" },
       { id: "email", label: "Email System", href: "/admin/emailSystem", icon: <Mail className="w-5 h-5" />, permission: "email.view" },
+      { id: "password-reset", label: "Volunteer Password Reset", href: "/admin/system/password-reset", icon: <LockKeyhole className="w-5 h-5" />, superAdminOnly: true },
     ],
   },
 ]
@@ -128,6 +131,8 @@ const getItemColorClass = (id: string): string => {
       return "text-teal-600"
     case "email":
       return "text-amber-600"
+    case "password-reset":
+      return "text-red-600"
     default:
       return "text-primary"
   }
@@ -200,6 +205,9 @@ export default function AdminSidebar() {
                 {isExpanded && !collapsed && (
                   <ul className="mt-2 space-y-2 pl-2">
                     {items.map((item) => {
+                      if (item.superAdminOnly && userRole !== "admin") {
+                        return null
+                      }
                       if (userRole !== "admin" && item.permission && !hasPermission(userPermissions, item.permission as any)) {
                         return null
                       }
@@ -232,6 +240,9 @@ export default function AdminSidebar() {
                   <div className="absolute left-full top-0 ml-2 z-50 bg-card border border-border rounded-xl shadow-xl min-w-[220px] p-2">
                     <ul className="space-y-1">
                       {items.map((item) => {
+                        if (item.superAdminOnly && userRole !== "admin") {
+                          return null
+                        }
                         if (userRole !== "admin" && item.permission && !hasPermission(userPermissions, item.permission as any)) {
                           return null
                         }
