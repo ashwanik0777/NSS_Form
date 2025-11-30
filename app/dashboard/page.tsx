@@ -176,41 +176,15 @@ export default function VolunteerDashboard() {
     fetchDashboardData()
   }, [session, status, router])
 
-  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length
-
-  if (status === "loading" || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin w-8 h-8 text-primary" />
-      </div>
-    )
-  }
-
-  const user = session?.user as any
-
-  const sortedNotifications = [...notifications].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
-  const unreadNotifications = sortedNotifications.filter((n) => !n.isRead)
-  const readNotifications = sortedNotifications.filter((n) => n.isRead)
-  const limitedUnreadNotifications = viewAllNotifications ? unreadNotifications : unreadNotifications.slice(0, 10)
-  const limitedReadNotifications = viewAllNotifications ? readNotifications : readNotifications.slice(0, 5)
-  const displayNotifications = [...limitedUnreadNotifications, ...limitedReadNotifications]
-  const hasMoreNotifications =
-    unreadNotifications.length > limitedUnreadNotifications.length ||
-    readNotifications.length > limitedReadNotifications.length
-
+  // Calculate display announcements before conditional return
   const sortedAnnouncements = [...announcements].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
   const displayAnnouncements = viewAllAnnouncements ? sortedAnnouncements : sortedAnnouncements.slice(0, 5)
-  const hasMoreAnnouncements = sortedAnnouncements.length > displayAnnouncements.length
 
-  const latestAnnouncement = sortedAnnouncements[0]
-
-  // Mark announcements as viewed when displayed
+  // Mark announcements as viewed when displayed (must be before conditional return)
   useEffect(() => {
-    if (announcements.length === 0) return
+    if (announcements.length === 0 || displayAnnouncements.length === 0) return
 
     const markAnnouncementsAsViewed = async () => {
       try {
@@ -236,6 +210,34 @@ export default function VolunteerDashboard() {
 
     return () => clearTimeout(timer)
   }, [announcements, displayAnnouncements])
+
+  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length
+
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin w-8 h-8 text-primary" />
+      </div>
+    )
+  }
+
+  const user = session?.user as any
+
+  const sortedNotifications = [...notifications].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+  const unreadNotifications = sortedNotifications.filter((n) => !n.isRead)
+  const readNotifications = sortedNotifications.filter((n) => n.isRead)
+  const limitedUnreadNotifications = viewAllNotifications ? unreadNotifications : unreadNotifications.slice(0, 10)
+  const limitedReadNotifications = viewAllNotifications ? readNotifications : readNotifications.slice(0, 5)
+  const displayNotifications = [...limitedUnreadNotifications, ...limitedReadNotifications]
+  const hasMoreNotifications =
+    unreadNotifications.length > limitedUnreadNotifications.length ||
+    readNotifications.length > limitedReadNotifications.length
+
+  const hasMoreAnnouncements = sortedAnnouncements.length > displayAnnouncements.length
+
+  const latestAnnouncement = sortedAnnouncements[0]
   const latestNotification = sortedNotifications[0]
   const getStatusBadge = (status: string) => {
     const statusConfig = {
