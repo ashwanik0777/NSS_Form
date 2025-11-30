@@ -207,6 +207,35 @@ export default function VolunteerDashboard() {
   const hasMoreAnnouncements = sortedAnnouncements.length > displayAnnouncements.length
 
   const latestAnnouncement = sortedAnnouncements[0]
+
+  // Mark announcements as viewed when displayed
+  useEffect(() => {
+    if (announcements.length === 0) return
+
+    const markAnnouncementsAsViewed = async () => {
+      try {
+        // Mark all displayed announcements as viewed
+        await Promise.allSettled(
+          displayAnnouncements.map((announcement) =>
+            fetch("/api/volunteer/announcements/view", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ announcementId: announcement._id }),
+            })
+          )
+        )
+      } catch (error) {
+        console.error("Error marking announcements as viewed:", error)
+      }
+    }
+
+    // Small delay to ensure announcements are rendered
+    const timer = setTimeout(() => {
+      markAnnouncementsAsViewed()
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [announcements, displayAnnouncements])
   const latestNotification = sortedNotifications[0]
   const getStatusBadge = (status: string) => {
     const statusConfig = {

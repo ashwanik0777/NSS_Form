@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
-import { Megaphone, Plus, Edit, Trash2, Loader2, X, Save, Mail, Target } from "lucide-react"
+import { Megaphone, Plus, Edit, Trash2, Loader2, X, Save, Mail, Target, Eye, Users } from "lucide-react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 export default function AnnouncementsPage() {
@@ -21,6 +21,10 @@ export default function AnnouncementsPage() {
     targetUnits: [] as string[],
   })
   const [error, setError] = useState<string | null>(null)
+  const [showViewersModal, setShowViewersModal] = useState(false)
+  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<string | null>(null)
+  const [viewers, setViewers] = useState<any[]>([])
+  const [loadingViewers, setLoadingViewers] = useState(false)
   const { data: session } = useSession()
   const isSuperAdmin = (session?.user as any)?.role === "admin"
 
@@ -154,6 +158,29 @@ export default function AnnouncementsPage() {
     }
   }
 
+  const handleViewViewers = async (announcementId: string) => {
+    setSelectedAnnouncementId(announcementId)
+    setShowViewersModal(true)
+    setLoadingViewers(true)
+    setViewers([])
+
+    try {
+      const response = await fetch(`/api/admin/announcements/${announcementId}/viewers`)
+      const data = await response.json()
+
+      if (data.success) {
+        setViewers(data.viewers || [])
+      } else {
+        setError(data.message || "Failed to load viewers")
+      }
+    } catch (error) {
+      console.error("Error fetching viewers:", error)
+      setError("Failed to load viewers")
+    } finally {
+      setLoadingViewers(false)
+    }
+  }
+
   const getTypeBadge = (type: string) => {
     const types: Record<string, { label: string; color: string }> = {
       notification: { label: "Notification", color: "bg-blue-100 text-blue-800" },
@@ -221,9 +248,9 @@ export default function AnnouncementsPage() {
               className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground mb-2">{announcement.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-3 mb-3">{announcement.content}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3 mb-3 break-words overflow-hidden">{announcement.content}</p>
                 </div>
               </div>
 
@@ -253,9 +280,21 @@ export default function AnnouncementsPage() {
               </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground">
-                  {new Date(announcement.createdAt).toLocaleDateString()}
-                </p>
+                <div className="flex items-center gap-4">
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(announcement.createdAt).toLocaleDateString()}
+                  </p>
+                  <button
+                    onClick={() => handleViewViewers(announcement._id)}
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                    title="View who read this announcement"
+                  >
+                    <Eye className="w-3 h-3" />
+                    <span className="font-medium">
+                      {announcement.viewCount || 0}/{announcement.totalEligible || 0}
+                    </span>
+                  </button>
+                </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(announcement)}
@@ -328,7 +367,7 @@ export default function AnnouncementsPage() {
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   rows={6}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-y break-words"
                   placeholder="Enter announcement content"
                 />
               </div>
@@ -470,6 +509,71 @@ export default function AnnouncementsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Viewers Modal */}
+      {showViewersModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-card rounded-xl border border-border p-6 max-w-2xl w-full my-8 max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Users className="w-6 h-6 text-primary" />
+                Announcement Viewers
+              </h2>
+              <button
+                onClick={() => {
+                  setShowViewersModal(false)
+                  setSelectedAnnouncementId(null)
+                  setViewers([])
+                  setError(null)
+                }}
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {loadingViewers ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="animate-spin w-8 h-8 text-primary" />
+              </div>
+            ) : viewers.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No one has viewed this announcement yet.</p>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto">
+                <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium text-foreground">
+                    Total Views: <span className="text-primary">{viewers.length}</span>
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {viewers.map((viewer, index) => (
+                    <div
+                      key={viewer._id || index}
+                      className="p-4 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-semibold text-foreground">{viewer.name}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{viewer.email}</p>
+                          <div className="flex items-center gap-4 mt-2">
+                            <span className="text-xs text-muted-foreground">Unit: {viewer.unitNo}</span>
+                            <span className="text-xs text-muted-foreground">
+                              Viewed: {new Date(viewer.viewedAt).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

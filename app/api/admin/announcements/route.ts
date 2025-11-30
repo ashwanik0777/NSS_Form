@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb"
 import Announcement from "@/models/Announcement"
 import User from "@/models/User"
 import NSSApplication from "@/models/NSSApplication"
+import AnnouncementView from "@/models/AnnouncementView"
 import { sendCustomEmail } from "@/lib/email"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
@@ -34,9 +35,57 @@ export async function GET(_request: NextRequest) {
       .sort({ createdAt: -1 })
       .lean()
 
+    // Get total eligible volunteers count for each announcement
+    const announcementIds = announcements.map((a: any) => a._id)
+    const viewCounts = await AnnouncementView.aggregate([
+      {
+        $match: {
+          announcementId: { $in: announcementIds },
+        },
+      },
+      {
+        $group: {
+          _id: "$announcementId",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+
+    const viewCountMap = new Map(
+      viewCounts.map((vc: any) => [vc._id.toString(), vc.count])
+    )
+
+    // Calculate total eligible volunteers for each announcement
+    const announcementsWithStats = await Promise.all(
+      announcements.map(async (announcement: any) => {
+        let totalEligible = 0
+
+        if (announcement.targetType === "units" && Array.isArray(announcement.targetUnits) && announcement.targetUnits.length > 0) {
+          // Count volunteers in specific units
+          totalEligible = await NSSApplication.countDocuments({
+            status: "approved",
+            unitNo: { $in: announcement.targetUnits },
+          })
+        } else {
+          // Count all approved volunteers
+          totalEligible = await NSSApplication.countDocuments({
+            status: "approved",
+          })
+        }
+
+        const views = viewCountMap.get(announcement._id.toString()) || 0
+
+        return {
+          ...announcement,
+          viewCount: views,
+          totalEligible: totalEligible,
+        }
+      })
+    )
+
     return NextResponse.json({
       success: true,
-      announcements,
+      announcements: announcementsWithStats,
     })
   } catch (error) {
     console.error("Announcements fetch error:", error)
