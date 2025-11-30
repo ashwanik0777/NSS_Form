@@ -173,37 +173,68 @@ export async function POST(request: NextRequest) {
     let pointsEarned = 0
     let pointsDoc = await VolunteerPoints.findOne({ volunteerId: session.user.id })
 
-    if (allMainPlatformsLiked && !postView.pointsAwarded) {
-      // Award 10 points total (once per post)
-      const totalPointsForPost = 10
+    // Award 2 points per platform when liked
+    const pointsPerPlatform = 2
+    let pointsToAward = 0
+    
+    if (isLikeAction && !likedPlatforms.includes(platform)) {
+      // Award 2 points for this platform
+      pointsToAward = pointsPerPlatform
+      
       pointsDoc = await VolunteerPoints.findOneAndUpdate(
         { volunteerId: session.user.id },
         {
-          $inc: { totalPoints: totalPointsForPost },
+          $inc: { totalPoints: pointsToAward },
           $push: {
             pointsHistory: {
-              points: totalPointsForPost,
+              points: pointsToAward,
               source: "social_post",
               sourceId: post._id,
-              description: `Completed all platform clicks for post: ${post.title}`,
+              description: `Liked post on ${platform} platform: ${post.title}`,
               earnedAt: new Date(),
             },
           },
         },
         { upsert: true, new: true },
       )
-
+      
+      pointsEarned = pointsToAward
+    }
+    
+    // Check if all platforms are liked and award bonus if needed
+    if (allMainPlatformsLiked && !postView.pointsAwarded) {
+      // Award bonus points to make total 10 (if not already reached)
+      const currentPointsForPost = likedPlatforms.length * pointsPerPlatform
+      const bonusPoints = 10 - currentPointsForPost
+      
+      if (bonusPoints > 0) {
+        pointsDoc = await VolunteerPoints.findOneAndUpdate(
+          { volunteerId: session.user.id },
+          {
+            $inc: { totalPoints: bonusPoints },
+            $push: {
+              pointsHistory: {
+                points: bonusPoints,
+                source: "social_post",
+                sourceId: post._id,
+                description: `Bonus for completing all platforms: ${post.title}`,
+                earnedAt: new Date(),
+              },
+            },
+          },
+          { upsert: true, new: true },
+        )
+      }
+      
       // Mark points as awarded for this post
       postView.pointsAwarded = true
       await postView.save()
-
+      
       pointsAwarded = true
-      pointsEarned = totalPointsForPost
-    } else {
+      pointsEarned = pointsEarned + bonusPoints
+    } else if (!pointsDoc) {
       // Just return current points without awarding
-      if (!pointsDoc) {
-        pointsDoc = await VolunteerPoints.findOne({ volunteerId: session.user.id })
-      }
+      pointsDoc = await VolunteerPoints.findOne({ volunteerId: session.user.id })
     }
 
     // Check for achievements

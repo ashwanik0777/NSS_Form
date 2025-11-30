@@ -921,39 +921,30 @@ export default function VolunteerDashboard() {
                     key={post._id}
                     className={`group relative border rounded-xl overflow-hidden transition-all duration-300 ${
                       allMainPlatformsLiked && availableMainPlatforms.length > 0
-                        ? "border-green-500 bg-green-50/50 dark:bg-green-950/20 shadow-md"
+                        ? "border-green-500/50 bg-green-50/30 dark:bg-green-950/10 shadow-md"
                         : likedPlatforms.length > 0
-                          ? "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20 shadow-sm"
-                          : clickedPlatforms.length > 0
-                            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm"
-                            : "border-primary/50 bg-gradient-to-r from-primary/5 to-secondary/5 shadow-sm hover:shadow-md"
+                          ? "border-yellow-500/50 bg-yellow-50/30 dark:bg-yellow-950/10 shadow-sm"
+                          : "border-primary/50 bg-gradient-to-r from-primary/5 to-secondary/5 shadow-sm hover:shadow-md"
                     }`}
                   >
                     {/* Status Badge */}
                     {allMainPlatformsLiked && availableMainPlatforms.length > 0 ? (
                       <div className="absolute top-3 right-3 z-10">
-                        <div className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded-full text-xs font-medium">
+                        <div className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded-full text-xs font-medium shadow-md">
                           <CheckCircle className="w-3 h-3" />
                           Complete
                         </div>
                       </div>
                     ) : likedPlatforms.length > 0 ? (
                       <div className="absolute top-3 right-3 z-10">
-                        <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">
+                        <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium shadow-md">
                           <Star className="w-3 h-3" />
-                          {likedPlatforms.length}/{availableMainPlatforms.length} Liked
-                        </div>
-                      </div>
-                    ) : clickedPlatforms.length > 0 ? (
-                      <div className="absolute top-3 right-3 z-10">
-                        <div className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white rounded-full text-xs font-medium">
-                          <Eye className="w-3 h-3" />
-                          {clickedPlatforms.length} Opened
+                          {likedPlatforms.length}/{availableMainPlatforms.length}
                         </div>
                       </div>
                     ) : (
                       <div className="absolute top-3 right-3 z-10">
-                        <div className="flex items-center gap-1 px-2 py-1 bg-orange-500 text-white rounded-full text-xs font-medium animate-pulse">
+                        <div className="flex items-center gap-1 px-2 py-1 bg-orange-500 text-white rounded-full text-xs font-medium animate-pulse shadow-md">
                           <Eye className="w-3 h-3" />
                           New
                         </div>
@@ -970,182 +961,144 @@ export default function VolunteerDashboard() {
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Star className="w-3 h-3 text-yellow-500" />
-                            +{post.pointsReward || 10} points when all platforms are liked
+                            +2 points per platform • +10 points total when all completed
                           </span>
                         </div>
                       </div>
 
                       {/* Platform Buttons */}
-                      <div className="space-y-2 mb-3">
+                      <div className="grid grid-cols-2 gap-2 mb-3">
                         {availableMainPlatforms.map((platform) => {
                           const PlatformIcon = platformIcons[platform] || Share2
-                          const isClicked = clickedPlatforms.includes(platform)
                           const isLiked = likedPlatforms.includes(platform)
-                          const isClicking = viewingPost === `${post._id}-${platform}-click`
-                          const isLiking = viewingPost === `${post._id}-${platform}-like`
+                          const isProcessing = viewingPost === `${post._id}-${platform}`
 
                           return (
-                            <div key={platform} className="flex items-center gap-2">
-                              <button
-                                onClick={async (e) => {
-                                  e.preventDefault()
-                                  if (!isClicked) {
-                                    setViewingPost(`${post._id}-${platform}-click`)
-                                    try {
-                                      const res = await fetch("/api/volunteer/social-posts", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ postId: post._id, platform, action: "click" }),
-                                      })
-                                      const data = await res.json()
-                                      if (data.success) {
-                                        // Update local state
-                                        setSocialPosts((prev) =>
-                                          prev.map((p) =>
-                                            p._id === post._id
-                                              ? {
-                                                  ...p,
-                                                  clickedPlatforms: [...(p.clickedPlatforms || []), platform],
-                                                }
-                                              : p
-                                          )
-                                        )
-                                        // Open all platforms in new tabs
-                                        availableMainPlatforms.forEach((p) => {
-                                          if (platformLinks[p]) {
-                                            window.open(platformLinks[p], "_blank")
-                                          }
-                                        })
-                                        await fetchDashboardData()
-                                      }
-                                    } catch (error) {
-                                      console.error("Error recording platform click:", error)
-                                    } finally {
-                                      setViewingPost(null)
-                                    }
-                                  }
-                                }}
-                                disabled={isClicking || isClicked}
-                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white font-medium text-sm transition-all flex-1 ${
-                                  isClicked
-                                    ? `${platformColors[platform]} opacity-60 cursor-default`
-                                    : `${platformColors[platform]} hover:shadow-md`
-                                } ${isClicking ? "opacity-50" : ""}`}
-                              >
-                                {isClicking ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    Opening...
-                                  </>
-                                ) : (
-                                  <>
-                                    <PlatformIcon className="w-4 h-4" />
-                                    <span>{platformLabels[platform]}</span>
-                                    {isClicked && <CheckCircle className="w-4 h-4" />}
-                                  </>
-                                )}
-                              </button>
-                              {isClicked && (
-                                <button
-                                  onClick={async (e) => {
-                                    e.preventDefault()
-                                    if (!isLiked) {
-                                      setViewingPost(`${post._id}-${platform}-like`)
-                                      try {
-                                        const res = await fetch("/api/volunteer/social-posts", {
-                                          method: "POST",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({ postId: post._id, platform, action: "like" }),
-                                        })
-                                        const data = await res.json()
-                                        if (data.success) {
-                                          // Update local state
-                                          setSocialPosts((prev) =>
-                                            prev.map((p) =>
-                                              p._id === post._id
-                                                ? {
-                                                    ...p,
-                                                    likedPlatforms: [...(p.likedPlatforms || []), platform],
-                                                  }
-                                                : p
+                            <button
+                              key={platform}
+                              onClick={async (e) => {
+                                e.preventDefault()
+                                if (!isLiked && !isProcessing) {
+                                  setViewingPost(`${post._id}-${platform}`)
+                                  
+                                  try {
+                                    // First record the click
+                                    await fetch("/api/volunteer/social-posts", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ postId: post._id, platform, action: "click" }),
+                                    })
+                                    
+                                    // Open the platform link
+                                    window.open(platformLinks[platform], "_blank")
+                                  
+                                    // Show confirmation modal after a short delay
+                                    setTimeout(async () => {
+                                      const confirmed = confirm(
+                                        `Did you like the post on ${platformLabels[platform]}?\n\nPlease like the post on the platform and then confirm here to earn 2 points.`
+                                      )
+                                      
+                                      if (confirmed) {
+                                        try {
+                                          const res = await fetch("/api/volunteer/social-posts", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ postId: post._id, platform, action: "like" }),
+                                          })
+                                          const data = await res.json()
+                                          if (data.success) {
+                                            // Update local state
+                                            setSocialPosts((prev) =>
+                                              prev.map((p) =>
+                                                p._id === post._id
+                                                  ? {
+                                                      ...p,
+                                                      clickedPlatforms: [...(p.clickedPlatforms || []), platform],
+                                                      likedPlatforms: [...(p.likedPlatforms || []), platform],
+                                                    }
+                                                  : p
+                                              )
                                             )
-                                          )
-                                          setTotalPoints(data.totalPoints)
-                                          if (data.pointsAwarded) {
-                                            alert(`🎉 Congratulations! You earned ${data.pointsEarned} points for completing all platform likes! Total: ${data.totalPoints}`)
-                                          } else {
-                                            alert(`✅ ${platformLabels[platform]} like recorded! Keep going - like all platforms to earn points!`)
+                                            setTotalPoints(data.totalPoints)
+                                            
+                                            if (data.pointsAwarded) {
+                                              alert(`🎉 Congratulations! You earned ${data.pointsEarned} points for completing all platforms! Total: ${data.totalPoints}`)
+                                            } else {
+                                              const remaining = availableMainPlatforms.length - (likedPlatforms.length + 1)
+                                              if (remaining > 0) {
+                                                alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}. ${remaining} more platform${remaining > 1 ? 's' : ''} to go!`)
+                                              } else {
+                                                alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}!`)
+                                              }
+                                            }
+                                            await fetchDashboardData()
                                           }
-                                          await fetchDashboardData()
+                                        } catch (error) {
+                                          console.error("Error recording platform like:", error)
+                                          alert("Failed to record your like. Please try again.")
+                                        } finally {
+                                          setViewingPost(null)
                                         }
-                                      } catch (error) {
-                                        console.error("Error recording platform like:", error)
-                                        alert("Please make sure you've liked the post on the platform first!")
-                                      } finally {
+                                      } else {
                                         setViewingPost(null)
                                       }
-                                    }
-                                  }}
-                                  disabled={isLiking || isLiked}
-                                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
-                                    isLiked
-                                      ? "bg-green-500 text-white opacity-60 cursor-default"
-                                      : "bg-green-600 text-white hover:bg-green-700 hover:shadow-md"
-                                  } ${isLiking ? "opacity-50" : ""}`}
-                                >
-                                  {isLiking ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    </>
-                                  ) : isLiked ? (
-                                    <>
-                                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                      <span>Liked</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Star className="w-4 h-4" />
-                                      <span>Like</span>
-                                    </>
+                                    }, 500)
+                                  } catch (error) {
+                                    console.error("Error recording platform click:", error)
+                                    setViewingPost(null)
+                                  }
+                                }
+                              }}
+                              disabled={isProcessing || isLiked}
+                              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white font-medium text-sm transition-all ${
+                                isLiked
+                                  ? `${platformColors[platform]} opacity-75 cursor-default relative`
+                                  : `${platformColors[platform]} hover:shadow-md active:scale-95`
+                              } ${isProcessing ? "opacity-50" : ""}`}
+                            >
+                              {isProcessing ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <PlatformIcon className="w-4 h-4" />
+                                  <span>{platformLabels[platform]}</span>
+                                  {isLiked && (
+                                    <CheckCircle className="w-4 h-4 ml-1" />
                                   )}
-                                </button>
+                                </>
                               )}
-                            </div>
+                            </button>
                           )
                         })}
                       </div>
 
                       {/* Progress */}
-                      {(clickedPlatforms.length > 0 || likedPlatforms.length > 0) && (
-                        <div className="mt-3 pt-3 border-t border-border space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">Opened Platforms</span>
+                      {likedPlatforms.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <div className="flex items-center justify-between text-xs mb-2">
+                            <span className="text-muted-foreground">Progress</span>
                             <span className="font-semibold text-foreground">
-                              {clickedPlatforms.length}/{availableMainPlatforms.length}
+                              {likedPlatforms.length}/{availableMainPlatforms.length} platforms • {likedPlatforms.length * 2} points earned
                             </span>
                           </div>
-                          <div className="w-full bg-muted rounded-full h-2">
+                          <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
                             <div
-                              className="bg-blue-500 h-2 rounded-full transition-all"
-                              style={{ width: `${(clickedPlatforms.length / availableMainPlatforms.length) * 100}%` }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between text-xs mt-2">
-                            <span className="text-muted-foreground">Liked Platforms</span>
-                            <span className="font-semibold text-foreground">
-                              {likedPlatforms.length}/{availableMainPlatforms.length}
-                            </span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2">
-                            <div
-                              className="bg-green-500 h-2 rounded-full transition-all"
+                              className="bg-gradient-to-r from-primary to-secondary h-2.5 rounded-full transition-all duration-500 flex items-center justify-end pr-1"
                               style={{ width: `${(likedPlatforms.length / availableMainPlatforms.length) * 100}%` }}
-                            />
+                            >
+                              {allMainPlatformsLiked && (
+                                <CheckCircle className="w-3 h-3 text-white" />
+                              )}
+                            </div>
                           </div>
                           {allMainPlatformsLiked && (
-                            <div className="mt-2 p-2 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
-                              <p className="text-xs text-green-700 dark:text-green-400 font-medium text-center">
-                                🎉 All platforms liked! Points awarded.
+                            <div className="mt-2 p-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                              <p className="text-xs text-green-700 dark:text-green-400 font-medium text-center flex items-center justify-center gap-1">
+                                <CheckCircle className="w-3 h-3" />
+                                All platforms completed! +10 points awarded
                               </p>
                             </div>
                           )}
