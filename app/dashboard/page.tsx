@@ -884,8 +884,8 @@ export default function VolunteerDashboard() {
               <p className="text-sm text-muted-foreground">No social media posts available</p>
             </div>
           ) : (
-            <div className="space-y-4 max-h-[600px] overflow-y-auto">
-              {socialPosts.map((post) => {
+            <>
+              {socialPosts.slice(0, 1).map((post) => {
                 const platformIcons: any = {
                   facebook: Facebook,
                   instagram: Instagram,
@@ -978,81 +978,60 @@ export default function VolunteerDashboard() {
                               key={platform}
                               onClick={async (e) => {
                                 e.preventDefault()
-                                if (!isLiked && !isProcessing) {
+                                if (!isProcessing) {
                                   setViewingPost(`${post._id}-${platform}`)
                                   
                                   try {
-                                    // First record the click
-                                    await fetch("/api/volunteer/social-posts", {
+                                    // Record click and auto-like (award points only if not already liked)
+                                    const res = await fetch("/api/volunteer/social-posts", {
                                       method: "POST",
                                       headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ postId: post._id, platform, action: "click" }),
+                                      body: JSON.stringify({ postId: post._id, platform, action: "like" }),
                                     })
-                                    
-                                    // Open the platform link
-                                    window.open(platformLinks[platform], "_blank")
-                                  
-                                    // Show confirmation modal after a short delay
-                                    setTimeout(async () => {
-                                      const confirmed = confirm(
-                                        `Did you like the post on ${platformLabels[platform]}?\n\nPlease like the post on the platform and then confirm here to earn 2 points.`
-                                      )
+                                    const data = await res.json()
+                                    if (data.success) {
+                                      // Open the platform link
+                                      window.open(platformLinks[platform], "_blank")
                                       
-                                      if (confirmed) {
-                                        try {
-                                          const res = await fetch("/api/volunteer/social-posts", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({ postId: post._id, platform, action: "like" }),
-                                          })
-                                          const data = await res.json()
-                                          if (data.success) {
-                                            // Update local state
-                                            setSocialPosts((prev) =>
-                                              prev.map((p) =>
-                                                p._id === post._id
-                                                  ? {
-                                                      ...p,
-                                                      clickedPlatforms: [...(p.clickedPlatforms || []), platform],
-                                                      likedPlatforms: [...(p.likedPlatforms || []), platform],
-                                                    }
-                                                  : p
-                                              )
-                                            )
-                                            setTotalPoints(data.totalPoints)
-                                            
-                                            if (data.pointsAwarded) {
-                                              alert(`🎉 Congratulations! You earned ${data.pointsEarned} points for completing all platforms! Total: ${data.totalPoints}`)
-                                            } else {
-                                              const remaining = availableMainPlatforms.length - (likedPlatforms.length + 1)
-                                              if (remaining > 0) {
-                                                alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}. ${remaining} more platform${remaining > 1 ? 's' : ''} to go!`)
-                                              } else {
-                                                alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}!`)
-                                              }
-                                            }
-                                            await fetchDashboardData()
+                                      // Update local state only if points were earned (not already liked)
+                                      if (!isLiked && data.pointsEarned > 0) {
+                                        setSocialPosts((prev) =>
+                                          prev.map((p) =>
+                                            p._id === post._id
+                                              ? {
+                                                  ...p,
+                                                  clickedPlatforms: [...(p.clickedPlatforms || []), platform],
+                                                  likedPlatforms: [...(p.likedPlatforms || []), platform],
+                                                }
+                                              : p
+                                          )
+                                        )
+                                        setTotalPoints(data.totalPoints)
+                                        
+                                        if (data.pointsAwarded) {
+                                          alert(`🎉 Congratulations! You earned ${data.pointsEarned} points for completing all platforms! Total: ${data.totalPoints}`)
+                                        } else {
+                                          const remaining = availableMainPlatforms.length - (likedPlatforms.length + 1)
+                                          if (remaining > 0) {
+                                            alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}. ${remaining} more platform${remaining > 1 ? 's' : ''} to go!`)
+                                          } else {
+                                            alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}!`)
                                           }
-                                        } catch (error) {
-                                          console.error("Error recording platform like:", error)
-                                          alert("Failed to record your like. Please try again.")
-                                        } finally {
-                                          setViewingPost(null)
                                         }
-                                      } else {
-                                        setViewingPost(null)
+                                        await fetchDashboardData()
                                       }
-                                    }, 500)
+                                    }
                                   } catch (error) {
-                                    console.error("Error recording platform click:", error)
+                                    console.error("Error recording platform like:", error)
+                                  } finally {
                                     setViewingPost(null)
                                   }
                                 }
                               }}
-                              disabled={isProcessing || isLiked}
+                              disabled={isProcessing}
                               className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white font-medium text-sm transition-all ${
                                 isLiked
-                                  ? `${platformColors[platform]} opacity-75 cursor-default relative`
+                                  ? `${platformColors[platform]} opacity-75 cursor-pointer`
                                   : `${platformColors[platform]} hover:shadow-md active:scale-95`
                               } ${isProcessing ? "opacity-50" : ""}`}
                             >
@@ -1108,7 +1087,18 @@ export default function VolunteerDashboard() {
                   </div>
                 )
               })}
-            </div>
+              {socialPosts.length > 1 && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <Link
+                    href="/dashboard/social-posts"
+                    className="flex items-center justify-center gap-2 text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+                  >
+                    View More Posts
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
+            </>
           )}
 
           {/* Points Display */}

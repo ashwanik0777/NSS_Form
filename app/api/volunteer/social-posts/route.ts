@@ -119,75 +119,55 @@ export async function POST(request: NextRequest) {
 
     const clickedPlatforms = postView.clickedPlatforms || []
     const likedPlatforms = postView.likedPlatforms || []
+    const alreadyLiked = likedPlatforms.includes(platform)
 
     if (isLikeAction) {
-      // Handle like action
-      if (likedPlatforms.includes(platform)) {
-        return NextResponse.json({
-          success: true,
-          message: "Already liked this platform",
-          pointsAwarded: false,
-          pointsEarned: 0,
-          totalPoints: (await VolunteerPoints.findOne({ volunteerId: session.user.id }))?.totalPoints || 0,
-        })
-      }
-
-      // Can only like if platform was clicked first
+      // Handle like action - auto-track (no confirmation needed)
+      // Always record click if not already clicked
       if (!clickedPlatforms.includes(platform)) {
-        return NextResponse.json({
-          success: false,
-          message: "Please click the platform first to open it",
-        }, { status: 400 })
+        postView.clickedPlatforms = [...clickedPlatforms, platform]
       }
-
-      // Update post view with liked platform
-      postView.likedPlatforms = [...likedPlatforms, platform]
-      postView.viewedAt = new Date()
-      await postView.save()
+      
+      // Only update liked platforms if not already liked (to award points)
+      if (!alreadyLiked) {
+        postView.likedPlatforms = [...likedPlatforms, platform]
+        postView.viewedAt = new Date()
+        await postView.save()
+      }
     } else {
-      // Handle click action
-      if (clickedPlatforms.includes(platform)) {
-        return NextResponse.json({
-          success: true,
-          message: "Already clicked this platform",
-          pointsAwarded: false,
-          pointsEarned: 0,
-          totalPoints: (await VolunteerPoints.findOne({ volunteerId: session.user.id }))?.totalPoints || 0,
-        })
+      // Handle click action - just record click, allow multiple clicks
+      if (!clickedPlatforms.includes(platform)) {
+        postView.clickedPlatforms = [...clickedPlatforms, platform]
+        postView.viewedAt = new Date()
+        await postView.save()
       }
-
-      // Update post view with clicked platform
-      postView.clickedPlatforms = [...clickedPlatforms, platform]
-      postView.viewedAt = new Date()
-      await postView.save()
+      
+      // Return success but no points for click action
+      return NextResponse.json({
+        success: true,
+        message: "Platform clicked",
+        pointsAwarded: false,
+        pointsEarned: 0,
+        totalPoints: (await VolunteerPoints.findOne({ volunteerId: session.user.id }))?.totalPoints || 0,
+        likedPlatforms: postView.likedPlatforms,
+      })
     }
 
-    // Check if all 4 main platforms are LIKED (Facebook, Instagram, Twitter, LinkedIn)
-    // Note: platformLinks is already defined above, so we reuse it
-    const mainPlatforms = ["facebook", "instagram", "twitter", "linkedin"]
-    const availableMainPlatforms = mainPlatforms.filter((p) => platformLinks[p])
-    const allMainPlatformsLiked = availableMainPlatforms.every((p) => postView.likedPlatforms.includes(p))
-
-    // Award points only once when all main platforms are clicked
+    // Award points only if like action and not already liked
     let pointsAwarded = false
     let pointsEarned = 0
     let pointsDoc = await VolunteerPoints.findOne({ volunteerId: session.user.id })
-
-    // Award 2 points per platform when liked
     const pointsPerPlatform = 2
-    let pointsToAward = 0
     
-    if (isLikeAction && !likedPlatforms.includes(platform)) {
+    if (isLikeAction && !alreadyLiked) {
       // Award 2 points for this platform
-      pointsToAward = pointsPerPlatform
-      
       pointsDoc = await VolunteerPoints.findOneAndUpdate(
         { volunteerId: session.user.id },
         {
-          $inc: { totalPoints: pointsToAward },
+          $inc: { totalPoints: pointsPerPlatform },
           $push: {
             pointsHistory: {
-              points: pointsToAward,
+              points: pointsPerPlatform,
               source: "social_post",
               sourceId: post._id,
               description: `Liked post on ${platform} platform: ${post.title}`,
@@ -198,40 +178,47 @@ export async function POST(request: NextRequest) {
         { upsert: true, new: true },
       )
       
-      pointsEarned = pointsToAward
-    }
-    
-    // Check if all platforms are liked and award bonus if needed
-    if (allMainPlatformsLiked && !postView.pointsAwarded) {
-      // Award bonus points to make total 10 (if not already reached)
-      const currentPointsForPost = likedPlatforms.length * pointsPerPlatform
-      const bonusPoints = 10 - currentPointsForPost
+      pointsEarned = pointsPerPlatform
       
-      if (bonusPoints > 0) {
-        pointsDoc = await VolunteerPoints.findOneAndUpdate(
-          { volunteerId: session.user.id },
-          {
-            $inc: { totalPoints: bonusPoints },
-            $push: {
-              pointsHistory: {
-                points: bonusPoints,
-                source: "social_post",
-                sourceId: post._id,
-                description: `Bonus for completing all platforms: ${post.title}`,
-                earnedAt: new Date(),
+      // Refresh postView to get updated likedPlatforms
+      postView = await PostView.findOne({ volunteerId: session.user.id, postId })
+      
+      // Check if all platforms are now liked and award bonus if needed
+      const mainPlatforms = ["facebook", "instagram", "twitter", "linkedin"]
+      const availableMainPlatforms = mainPlatforms.filter((p) => platformLinks[p])
+      const allMainPlatformsLikedNow = availableMainPlatforms.every((p) => postView.likedPlatforms.includes(p))
+      
+      if (allMainPlatformsLikedNow && !postView.pointsAwarded) {
+        // Award bonus points to make total 10 (if not already reached)
+        const currentPointsForPost = postView.likedPlatforms.length * pointsPerPlatform
+        const bonusPoints = 10 - currentPointsForPost
+        
+        if (bonusPoints > 0) {
+          pointsDoc = await VolunteerPoints.findOneAndUpdate(
+            { volunteerId: session.user.id },
+            {
+              $inc: { totalPoints: bonusPoints },
+              $push: {
+                pointsHistory: {
+                  points: bonusPoints,
+                  source: "social_post",
+                  sourceId: post._id,
+                  description: `Bonus for completing all platforms: ${post.title}`,
+                  earnedAt: new Date(),
+                },
               },
             },
-          },
-          { upsert: true, new: true },
-        )
+            { upsert: true, new: true },
+          )
+        }
+        
+        // Mark points as awarded for this post
+        postView.pointsAwarded = true
+        await postView.save()
+        
+        pointsAwarded = true
+        pointsEarned = pointsEarned + bonusPoints
       }
-      
-      // Mark points as awarded for this post
-      postView.pointsAwarded = true
-      await postView.save()
-      
-      pointsAwarded = true
-      pointsEarned = pointsEarned + bonusPoints
     } else if (!pointsDoc) {
       // Just return current points without awarding
       pointsDoc = await VolunteerPoints.findOne({ volunteerId: session.user.id })
@@ -262,13 +249,15 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Refresh postView to get latest likedPlatforms
+    postView = await PostView.findOne({ volunteerId: session.user.id, postId })
+    
     return NextResponse.json({
       success: true,
       pointsAwarded,
       pointsEarned,
       totalPoints: pointsDoc?.totalPoints || 0,
-      allPlatformsLiked: allMainPlatformsLiked,
-      likedPlatforms: postView.likedPlatforms,
+      likedPlatforms: postView.likedPlatforms || [],
     })
   } catch (error: any) {
     console.error("Error recording platform click:", error)

@@ -189,7 +189,7 @@ export default function VolunteerSidebar() {
           <div className="p-4 border-t border-border/50">
             <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 mb-3 flex items-center justify-center">
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary via-secondary to-amber-500 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mr-3 shadow-md">
                   {/* user photo */}
                   {user?.image ? (
                     <img

@@ -31,6 +31,10 @@ export default function SocialPostsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingPost, setEditingPost] = useState<any>(null)
   const [showStats, setShowStats] = useState(false)
+  const [showViewersModal, setShowViewersModal] = useState(false)
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
+  const [viewers, setViewers] = useState<any[]>([])
+  const [loadingViewers, setLoadingViewers] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -309,7 +313,31 @@ export default function SocialPostsPage() {
                           <Eye className="w-4 h-4 text-muted-foreground" />
                           <span className="text-muted-foreground">Views</span>
                         </div>
-                        <span className="font-semibold text-foreground">{post.viewCount || 0}</span>
+                        <button
+                          onClick={async () => {
+                            setSelectedPostId(post._id)
+                            setShowViewersModal(true)
+                            setLoadingViewers(true)
+                            setViewers([])
+                            try {
+                              const response = await fetch(`/api/admin/social-posts/${post._id}/viewers`)
+                              const data = await response.json()
+                              if (data.success) {
+                                setViewers(data.viewers || [])
+                              } else {
+                                setError(data.message || "Failed to load viewers")
+                              }
+                            } catch (error) {
+                              console.error("Error fetching viewers:", error)
+                              setError("Failed to load viewers")
+                            } finally {
+                              setLoadingViewers(false)
+                            }
+                          }}
+                          className="font-semibold text-foreground hover:text-primary cursor-pointer transition-colors"
+                        >
+                          {post.viewCount || 0}
+                        </button>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm">
@@ -576,6 +604,95 @@ export default function SocialPostsPage() {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Viewers Modal */}
+        {showViewersModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-card rounded-xl border border-border p-6 max-w-4xl w-full my-8 max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                  <Users className="w-6 h-6 text-primary" />
+                  Post Viewers
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowViewersModal(false)
+                    setSelectedPostId(null)
+                    setViewers([])
+                    setError(null)
+                  }}
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {loadingViewers ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="animate-spin w-8 h-8 text-primary" />
+                </div>
+              ) : viewers.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No one has viewed this post yet.</p>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto">
+                  <div className="mb-4 p-3 bg-muted/50 rounded-lg grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Total Views</p>
+                      <p className="text-lg font-bold text-foreground">{viewers.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Total Likes</p>
+                      <p className="text-lg font-bold text-primary">{viewers.filter((v) => v.likedPlatforms.length > 0).length}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Completed</p>
+                      <p className="text-lg font-bold text-green-600">{viewers.filter((v) => v.pointsAwarded).length}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {viewers.map((viewer, index) => (
+                      <div
+                        key={viewer._id || index}
+                        className="p-4 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-semibold text-foreground">{viewer.name}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{viewer.email}</p>
+                            <div className="flex items-center gap-4 mt-2">
+                              <span className="text-xs text-muted-foreground">Unit: {viewer.unitNo}</span>
+                              <span className="text-xs text-muted-foreground">
+                                Viewed: {new Date(viewer.viewedAt).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="mt-2 flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Platforms Clicked:</span>
+                                <span className="text-xs font-medium text-foreground">{viewer.clickedPlatforms.length}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Platforms Liked:</span>
+                                <span className="text-xs font-medium text-primary">{viewer.likedPlatforms.length}</span>
+                              </div>
+                              {viewer.pointsAwarded && (
+                                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">
+                                  Completed
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
