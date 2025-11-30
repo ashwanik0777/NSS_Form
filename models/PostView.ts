@@ -5,6 +5,7 @@ export interface IPostView extends Document {
   postId: mongoose.Types.ObjectId
   viewedAt: Date
   clickedPlatforms: string[]
+  likedPlatforms: string[]
   platformPoints: { [key: string]: number }
   pointsAwarded: boolean
   createdAt: Date
@@ -27,6 +28,10 @@ const PostViewSchema = new Schema<IPostView>(
       default: Date.now,
     },
     clickedPlatforms: {
+      type: [String],
+      default: [],
+    },
+    likedPlatforms: {
       type: [String],
       default: [],
     },

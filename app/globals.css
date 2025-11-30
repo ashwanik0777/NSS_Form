@@ -184,31 +184,20 @@
   @apply px-6 py-2  border border-border text-foreground rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200 font-medium;
 }
 
-/* Marquee animation for ticker */
+/* Marquee animation for ticker - seamless infinite loop */
 @keyframes marquee {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0);
   }
   100% {
-    transform: translateX(-100%);
-  }
-}
-
-@keyframes marquee-reverse {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
+    transform: translateX(-50%);
   }
 }
 
 .animate-marquee {
-  animation: marquee 20s linear infinite;
-}
-
-.animate-marquee-slow {
   animation: marquee 30s linear infinite;
+  display: inline-flex;
+  will-change: transform;
 }
 
 /* Infinite scroll animation for announcements */

@@ -282,58 +282,91 @@ export default function VolunteerDashboard() {
       </div>
 
       {/* Live ticker for latest announcement & notification */}
-      {(latestAnnouncement || latestNotification) && (
-        <div className="bg-background/60 border border-primary/20 rounded-lg px-4 py-2 text-xs md:text-sm flex items-center gap-6 overflow-hidden relative">
-          {latestAnnouncement && (
-            <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-              <Megaphone className="w-4 h-4 text-primary flex-shrink-0" />
-              <div className="flex-1 overflow-hidden relative">
-                <div className="whitespace-nowrap animate-marquee">
-                  <span className="font-semibold mr-2">Announcement:</span>
-                  <span className="opacity-90">
-                    {latestAnnouncement.title}
-                    {latestAnnouncement.content && " - "}
-                    {latestAnnouncement.content && latestAnnouncement.content.slice(0, 120)}
-                    {latestAnnouncement.content && latestAnnouncement.content.length > 120 && "..."}
-                  </span>
-                  {/* Duplicate for seamless loop */}
-                  <span className="ml-8 font-semibold mr-2">Announcement:</span>
-                  <span className="opacity-90">
-                    {latestAnnouncement.title}
-                    {latestAnnouncement.content && " - "}
-                    {latestAnnouncement.content && latestAnnouncement.content.slice(0, 120)}
-                    {latestAnnouncement.content && latestAnnouncement.content.length > 120 && "..."}
-                  </span>
+      {(latestAnnouncement || latestNotification) && (() => {
+        // Function to convert URLs to clickable links
+        const linkify = (text: string) => {
+          if (!text) return null
+          const urlRegex = /(https?:\/\/[^\s]+)/g
+          const parts = text.split(urlRegex)
+          return parts.map((part, i) => 
+            urlRegex.test(part) ? (
+              <a 
+                key={i} 
+                href={part} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {part}
+              </a>
+            ) : (
+              <span key={i}>{part}</span>
+            )
+          )
+        }
+
+        // Combine announcement and notification text
+        const announcementText = latestAnnouncement 
+          ? `Announcement: ${latestAnnouncement.title}${latestAnnouncement.content ? " - " + latestAnnouncement.content.slice(0, 120) + (latestAnnouncement.content.length > 120 ? "..." : "") : ""}`
+          : ""
+        
+        const notificationText = latestNotification
+          ? `Notification: ${latestNotification.title}${latestNotification.content ? " - " + latestNotification.content.slice(0, 120) + (latestNotification.content.length > 120 ? "..." : "") : ""}`
+          : ""
+
+        const combinedText = [announcementText, notificationText].filter(Boolean).join(" • ")
+
+        return (
+          <div className="bg-background/60 border border-primary/20 rounded-lg px-4 py-2 text-xs md:text-sm overflow-hidden relative">
+            <div className="whitespace-nowrap">
+              <div className="animate-marquee">
+                <div className="inline-flex items-center gap-4">
+                  {latestAnnouncement && (
+                    <div className="flex items-center gap-2">
+                      <Megaphone className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="font-semibold">Announcement:</span>
+                      <span className="opacity-90">
+                        {linkify(latestAnnouncement.title + (latestAnnouncement.content ? " - " + latestAnnouncement.content.slice(0, 120) + (latestAnnouncement.content.length > 120 ? "..." : "") : ""))}
+                      </span>
+                    </div>
+                  )}
+                  {latestNotification && (
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="font-semibold">Notification:</span>
+                      <span className="opacity-90">
+                        {linkify(latestNotification.title + (latestNotification.content ? " - " + latestNotification.content.slice(0, 120) + (latestNotification.content.length > 120 ? "..." : "") : ""))}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {/* Duplicate for seamless infinite loop */}
+                <div className="inline-flex items-center gap-4 ml-8">
+                  {latestAnnouncement && (
+                    <div className="flex items-center gap-2">
+                      <Megaphone className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="font-semibold">Announcement:</span>
+                      <span className="opacity-90">
+                        {linkify(latestAnnouncement.title + (latestAnnouncement.content ? " - " + latestAnnouncement.content.slice(0, 120) + (latestAnnouncement.content.length > 120 ? "..." : "") : ""))}
+                      </span>
+                    </div>
+                  )}
+                  {latestNotification && (
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="font-semibold">Notification:</span>
+                      <span className="opacity-90">
+                        {linkify(latestNotification.title + (latestNotification.content ? " - " + latestNotification.content.slice(0, 120) + (latestNotification.content.length > 120 ? "..." : "") : ""))}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          )}
-          {latestNotification && (
-            <div className="hidden md:flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-              <Bell className="w-4 h-4 text-primary flex-shrink-0" />
-              <div className="flex-1 overflow-hidden relative">
-                <div className="whitespace-nowrap animate-marquee-slow">
-                  <span className="font-semibold mr-2">Notification:</span>
-                  <span className="opacity-90">
-                    {latestNotification.title}
-                    {latestNotification.content && " - "}
-                    {latestNotification.content && latestNotification.content.slice(0, 120)}
-                    {latestNotification.content && latestNotification.content.length > 120 && "..."}
-                  </span>
-                  {/* Duplicate for seamless loop */}
-                  <span className="ml-8 font-semibold mr-2">Notification:</span>
-                  <span className="opacity-90">
-                    {latestNotification.title}
-                    {latestNotification.content && " - "}
-                    {latestNotification.content && latestNotification.content.slice(0, 120)}
-                    {latestNotification.content && latestNotification.content.length > 120 && "..."}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+          </div>
+        )
+      })()}
 
       {/* Top Summary Bar */}
       <div className="grid grid-cols-1 xl:grid-cols-4 md:grid-cols-2 gap-4">
@@ -878,29 +911,44 @@ export default function VolunteerDashboard() {
                 const platformLinks = post.platformLinks || {}
                 const availablePlatforms = Object.keys(platformLinks).filter((key) => platformLinks[key])
                 const clickedPlatforms = post.clickedPlatforms || []
+                const likedPlatforms = post.likedPlatforms || []
+                const mainPlatforms = ["facebook", "instagram", "twitter", "linkedin"]
+                const availableMainPlatforms = mainPlatforms.filter((p) => platformLinks[p])
+                const allMainPlatformsLiked = availableMainPlatforms.every((p) => likedPlatforms.includes(p))
 
                 return (
                   <div
                     key={post._id}
                     className={`group relative border rounded-xl overflow-hidden transition-all duration-300 ${
-                      availablePlatforms.length === clickedPlatforms.length && clickedPlatforms.length > 0
-                        ? "border-border bg-muted/30 opacity-90"
-                        : "border-primary/50 bg-gradient-to-r from-primary/5 to-secondary/5 shadow-sm hover:shadow-md"
+                      allMainPlatformsLiked && availableMainPlatforms.length > 0
+                        ? "border-green-500 bg-green-50/50 dark:bg-green-950/20 shadow-md"
+                        : likedPlatforms.length > 0
+                          ? "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20 shadow-sm"
+                          : clickedPlatforms.length > 0
+                            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm"
+                            : "border-primary/50 bg-gradient-to-r from-primary/5 to-secondary/5 shadow-sm hover:shadow-md"
                     }`}
                   >
                     {/* Status Badge */}
-                    {availablePlatforms.length === clickedPlatforms.length && clickedPlatforms.length > 0 ? (
+                    {allMainPlatformsLiked && availableMainPlatforms.length > 0 ? (
                       <div className="absolute top-3 right-3 z-10">
                         <div className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded-full text-xs font-medium">
                           <CheckCircle className="w-3 h-3" />
                           Complete
                         </div>
                       </div>
-                    ) : clickedPlatforms.length > 0 ? (
+                    ) : likedPlatforms.length > 0 ? (
                       <div className="absolute top-3 right-3 z-10">
                         <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">
+                          <Star className="w-3 h-3" />
+                          {likedPlatforms.length}/{availableMainPlatforms.length} Liked
+                        </div>
+                      </div>
+                    ) : clickedPlatforms.length > 0 ? (
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white rounded-full text-xs font-medium">
                           <Eye className="w-3 h-3" />
-                          {clickedPlatforms.length}/{availablePlatforms.length}
+                          {clickedPlatforms.length} Opened
                         </div>
                       </div>
                     ) : (
@@ -922,100 +970,185 @@ export default function VolunteerDashboard() {
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Star className="w-3 h-3 text-yellow-500" />
-                            +{post.pointsReward || 2.5} points per platform
+                            +{post.pointsReward || 10} points when all platforms are liked
                           </span>
                         </div>
                       </div>
 
                       {/* Platform Buttons */}
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        {availablePlatforms.map((platform) => {
+                      <div className="space-y-2 mb-3">
+                        {availableMainPlatforms.map((platform) => {
                           const PlatformIcon = platformIcons[platform] || Share2
                           const isClicked = clickedPlatforms.includes(platform)
-                          const isClicking = viewingPost === `${post._id}-${platform}`
+                          const isLiked = likedPlatforms.includes(platform)
+                          const isClicking = viewingPost === `${post._id}-${platform}-click`
+                          const isLiking = viewingPost === `${post._id}-${platform}-like`
 
                           return (
-                            <a
-                              key={platform}
-                              href={platformLinks[platform]}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={async (e) => {
-                                if (!isClicked) {
+                            <div key={platform} className="flex items-center gap-2">
+                              <button
+                                onClick={async (e) => {
                                   e.preventDefault()
-                                  setViewingPost(`${post._id}-${platform}`)
-                                  try {
-                                    const res = await fetch("/api/volunteer/social-posts", {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ postId: post._id, platform }),
-                                    })
-                                    const data = await res.json()
-                                    if (data.success) {
-                                      // Update local state
-                                      setSocialPosts((prev) =>
-                                        prev.map((p) =>
-                                          p._id === post._id
-                                            ? {
-                                                ...p,
-                                                clickedPlatforms: [...(p.clickedPlatforms || []), platform],
-                                              }
-                                            : p
+                                  if (!isClicked) {
+                                    setViewingPost(`${post._id}-${platform}-click`)
+                                    try {
+                                      const res = await fetch("/api/volunteer/social-posts", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ postId: post._id, platform, action: "click" }),
+                                      })
+                                      const data = await res.json()
+                                      if (data.success) {
+                                        // Update local state
+                                        setSocialPosts((prev) =>
+                                          prev.map((p) =>
+                                            p._id === post._id
+                                              ? {
+                                                  ...p,
+                                                  clickedPlatforms: [...(p.clickedPlatforms || []), platform],
+                                                }
+                                              : p
+                                          )
                                         )
-                                      )
-                                      setTotalPoints(data.totalPoints)
-                                      if (data.pointsAwarded) {
-                                        alert(`🎉 You earned ${data.pointsEarned} points for ${platformLabels[platform]}! Total: ${data.totalPoints}`)
+                                        // Open all platforms in new tabs
+                                        availableMainPlatforms.forEach((p) => {
+                                          if (platformLinks[p]) {
+                                            window.open(platformLinks[p], "_blank")
+                                          }
+                                        })
+                                        await fetchDashboardData()
                                       }
-                                      // Open link after recording
-                                      window.open(platformLinks[platform], "_blank")
-                                      await fetchDashboardData()
+                                    } catch (error) {
+                                      console.error("Error recording platform click:", error)
+                                    } finally {
+                                      setViewingPost(null)
                                     }
-                                  } catch (error) {
-                                    console.error("Error recording platform click:", error)
-                                  } finally {
-                                    setViewingPost(null)
                                   }
-                                }
-                              }}
-                              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white font-medium text-sm transition-all ${
-                                isClicked
-                                  ? `${platformColors[platform]} opacity-60 cursor-default`
-                                  : `${platformColors[platform]} hover:shadow-md`
-                              } ${isClicking ? "opacity-50" : ""}`}
-                            >
-                              {isClicking ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                  Recording...
-                                </>
-                              ) : (
-                                <>
-                                  <PlatformIcon className="w-4 h-4" />
-                                  <span>{platformLabels[platform]}</span>
-                                  {isClicked && <CheckCircle className="w-4 h-4" />}
-                                </>
+                                }}
+                                disabled={isClicking || isClicked}
+                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white font-medium text-sm transition-all flex-1 ${
+                                  isClicked
+                                    ? `${platformColors[platform]} opacity-60 cursor-default`
+                                    : `${platformColors[platform]} hover:shadow-md`
+                                } ${isClicking ? "opacity-50" : ""}`}
+                              >
+                                {isClicking ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Opening...
+                                  </>
+                                ) : (
+                                  <>
+                                    <PlatformIcon className="w-4 h-4" />
+                                    <span>{platformLabels[platform]}</span>
+                                    {isClicked && <CheckCircle className="w-4 h-4" />}
+                                  </>
+                                )}
+                              </button>
+                              {isClicked && (
+                                <button
+                                  onClick={async (e) => {
+                                    e.preventDefault()
+                                    if (!isLiked) {
+                                      setViewingPost(`${post._id}-${platform}-like`)
+                                      try {
+                                        const res = await fetch("/api/volunteer/social-posts", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ postId: post._id, platform, action: "like" }),
+                                        })
+                                        const data = await res.json()
+                                        if (data.success) {
+                                          // Update local state
+                                          setSocialPosts((prev) =>
+                                            prev.map((p) =>
+                                              p._id === post._id
+                                                ? {
+                                                    ...p,
+                                                    likedPlatforms: [...(p.likedPlatforms || []), platform],
+                                                  }
+                                                : p
+                                            )
+                                          )
+                                          setTotalPoints(data.totalPoints)
+                                          if (data.pointsAwarded) {
+                                            alert(`🎉 Congratulations! You earned ${data.pointsEarned} points for completing all platform likes! Total: ${data.totalPoints}`)
+                                          } else {
+                                            alert(`✅ ${platformLabels[platform]} like recorded! Keep going - like all platforms to earn points!`)
+                                          }
+                                          await fetchDashboardData()
+                                        }
+                                      } catch (error) {
+                                        console.error("Error recording platform like:", error)
+                                        alert("Please make sure you've liked the post on the platform first!")
+                                      } finally {
+                                        setViewingPost(null)
+                                      }
+                                    }
+                                  }}
+                                  disabled={isLiking || isLiked}
+                                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                                    isLiked
+                                      ? "bg-green-500 text-white opacity-60 cursor-default"
+                                      : "bg-green-600 text-white hover:bg-green-700 hover:shadow-md"
+                                  } ${isLiking ? "opacity-50" : ""}`}
+                                >
+                                  {isLiking ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    </>
+                                  ) : isLiked ? (
+                                    <>
+                                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                      <span>Liked</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Star className="w-4 h-4" />
+                                      <span>Like</span>
+                                    </>
+                                  )}
+                                </button>
                               )}
-                            </a>
+                            </div>
                           )
                         })}
                       </div>
 
                       {/* Progress */}
-                      {clickedPlatforms.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-border">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-muted-foreground">Progress</span>
+                      {(clickedPlatforms.length > 0 || likedPlatforms.length > 0) && (
+                        <div className="mt-3 pt-3 border-t border-border space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Opened Platforms</span>
                             <span className="font-semibold text-foreground">
-                              {clickedPlatforms.length}/{availablePlatforms.length} platforms
+                              {clickedPlatforms.length}/{availableMainPlatforms.length}
                             </span>
                           </div>
                           <div className="w-full bg-muted rounded-full h-2">
                             <div
-                              className="bg-primary h-2 rounded-full transition-all"
-                              style={{ width: `${(clickedPlatforms.length / availablePlatforms.length) * 100}%` }}
+                              className="bg-blue-500 h-2 rounded-full transition-all"
+                              style={{ width: `${(clickedPlatforms.length / availableMainPlatforms.length) * 100}%` }}
                             />
                           </div>
+                          <div className="flex items-center justify-between text-xs mt-2">
+                            <span className="text-muted-foreground">Liked Platforms</span>
+                            <span className="font-semibold text-foreground">
+                              {likedPlatforms.length}/{availableMainPlatforms.length}
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className="bg-green-500 h-2 rounded-full transition-all"
+                              style={{ width: `${(likedPlatforms.length / availableMainPlatforms.length) * 100}%` }}
+                            />
+                          </div>
+                          {allMainPlatformsLiked && (
+                            <div className="mt-2 p-2 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                              <p className="text-xs text-green-700 dark:text-green-400 font-medium text-center">
+                                🎉 All platforms liked! Points awarded.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
