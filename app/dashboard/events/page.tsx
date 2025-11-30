@@ -13,6 +13,8 @@ import {
   Loader2,
   ArrowLeft,
   FileText,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -67,6 +69,10 @@ export default function EventsPage() {
   const [declineReason, setDeclineReason] = useState("")
   const [registering, setRegistering] = useState(false)
   const [attendanceWindowMessage, setAttendanceWindowMessage] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalEvents, setTotalEvents] = useState(0)
+  const eventsPerPage = 10
 
   useEffect(() => {
     if (status === "loading") return
@@ -75,16 +81,22 @@ export default function EventsPage() {
       router.replace("/login")
       return
     }
-    fetchEvents()
-  }, [session, status, router])
+    fetchEvents(currentPage)
+  }, [session, status, router, currentPage])
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (page = currentPage) => {
     try {
-      const res = await fetch("/api/volunteer/events")
+      setLoading(true)
+      const res = await fetch(`/api/volunteer/events?page=${page}&limit=${eventsPerPage}`)
       const data = await res.json()
       if (data.success) {
         setEvents(data.events || [])
         setMyEvents(data.myEvents || [])
+        setTotalPages(data.pagination?.pages || 1)
+        setTotalEvents(data.pagination?.total || 0)
+        if (page > (data.pagination?.pages || 1) && (data.pagination?.pages || 1) > 0) {
+          setCurrentPage(data.pagination?.pages || 1)
+        }
       }
     } catch (error) {
       console.error("Error fetching events:", error)
@@ -368,7 +380,7 @@ export default function EventsPage() {
           <div className="bg-card rounded-xl border border-border p-12 text-center">
             <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No Events Available</h3>
-            <p className="text-muted-foreground">There are no events for your project at the moment.</p>
+            <p className="text-muted-foreground">There are no events available at the moment.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -463,6 +475,60 @@ export default function EventsPage() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+            <div className="text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * eventsPerPage) + 1} to {Math.min(currentPage * eventsPerPage, totalEvents)} of {totalEvents} events
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-3 py-2 border rounded-lg transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:bg-muted"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>

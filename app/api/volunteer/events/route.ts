@@ -15,25 +15,24 @@ export async function GET(request: NextRequest) {
 
     await dbConnect()
 
-    // Get volunteer's project
-    const projectAssignment = await VolunteerProject.findOne({
-      volunteerId: session.user.id,
-      status: "active",
-    }).lean()
+    // Get pagination parameters
+    const { searchParams } = new URL(request.url)
+    const pageParam = Number.parseInt(searchParams.get("page") || "1")
+    const limitParam = Number.parseInt(searchParams.get("limit") || "10")
+    const page = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam
+    const limit = Number.isNaN(limitParam) || limitParam < 1 ? 10 : limitParam
+    const skip = (page - 1) * limit
 
-    if (!projectAssignment) {
-      return NextResponse.json({ success: true, events: [], myEvents: [] })
-    }
-
-    // Get events for the volunteer's project
-    const events = await Event.find({ projectId: projectAssignment.projectId })
+    // Get ALL events (not just project-specific)
+    const totalEvents = await Event.countDocuments()
+    const allEvents = await Event.find()
       .sort({ eventDate: -1 })
       .lean()
 
     const now = new Date()
     
     // Auto-update event status based on timing
-    for (const event of events) {
+    for (const event of allEvents) {
       if (event.status !== "cancelled") {
         const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
         const eventEndTime = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
@@ -55,6 +54,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Apply pagination
+    const events = allEvents.slice(skip, skip + limit)
+
     // Get volunteer's event participations
     const myEvents = await VolunteerEvent.find({ volunteerId: session.user.id })
       .populate("eventId")
@@ -65,7 +67,7 @@ export async function GET(request: NextRequest) {
     // Get registrations for all events
     const registrations = await EventRegistration.find({
       volunteerId: session.user.id,
-      eventId: { $in: events.map((e: any) => e._id) },
+      eventId: { $in: allEvents.map((e: any) => e._id) },
     }).lean()
 
     const registrationMap = new Map(
@@ -108,6 +110,12 @@ export async function GET(request: NextRequest) {
         pendingHours: e.pendingHours || 0,
         workDescription: e.workDescription,
       })),
+      pagination: {
+        page,
+        limit,
+        total: totalEvents,
+        pages: Math.max(1, Math.ceil(totalEvents / limit)),
+      },
     })
   } catch (error) {
     console.error("Events fetch error:", error)
@@ -144,21 +152,17 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    // Get volunteer's project
+    // Verify event exists (no longer restricted to volunteer's project)
+    const event = await Event.findById(eventId).lean()
+    if (!event) {
+      return NextResponse.json({ success: false, message: "Event not found" }, { status: 404 })
+    }
+
+    // Get volunteer's project (optional - for backward compatibility)
     const projectAssignment = await VolunteerProject.findOne({
       volunteerId: session.user.id,
       status: "active",
     }).lean()
-
-    if (!projectAssignment) {
-      return NextResponse.json({ success: false, message: "No active project assigned" }, { status: 400 })
-    }
-
-    // Verify event belongs to volunteer's project
-    const event = await Event.findById(eventId).lean()
-    if (!event || event.projectId.toString() !== projectAssignment.projectId.toString()) {
-      return NextResponse.json({ success: false, message: "Event not found or unauthorized" }, { status: 404 })
-    }
 
     let volunteerEvent = await VolunteerEvent.findOne({
       volunteerId: session.user.id,
@@ -238,7 +242,7 @@ export async function POST(request: NextRequest) {
         volunteerEvent = new VolunteerEvent({
           volunteerId: session.user.id,
           eventId: eventId,
-          projectId: projectAssignment.projectId,
+          projectId: event.projectId || (projectAssignment?.projectId),
           status: "started",
         })
       }

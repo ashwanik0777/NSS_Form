@@ -283,13 +283,21 @@ export default function VolunteerDashboard() {
 
       {/* Live ticker for latest announcement & notification */}
       {(latestAnnouncement || latestNotification) && (
-        <div className="bg-background/60 border border-primary/20 rounded-lg px-4 py-2 text-xs md:text-sm flex items-center gap-6 overflow-hidden">
+        <div className="bg-background/60 border border-primary/20 rounded-lg px-4 py-2 text-xs md:text-sm flex items-center gap-6 overflow-hidden relative">
           {latestAnnouncement && (
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
               <Megaphone className="w-4 h-4 text-primary flex-shrink-0" />
-              <div className="flex-1 overflow-hidden">
-                <div className="whitespace-nowrap animate-[marquee_18s_linear_infinite]">
+              <div className="flex-1 overflow-hidden relative">
+                <div className="whitespace-nowrap animate-marquee">
                   <span className="font-semibold mr-2">Announcement:</span>
+                  <span className="opacity-90">
+                    {latestAnnouncement.title}
+                    {latestAnnouncement.content && " - "}
+                    {latestAnnouncement.content && latestAnnouncement.content.slice(0, 120)}
+                    {latestAnnouncement.content && latestAnnouncement.content.length > 120 && "..."}
+                  </span>
+                  {/* Duplicate for seamless loop */}
+                  <span className="ml-8 font-semibold mr-2">Announcement:</span>
                   <span className="opacity-90">
                     {latestAnnouncement.title}
                     {latestAnnouncement.content && " - "}
@@ -301,11 +309,19 @@ export default function VolunteerDashboard() {
             </div>
           )}
           {latestNotification && (
-            <div className="hidden md:flex items-center gap-2 min-w-0">
+            <div className="hidden md:flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
               <Bell className="w-4 h-4 text-primary flex-shrink-0" />
-              <div className="flex-1 overflow-hidden">
-                <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite]">
+              <div className="flex-1 overflow-hidden relative">
+                <div className="whitespace-nowrap animate-marquee-slow">
                   <span className="font-semibold mr-2">Notification:</span>
+                  <span className="opacity-90">
+                    {latestNotification.title}
+                    {latestNotification.content && " - "}
+                    {latestNotification.content && latestNotification.content.slice(0, 120)}
+                    {latestNotification.content && latestNotification.content.length > 120 && "..."}
+                  </span>
+                  {/* Duplicate for seamless loop */}
+                  <span className="ml-8 font-semibold mr-2">Notification:</span>
                   <span className="opacity-90">
                     {latestNotification.title}
                     {latestNotification.content && " - "}
@@ -357,10 +373,70 @@ export default function VolunteerDashboard() {
           </div>
           {announcements.length === 0 ? (
             <div className="text-sm text-muted-foreground">No announcements right now</div>
+          ) : announcements.length > 2 ? (
+            <div className="h-[140px] overflow-hidden relative">
+              <div className="animate-scroll-up">
+                {/* First set */}
+                {announcements.map((announcement) => {
+                  const linkify = (text: string) => {
+                    const urlRegex = /(https?:\/\/[^\s]+)/g
+                    const parts = text.split(urlRegex)
+                    return parts.map((part, i) => 
+                      urlRegex.test(part) ? (
+                        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          {part}
+                        </a>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    )
+                  }
+                  return (
+                    <div key={announcement._id} className="p-3 bg-muted/40 rounded-lg border border-border/40 mb-3">
+                      <p className="text-sm font-semibold text-foreground line-clamp-1">{announcement.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{linkify(announcement.content)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-2">
+                        {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </p>
+                    </div>
+                  )
+                })}
+                {/* Duplicate set for seamless loop */}
+                {announcements.map((announcement) => {
+                  const linkify = (text: string) => {
+                    const urlRegex = /(https?:\/\/[^\s]+)/g
+                    const parts = text.split(urlRegex)
+                    return parts.map((part, i) => 
+                      urlRegex.test(part) ? (
+                        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          {part}
+                        </a>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    )
+                  }
+                  return (
+                    <div key={`${announcement._id}-dup`} className="p-3 bg-muted/40 rounded-lg border border-border/40 mb-3">
+                      <p className="text-sm font-semibold text-foreground line-clamp-1">{announcement.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{linkify(announcement.content)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-2">
+                        {new Date(announcement.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           ) : (
             <div className="space-y-3">
-              {announcements.slice(0, 2).map((announcement) => {
-                // Convert URLs to clickable links
+              {announcements.map((announcement) => {
                 const linkify = (text: string) => {
                   const urlRegex = /(https?:\/\/[^\s]+)/g
                   const parts = text.split(urlRegex)
