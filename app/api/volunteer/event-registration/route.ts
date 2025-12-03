@@ -4,8 +4,6 @@ import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import EventRegistration from "@/models/EventRegistration"
 import Event from "@/models/Event"
-import VolunteerProject from "@/models/VolunteerProject"
-import NSSApplication from "@/models/NSSApplication"
 
 export async function GET(request: NextRequest) {
   try {
@@ -70,20 +68,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Event not found" }, { status: 404 })
     }
 
-    // Check if volunteer has an active project
-    const projectAssignment = await VolunteerProject.findOne({
-      volunteerId: session.user.id,
-      status: "active",
-    })
-
-    if (!projectAssignment) {
-      return NextResponse.json({ success: false, message: "No active project assigned" }, { status: 400 })
-    }
-
-    // Check if event belongs to volunteer's project
-    if (event.projectId.toString() !== projectAssignment.projectId.toString()) {
-      return NextResponse.json({ success: false, message: "Event does not belong to your project" }, { status: 403 })
-    }
+    // NOTE: Removed project-assignment checks so any volunteer can register for any event.
 
     // Check if registration already exists
     let registration = await EventRegistration.findOne({
