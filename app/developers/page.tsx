@@ -46,7 +46,7 @@ const developers: Developer[] = [
     name: "Ashwani Kushwaha",
     role: "Full Stack Developer",
     roleType: "Lead",
-    image: "https://res.cloudinary.com/depbzbjfu/image/upload/v1762062848/portfolio/profile/file_xqk3hs.png",
+    image: "https://res.cloudinary.com/depbzbjfu/image/upload/v1764331825/portfolio/profile/file_atjlei.jpg",
     rollNumber: "235/UCS/039",
     batch: "2023-27",
     course: "B-Tech CS",
