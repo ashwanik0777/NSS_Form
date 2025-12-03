@@ -24,7 +24,7 @@ interface Developer {
   image: string
   rollNumber: string
   batch: string
-  course: string
+  program: string
   school: string
   department: string
   email?: string
@@ -49,7 +49,7 @@ const developers: Developer[] = [
     image: "https://res.cloudinary.com/depbzbjfu/image/upload/v1764331825/portfolio/profile/file_atjlei.jpg",
     rollNumber: "235/UCS/039",
     batch: "2023-27",
-    course: "B-Tech CS",
+    program: "B-Tech CSE",
     school: "SOICT",
     department: "Computer Science and Engineering",
     email: "235ucs039@gbu.ac.in",
@@ -173,7 +173,7 @@ export default function DevelopersPage() {
                 <div className="text-xs text-muted-foreground mb-2 mt-2 space-y-1">
                   <div>School: <span className="font-semibold">{dev.school}</span></div>
                   <div>Department: <span className="font-semibold">{dev.department}</span></div>
-                  <div>Course: <span className="font-semibold">{dev.course}</span></div>
+                  <div>Course: <span className="font-semibold">{dev.program}</span></div>
                   <div>Batch: <span className="font-semibold">{dev.batch}</span></div>
                   <div>Roll Number: <span className="font-semibold">{dev.rollNumber}</span></div>
                 </div>
