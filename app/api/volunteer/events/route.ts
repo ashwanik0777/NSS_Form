@@ -323,10 +323,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: "Event not started" }, { status: 400 })
       }
 
-      // Check global attendance time window
+      // Check global attendance time window - only block if too late
       const nowEnd = new Date()
-      // Only block if current time is past the allowedUntil (too late).
-      // Do NOT block if current time is before allowedFrom — volunteer started earlier or event still ongoing.
       if (nowEnd > allowedUntil) {
         return NextResponse.json(
           {
@@ -339,9 +337,30 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Determine event-assigned hours with fallbacks and enforce cap
+      let eventAssignedHours = 3 // default fallback
+      if (typeof (event.assignedHours ?? event.durationHours) === "number") {
+        eventAssignedHours = (event.assignedHours ?? event.durationHours) as number
+      } else if (!Array.isArray(event) && event.startTime && event.endTime) {
+        const start = new Date(event.startTime).getTime()
+        const end = new Date(event.endTime).getTime()
+        if (!isNaN(start) && !isNaN(end) && end > start) {
+          eventAssignedHours = (end - start) / (1000 * 60 * 60)
+        }
+      }
+      // If event defines a hard maximum per volunteer, use it as cap (optional)
+      const eventMaxHours = typeof event.maxHours === "number" ? event.maxHours : eventAssignedHours
+      const assignedHoursRounded = Math.max(0, Math.round(eventAssignedHours * 10) / 10)
+      const cappedHours = Math.max(0, Math.round(Math.min(assignedHoursRounded, eventMaxHours) * 10) / 10)
+
       // Check if volunteer is still at event location (for ending)
       let distance = 0
-      if (event.locationCoordinates && event.locationCoordinates.latitude && event.locationCoordinates.longitude) {
+      if (
+        !Array.isArray(event) &&
+        event.locationCoordinates &&
+        event.locationCoordinates.latitude &&
+        event.locationCoordinates.longitude
+      ) {
         distance = calculateDistance(
           event.locationCoordinates.latitude,
           event.locationCoordinates.longitude,
@@ -351,7 +370,7 @@ export async function POST(request: NextRequest) {
 
         if (distance > 50) {
           // More than 50 meters away - they already left
-          // Still allow ending but mark appropriately
+          // Still allow ending but record pendingHours as capped assigned hours (admin will approve)
           volunteerEvent.endPhoto = photo
           volunteerEvent.endLocation = {
             latitude: location.latitude,
@@ -361,13 +380,13 @@ export async function POST(request: NextRequest) {
           volunteerEvent.endTime = new Date()
           volunteerEvent.status = "completed"
 
-          // Calculate hours worked based on actual time attended
-          if (volunteerEvent.startTime && volunteerEvent.endTime) {
-            const hours =
-              (new Date(volunteerEvent.endTime).getTime() - new Date(volunteerEvent.startTime).getTime()) /
-              (1000 * 60 * 60)
-            volunteerEvent.hoursWorked = Math.max(0, Math.round(hours * 10) / 10) // Ensure non-negative
-          }
+          // Set pendingHours to capped assigned hours; hoursWorked stays 0 until admin approves
+          volunteerEvent.pendingHours = cappedHours
+          volunteerEvent.hoursWorked = 0
+          volunteerEvent.reviewStatus = "pending"
+          volunteerEvent.reviewNotes = "Left event location before end — admin to review"
+          volunteerEvent.reviewedBy = undefined as any
+          volunteerEvent.reviewedAt = undefined
 
           if (workDescription) {
             volunteerEvent.workDescription = workDescription
@@ -377,10 +396,11 @@ export async function POST(request: NextRequest) {
 
           return NextResponse.json({
             success: true,
-            message: "You have already left the event. Event participation recorded based on your attendance time.",
+            message: "You have already left the event. Attendance submitted for admin review.",
             volunteerEvent,
             leftEarly: true,
             distance: Math.round(distance),
+            pendingHours: volunteerEvent.pendingHours,
           })
         }
       }
@@ -395,35 +415,8 @@ export async function POST(request: NextRequest) {
       volunteerEvent.endTime = new Date()
       volunteerEvent.status = "completed"
 
-      const eventEndTime = baseEventEnd
-
-      // Only calculate hours if both start and end were within the global window
-      let calculatedHours = 0
-      if (
-        volunteerEvent.startTime &&
-        volunteerEvent.endTime &&
-        new Date(volunteerEvent.startTime) >= allowedFrom &&
-        new Date(volunteerEvent.endTime) <= allowedUntil
-      ) {
-        const actualHours =
-          (new Date(volunteerEvent.endTime).getTime() - new Date(volunteerEvent.startTime).getTime()) /
-          (1000 * 60 * 60)
-
-        // Calculate max hours from event duration
-        let maxHours = actualHours
-        if (!Array.isArray(event) && event.startTime && event.endTime) {
-          maxHours =
-            (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60 * 60)
-        }
-
-        // Hours worked is minimum of actual attendance and max event duration
-        calculatedHours = Math.min(Math.max(0, Math.round(actualHours * 10) / 10), maxHours)
-      } else {
-        // Late attendance - no hours added unless admin decides otherwise
-        calculatedHours = 0
-      }
-
-      volunteerEvent.pendingHours = calculatedHours
+      // Assign capped event hours as pending for admin approval
+      volunteerEvent.pendingHours = cappedHours
       volunteerEvent.hoursWorked = 0
       volunteerEvent.reviewStatus = "pending"
       volunteerEvent.reviewNotes = undefined
@@ -438,12 +431,9 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message:
-          calculatedHours > 0
-            ? "Attendance submitted successfully and is now pending admin review."
-            : "Attendance submitted (outside ideal time). Admin will review and decide on working hours.",
+        message: "Attendance submitted and is pending admin review. Assigned hours recorded as pending.",
         volunteerEvent,
-        hoursEligible: calculatedHours > 0,
+        hoursEligible: true,
         pendingHours: volunteerEvent.pendingHours,
       })
     } else {
