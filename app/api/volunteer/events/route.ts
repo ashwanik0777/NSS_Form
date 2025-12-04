@@ -325,13 +325,14 @@ export async function POST(request: NextRequest) {
 
       // Check global attendance time window
       const nowEnd = new Date()
-      if (nowEnd < allowedFrom || nowEnd > allowedUntil) {
+      // Only block if current time is past the allowedUntil (too late).
+      // Do NOT block if current time is before allowedFrom — volunteer started earlier or event still ongoing.
+      if (nowEnd > allowedUntil) {
         return NextResponse.json(
           {
             success: false,
             message:
-              "End attendance window is closed. You can mark attendance only from 1 hour before event start until 1 hour after event end. Please contact admin if you need an extension.",
-            allowedFrom,
+              "End attendance window is closed. You can mark attendance until 1 hour after event end. Please contact admin if you need an extension.",
             allowedUntil,
           },
           { status: 400 }
