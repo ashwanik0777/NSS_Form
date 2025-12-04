@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     // Auto-update event status based on timing
     for (const event of allEvents) {
       if (event.status !== "cancelled") {
-        const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
+        const eventStartTime = (!Array.isArray(event) && event.startTime) ? new Date(event.startTime) : new Date(event.eventDate)
         const eventEndTime = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
         
         let newStatus = event.status
@@ -203,7 +203,11 @@ export async function POST(request: NextRequest) {
 
       // Check global attendance time window
       const now = new Date()
-      if (now < allowedFrom || now > allowedUntil) {
+      // NOTE: allow early start (mark as startedEarly) but block if after allowedUntil
+      let startedEarly = false
+      if (now < allowedFrom) {
+        startedEarly = true
+      } else if (now > allowedUntil) {
         return NextResponse.json(
           {
             success: false,
@@ -217,7 +221,12 @@ export async function POST(request: NextRequest) {
       }
 
       // Check location if event has coordinates
-      if (event.locationCoordinates && event.locationCoordinates.latitude && event.locationCoordinates.longitude) {
+      if (
+        !Array.isArray(event) &&
+        event.locationCoordinates &&
+        event.locationCoordinates.latitude &&
+        event.locationCoordinates.longitude
+      ) {
         const distance = calculateDistance(
           event.locationCoordinates.latitude,
           event.locationCoordinates.longitude,
@@ -238,35 +247,69 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Use upsert to ensure startPhoto/startLocation/startTime are persisted even if a document exists
+      const updateDoc: any = {
+        $set: {
+          startPhoto: photo,
+          startLocation: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            address: location.address,
+          },
+          startTime: new Date(),
+          status: "started",
+          reviewStatus: "pending",
+          reviewNotes: startedEarly ? "Started before allowed attendance window (needs admin review)" : undefined,
+          reviewedBy: undefined,
+          reviewedAt: undefined,
+          hoursWorked: 0,
+          pendingHours: 0,
+        },
+        $setOnInsert: {
+          volunteerId: session.user.id,
+          eventId: eventId,
+          projectId: event.projectId || (projectAssignment?.projectId),
+          createdAt: new Date(),
+        },
+      }
+
+      const opts = { upsert: true, new: true, setDefaultsOnInsert: true }
+      volunteerEvent = await VolunteerEvent.findOneAndUpdate(
+        { volunteerId: session.user.id, eventId: eventId },
+        updateDoc,
+        opts
+      )
+
+      // Ensure we have the freshest document
       if (!volunteerEvent) {
+        // fallback: create and save explicitly
         volunteerEvent = new VolunteerEvent({
           volunteerId: session.user.id,
           eventId: eventId,
           projectId: event.projectId || (projectAssignment?.projectId),
+          startPhoto: photo,
+          startLocation: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            address: location.address,
+          },
+          startTime: new Date(),
           status: "started",
+          reviewStatus: "pending",
+          reviewNotes: startedEarly ? "Started before allowed attendance window (needs admin review)" : undefined,
+          hoursWorked: 0,
+          pendingHours: 0,
         })
+        await volunteerEvent.save()
       }
-
-      volunteerEvent.startPhoto = photo
-      volunteerEvent.startLocation = {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        address: location.address,
-      }
-      volunteerEvent.startTime = new Date()
-      volunteerEvent.status = "started"
-      volunteerEvent.reviewStatus = "pending"
-      volunteerEvent.reviewNotes = undefined
-      volunteerEvent.reviewedBy = undefined as any
-      volunteerEvent.reviewedAt = undefined
-      volunteerEvent.hoursWorked = 0
-      volunteerEvent.pendingHours = 0
-      await volunteerEvent.save()
 
       return NextResponse.json({
         success: true,
-        message: "Event started successfully",
+        message: startedEarly ? "Event started (outside allowed window) — admin will review." : "Event started successfully",
         volunteerEvent,
+        startedEarly,
+        allowedFrom,
+        allowedUntil,
       })
     } else if (action === "end") {
       if (!photo || !location) {
@@ -367,7 +410,7 @@ export async function POST(request: NextRequest) {
 
         // Calculate max hours from event duration
         let maxHours = actualHours
-        if (event.startTime && event.endTime) {
+        if (!Array.isArray(event) && event.startTime && event.endTime) {
           maxHours =
             (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60 * 60)
         }
