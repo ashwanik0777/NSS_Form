@@ -7,15 +7,23 @@ import type { StepProps } from "@/lib/types"
 const coordinatorData = [
 	{
 		name: "Dr. Gaurav Kumar",
-		units: ["1", "4", "5"],
+		units: ["1"],
 	},
 	{
 		name: "Dr. Bhaswati Banerjee",
 		units: ["2"],
 	},
 	{
-		name: "Dr. Prakash Chandra Dilare",
+		name: "Dr. Rahul Kapoor",
 		units: ["3"],
+	},
+	{
+		name: "Dr. Rakesh Kumar (Y)",
+		units: ["4"],
+	},
+	{
+		name: "Dr. Shrutee Kanwar",
+		units: ["5"],
 	},
 ]
 

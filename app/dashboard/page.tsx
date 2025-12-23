@@ -407,7 +407,7 @@ export default function VolunteerDashboard() {
           {announcements.length === 0 ? (
             <div className="text-sm text-muted-foreground">No announcements right now</div>
           ) : announcements.length > 2 ? (
-            <div className="h-[140px] overflow-hidden relative">
+            <div className="h-[250px] overflow-hidden relative">
               <div className="animate-scroll-up">
                 {/* First set */}
                 {announcements.map((announcement) => {
