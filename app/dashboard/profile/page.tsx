@@ -9,6 +9,7 @@ interface ProfileData {
   photo?: string
   signature?: string
   institutionalIdCard?: string
+  category?: string
   highSchoolCertificate?: string
   myBharatPortalRegistered?: boolean
   myBharatPortalId?: string
@@ -282,6 +283,36 @@ export default function ProfileCompletionPage() {
 
       {/* Form Fields */}
       <div className="bg-card rounded-xl border border-border shadow-sm p-6 md:p-8 space-y-8">
+        {/* Section: Personal Details */}
+        <div>
+          <div className="flex items-center gap-2 mb-6">
+            <User className="w-5 h-5 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">Personal Details</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Category */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-foreground">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.category || ""}
+                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                className="w-full px-4 py-2.5 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              >
+                <option value="">Select Category</option>
+                <option value="GEN">General / सामान्य</option>
+                <option value="OBC">OBC / अन्य पिछड़ा वर्ग</option>
+                <option value="SC">SC / अनुसूचित जाति</option>
+                <option value="ST">ST / अनुसूचित जनजाति</option>
+                <option value="EWS">EWS / आर्थिक रूप से कमजोर वर्ग</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-border"></div>
+
         {/* Section 1: Documents */}
         <div>
           <div className="flex items-center gap-2 mb-6">
