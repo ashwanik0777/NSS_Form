@@ -2,14 +2,31 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 
 interface VolunteerRow {
   name: string
+  fatherName: string
+  motherName: string
   email: string
   mobileNo: string
+  dob: string
+  gender: string
+  category: string
+  bloodGroup: string
   schoolName: string
   departmentName: string
   courseName: string
   year: string
   rollNumber: string
   unitNo: string
+  programOfficerName: string
+  highSchoolRollNo: string
+  classSemester: string
+  nssEnrollmentYear: string
+  addressType: string
+  hostelAddress: string
+  homeAddress: string
+  myBharatRegistered: string
+  myBharatPortalId: string
+  attendedSpecialCamp: string
+  attendedELP: string
 }
 
 export async function generateVolunteerExportPDF(
@@ -20,26 +37,40 @@ export async function generateVolunteerExportPDF(
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
-  const pageWidth = 595
-  const pageHeight = 842
-  const margin = 50
+  // Landscape A3 size for more width
+  const pageWidth = 1190.55 // A3 Landscape width
+  const pageHeight = 841.89 // A3 Landscape height
+  const margin = 30
   const tableStartY = pageHeight - 100
-  const rowHeight = 20
-  const headerHeight = 30
-  const fontSize = 9
-  const headerFontSize = 10
+  const rowHeight = 25
+  const headerHeight = 35
+  const fontSize = 8
+  const headerFontSize = 9
 
-  // Column widths
+  // Column widths - adjusted for more columns
   const colWidths = {
-    name: 80,
-    email: 100,
-    mobile: 60,
-    school: 80,
-    department: 80,
-    course: 60,
-    year: 40,
-    roll: 60,
-    unit: 35,
+    name: 70,
+    fatherName: 70,
+    email: 90,
+    mobile: 55,
+    dob: 45,
+    gender: 35,
+    category: 35,
+    school: 60,
+    department: 60,
+    course: 50,
+    year: 30,
+    roll: 50,
+    unit: 25,
+    address: 80,
+    myBharat: 30,
+    camp: 30,
+    programOfficer: 60,
+    hsRoll: 50,
+    sem: 30,
+    nssYear: 30,
+    mbId: 50,
+    elp: 30,
   }
 
   let currentY = tableStartY
@@ -47,10 +78,10 @@ export async function generateVolunteerExportPDF(
   let rowIndex = 0
 
   // Title
-  currentPage.drawText("NSS Volunteers Export", {
+  currentPage.drawText("NSS Volunteers Detailed Export", {
     x: margin,
     y: pageHeight - 50,
-    size: 16,
+    size: 18,
     font: boldFont,
     color: rgb(0, 0, 0),
   })
@@ -91,84 +122,40 @@ export async function generateVolunteerExportPDF(
       color: rgb(0.9, 0.9, 0.9),
     })
 
-    page.drawText("Name", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.name
+    const headers = [
+      { text: "Name", width: colWidths.name },
+      { text: "Father Name", width: colWidths.fatherName },
+      { text: "Email", width: colWidths.email },
+      { text: "Mobile", width: colWidths.mobile },
+      { text: "DOB", width: colWidths.dob },
+      { text: "Gender", width: colWidths.gender },
+      { text: "Category", width: colWidths.category },
+      { text: "School", width: colWidths.school },
+      { text: "Department", width: colWidths.department },
+      { text: "Course", width: colWidths.course },
+      { text: "Year", width: colWidths.year },
+      { text: "Roll No", width: colWidths.roll },
+      { text: "Unit", width: colWidths.unit },
+      { text: "PO Name", width: colWidths.programOfficer },
+      { text: "HS Roll", width: colWidths.hsRoll },
+      { text: "Sem", width: colWidths.sem },
+      { text: "NSS Yr", width: colWidths.nssYear },
+      { text: "Address", width: colWidths.address },
+      { text: "MyBharat", width: colWidths.myBharat },
+      { text: "MB ID", width: colWidths.mbId },
+      { text: "Camp", width: colWidths.camp },
+      { text: "ELP", width: colWidths.elp },
+    ]
 
-    page.drawText("Email", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.email
-
-    page.drawText("Mobile", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.mobile
-
-    page.drawText("School", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.school
-
-    page.drawText("Department", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.department
-
-    page.drawText("Course", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.course
-
-    page.drawText("Year", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.year
-
-    page.drawText("Roll No", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.roll
-
-    page.drawText("Unit", {
-      x: x,
-      y: y - 10,
-      size: headerFontSize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
+    headers.forEach(h => {
+      page.drawText(h.text, {
+        x: x,
+        y: y - 10,
+        size: headerFontSize,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      })
+      x += h.width
     })
   }
 
@@ -206,99 +193,44 @@ export async function generateVolunteerExportPDF(
 
     let x = margin
 
-    // Name (truncate if too long)
-    const nameText = volunteer.name.length > 25 ? volunteer.name.substring(0, 22) + "..." : volunteer.name
-    currentPage.drawText(nameText, {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.name
+    const drawCell = (text: string, width: number) => {
+      const truncated = text.length > width / 4 ? text.substring(0, Math.floor(width / 4) - 2) + ".." : text
+      currentPage.drawText(truncated || "—", {
+        x: x,
+        y: currentY - 12,
+        size: fontSize,
+        font: font,
+        color: rgb(0, 0, 0),
+      })
+      x += width
+    }
 
-    // Email (truncate if too long)
-    const emailText = volunteer.email.length > 30 ? volunteer.email.substring(0, 27) + "..." : volunteer.email
-    currentPage.drawText(emailText, {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.email
-
-    // Mobile
-    currentPage.drawText(volunteer.mobileNo || "—", {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.mobile
-
-    // School (truncate if too long)
-    const schoolText = (volunteer.schoolName || "—").length > 25 ? (volunteer.schoolName || "—").substring(0, 22) + "..." : (volunteer.schoolName || "—")
-    currentPage.drawText(schoolText, {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.school
-
-    // Department (truncate if too long)
-    const deptText = (volunteer.departmentName || "—").length > 25 ? (volunteer.departmentName || "—").substring(0, 22) + "..." : (volunteer.departmentName || "—")
-    currentPage.drawText(deptText, {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.department
-
-    // Course (truncate if too long)
-    const courseText = (volunteer.courseName || "—").length > 20 ? (volunteer.courseName || "—").substring(0, 17) + "..." : (volunteer.courseName || "—")
-    currentPage.drawText(courseText, {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.course
-
-    // Year
-    currentPage.drawText(volunteer.year || "—", {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.year
-
-    // Roll Number
-    currentPage.drawText(volunteer.rollNumber || "—", {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
-    x += colWidths.roll
-
-    // Unit
-    currentPage.drawText(volunteer.unitNo || "—", {
-      x: x,
-      y: currentY - 12,
-      size: fontSize,
-      font: font,
-      color: rgb(0, 0, 0),
-    })
+    drawCell(volunteer.name, colWidths.name)
+    drawCell(volunteer.fatherName, colWidths.fatherName)
+    drawCell(volunteer.email, colWidths.email)
+    drawCell(volunteer.mobileNo, colWidths.mobile)
+    drawCell(volunteer.dob, colWidths.dob)
+    drawCell(volunteer.gender, colWidths.gender)
+    drawCell(volunteer.category, colWidths.category)
+    drawCell(volunteer.schoolName, colWidths.school)
+    drawCell(volunteer.departmentName, colWidths.department)
+    drawCell(volunteer.courseName, colWidths.course)
+    drawCell(volunteer.year, colWidths.year)
+    drawCell(volunteer.rollNumber, colWidths.roll)
+    drawCell(volunteer.unitNo, colWidths.unit)
+    drawCell(volunteer.programOfficerName, colWidths.programOfficer)
+    drawCell(volunteer.highSchoolRollNo, colWidths.hsRoll)
+    drawCell(volunteer.classSemester, colWidths.sem)
+    drawCell(volunteer.nssEnrollmentYear, colWidths.nssYear)
+    
+    // Address logic
+    const address = volunteer.addressType === "hostler" ? volunteer.hostelAddress : volunteer.homeAddress
+    drawCell(address, colWidths.address)
+    
+    drawCell(volunteer.myBharatRegistered, colWidths.myBharat)
+    drawCell(volunteer.myBharatPortalId, colWidths.mbId)
+    drawCell(volunteer.attendedSpecialCamp, colWidths.camp)
+    drawCell(volunteer.attendedELP, colWidths.elp)
 
     currentY -= rowHeight
     rowIndex++

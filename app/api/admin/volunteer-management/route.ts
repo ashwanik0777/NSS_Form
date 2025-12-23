@@ -190,17 +190,7 @@ export async function GET(request: NextRequest) {
           email: volunteer.email,
           application: application
             ? {
-                formNo: application.formNo,
-                institutionName: application.institutionName,
-                status: application.status,
-                nameEnglish: application.nameEnglish,
-                mobileNo: application.mobileNo,
-                enrollment: application.enrollment,
-                departmentName: application.departmentName,
-                courseName: application.courseName,
-                schoolName: application.schoolName,
-                unitNo: application.unitNo,
-                submittedAt: application.submittedAt,
+                ...application,
               }
             : null,
           stats: {
@@ -219,14 +209,31 @@ export async function GET(request: NextRequest) {
     if (format === "excel" || format === "pdf") {
       const rows = volunteersWithStats.map((v: any) => ({
         name: v.application?.nameEnglish || v.name || "",
+        fatherName: v.application?.fatherName || "",
+        motherName: v.application?.motherName || "",
         email: v.email || "",
         mobileNo: v.application?.mobileNo || "",
+        dob: v.application?.dateOfBirth ? new Date(v.application.dateOfBirth).toLocaleDateString("en-IN") : "",
+        gender: v.application?.gender || "",
+        category: v.application?.category || "",
+        bloodGroup: v.application?.bloodGroup || "",
         schoolName: v.application?.schoolName || "",
         departmentName: v.application?.departmentName || "",
         courseName: v.application?.courseName || "",
         year: v.application?.enrollment || "",
         rollNumber: v.application?.formNo || "",
         unitNo: v.application?.unitNo || "",
+        programOfficerName: v.application?.programOfficerName || "",
+        highSchoolRollNo: v.application?.highSchoolRollNo || "",
+        classSemester: v.application?.classSemester || "",
+        nssEnrollmentYear: v.application?.nssEnrollmentYear || "",
+        addressType: v.application?.addressType || "",
+        hostelAddress: v.application?.hostelAddress || "",
+        homeAddress: v.application?.homeAddress || "",
+        myBharatRegistered: v.application?.myBharatPortalRegistered ? "Yes" : "No",
+        myBharatPortalId: v.application?.myBharatPortalId || "",
+        attendedSpecialCamp: v.application?.attendedSpecialCamp ? "Yes" : "No",
+        attendedELP: v.application?.attendedELP ? "Yes" : "No",
       }))
 
       const fileNameBase =
@@ -252,11 +259,11 @@ export async function GET(request: NextRequest) {
       } else {
         // Excel format (tab-separated)
         const header =
-          "Name\tEmail\tMobile No\tSchool\tDepartment\tCourse\tYear\tRoll Number\tUnit\n"
+          "Name\tFather Name\tMother Name\tEmail\tMobile No\tDOB\tGender\tCategory\tBlood Group\tSchool\tDepartment\tCourse\tYear\tRoll Number\tUnit\tProgram Officer\tHigh School Roll No\tClass/Semester\tNSS Enrollment Year\tAddress Type\tHostel Address\tHome Address\tMy Bharat Registered\tMy Bharat ID\tAttended Special Camp\tAttended ELP\n"
         const body = rows
           .map(
             (r) =>
-              `${r.name}\t${r.email}\t${r.mobileNo}\t${r.schoolName}\t${r.departmentName}\t${r.courseName}\t${r.year}\t${r.rollNumber}\t${r.unitNo}`,
+              `${r.name}\t${r.fatherName}\t${r.motherName}\t${r.email}\t${r.mobileNo}\t${r.dob}\t${r.gender}\t${r.category}\t${r.bloodGroup}\t${r.schoolName}\t${r.departmentName}\t${r.courseName}\t${r.year}\t${r.rollNumber}\t${r.unitNo}\t${r.programOfficerName}\t${r.highSchoolRollNo}\t${r.classSemester}\t${r.nssEnrollmentYear}\t${r.addressType}\t${r.hostelAddress}\t${r.homeAddress}\t${r.myBharatRegistered}\t${r.myBharatPortalId}\t${r.attendedSpecialCamp}\t${r.attendedELP}`,
           )
           .join("\n")
         const content = header + body + "\n"
