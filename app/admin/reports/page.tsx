@@ -335,9 +335,9 @@ export default function AdminReportsPage() {
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Report ID</th>
+                  {/* <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Report ID</th> */}
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">User</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Subject</th>
+                  {/* <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Subject</th> */}
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Category</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Priority</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Status</th>
@@ -356,15 +356,15 @@ export default function AdminReportsPage() {
                 ) : (
                   reports.map((report) => (
                     <tr key={report._id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 text-sm font-mono text-foreground">{report.reportId}</td>
+                      {/* <td className="px-6 py-4 text-sm font-mono text-foreground">{report.reportId}</td> */}
                       <td className="px-6 py-4 text-sm">
                         <div className="font-medium text-foreground">{report.userId?.name || "Unknown"}</div>
                         <div className="text-xs text-muted-foreground">{report.userId?.email}</div>
                       </td>
-                      <td className="px-6 py-4">
+                      {/* <td className="px-6 py-4">
                         <div className="font-medium text-foreground">{report.subject}</div>
                         <div className="text-sm text-muted-foreground line-clamp-1">{report.description}</div>
-                      </td>
+                      </td> */}
                       <td className="px-6 py-4 text-sm text-foreground">{getCategoryLabel(report.category)}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(report.priority)}`}>

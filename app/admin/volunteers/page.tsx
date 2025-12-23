@@ -51,6 +51,7 @@ interface Volunteer {
   name: string
   email: string
   application?: {
+    _id?: string
     formNo: string
     institutionName: string
     status: string
@@ -614,13 +615,25 @@ export default function VolunteersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => fetchVolunteerDetail(volunteer._id)}
-                          className="flex items-center px-3 py-1 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Details
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => fetchVolunteerDetail(volunteer._id)}
+                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {volunteer.application?._id && (
+                            <a
+                              href={`/api/generate-pdf?id=${volunteer.application._id}`}
+                              target="_blank"
+                              className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                              title="Download Application PDF"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
