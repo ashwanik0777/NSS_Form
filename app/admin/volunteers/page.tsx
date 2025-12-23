@@ -430,7 +430,7 @@ export default function VolunteersPage() {
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Projects</p>
+                  <p className="text-sm text-muted-foreground">Project Volunteers</p>
                   <p className="text-3xl font-bold text-foreground mt-2">{analytics.totalActiveProjects}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
