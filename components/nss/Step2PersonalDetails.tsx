@@ -42,6 +42,7 @@ const schoolDepartmentData = [
 			"History",
 			"Education",
 			"Forensic science",
+			"Social Work"
 		],
 	},
 	{
