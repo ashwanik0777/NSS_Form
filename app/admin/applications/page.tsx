@@ -132,6 +132,7 @@ export default function ApplicationsPage() {
                 <option value="3">Unit 3</option>
                 <option value="4">Unit 4</option>
                 <option value="5">Unit 5</option>
+                <option value="6">Unit 6</option>
               </select>
             </div>
             <div>
