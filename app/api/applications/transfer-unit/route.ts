@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import mongoose from "mongoose"
 import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 import { getServerSession } from "next-auth/next"
@@ -25,6 +26,10 @@ export async function POST(request: NextRequest) {
 
     if (!applicationId || !newUnitNo) {
       return NextResponse.json({ success: false, message: "Application ID and new unit number are required" }, { status: 400 })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+      return NextResponse.json({ success: false, message: "Invalid Application ID" }, { status: 400 })
     }
 
     // Validate unit number
@@ -58,18 +63,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update the unit
-    application.unitNo = newUnitNo
-    await application.save()
+    // Update the unit using findByIdAndUpdate to bypass pre-save validation
+    const updatedApplication = await NSSApplication.findByIdAndUpdate(
+      applicationId,
+      { unitNo: newUnitNo },
+      { new: true }
+    )
 
     return NextResponse.json({
       success: true,
       message: `Application transferred from Unit ${oldUnitNo} to Unit ${newUnitNo}`,
-      application: application,
+      application: updatedApplication,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error transferring unit:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ 
+      success: false, 
+      message: error.message || "Internal server error" 
+    }, { status: 500 })
   }
 }
 
