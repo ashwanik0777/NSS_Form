@@ -19,7 +19,7 @@ export interface INSSApplication extends Document {
   departmentName: string
   courseName?: string
   gender: "male" | "female" | "other"
-  category: "general" | "obc" | "st" | "sc"
+  category: "general" | "obc" | "st" | "sc" | "ews"
   bloodGroup?: string
   institutionalIdCard: string
   institutionalIdProof?: string
@@ -165,7 +165,7 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     },
     category: {
       type: String,
-      enum: ["general", "obc", "st", "sc"],
+      enum: ["general", "obc", "st", "sc", "ews"],
       required: true,
     },
     bloodGroup: {
@@ -375,29 +375,6 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
 // NSSApplicationSchema.index({ formNo: 1 }, { unique: true })
 // NSSApplicationSchema.index({ emailId: 1 })
 
-// Pre-save middleware to ensure required fields for submitted applications
-NSSApplicationSchema.pre('save', function(next) {
-  if (this.status === 'submitted') {
-    // Validate required fields for submission
-    const requiredFields = [
-      'institutionName', 'enrollment', 'programOfficerName', 'unitNo',
-      'nameEnglish', 'fatherName', 'motherName', 'dateOfBirth', 'mobileNo', 
-      'emailId', 'departmentName', 'gender', 'category', 'institutionalIdCard',
-      'photo', 'signature', 'highSchoolRollNo', 'classSemester', 'nssEnrollmentYear'
-    ]
-    
-    for (const field of requiredFields) {
-      if (!this[field as keyof INSSApplication]) {
-        return next(new Error(`${field} is required for submission`))
-      }
-    }
-    
-    // Set submittedAt if not already set
-    if (!this.submittedAt) {
-      this.submittedAt = new Date()
-    }
-  }
-  next()
-})
+
 
 export default mongoose.models.NSSApplication || mongoose.model<INSSApplication>("NSSApplication", NSSApplicationSchema)

@@ -30,7 +30,7 @@ interface Application {
   emailId: string
   departmentName: string
   gender: "male" | "female" | "other"
-  category: "general" | "obc" | "st" | "sc"
+  category: "general" | "obc" | "st" | "sc" | "ews"
   institutionalIdCard: string
   photo?: string // URL or base64
 

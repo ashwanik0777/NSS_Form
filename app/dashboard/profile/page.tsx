@@ -301,11 +301,11 @@ export default function ProfileCompletionPage() {
                 className="w-full px-4 py-2.5 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               >
                 <option value="">Select Category</option>
-                <option value="GEN">General / सामान्य</option>
-                <option value="OBC">OBC / अन्य पिछड़ा वर्ग</option>
-                <option value="SC">SC / अनुसूचित जाति</option>
-                <option value="ST">ST / अनुसूचित जनजाति</option>
-                <option value="EWS">EWS / आर्थिक रूप से कमजोर वर्ग</option>
+                <option value="general">General / सामान्य</option>
+                <option value="obc">OBC / अन्य पिछड़ा वर्ग</option>
+                <option value="sc">SC / अनुसूचित जाति</option>
+                <option value="st">ST / अनुसूचित जनजाति</option>
+                <option value="ews">EWS / आर्थिक रूप से कमजोर वर्ग</option>
               </select>
             </div>
           </div>

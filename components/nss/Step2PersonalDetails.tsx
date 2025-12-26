@@ -717,11 +717,11 @@ export default function Step2PersonalDetails({
 						onChange={(e) => handleInputChange("category", e.target.value)}
 					>
 						<option value="">Select Category</option>
-						<option value="GEN">General / सामान्य</option>
-						<option value="OBC">OBC / अन्य पिछड़ा वर्ग</option>
-						<option value="SC">SC / अनुसूचित जाति</option>
-						<option value="ST">ST / अनुसूचित जनजाति</option>
-						<option value="EWS">EWS / आर्थिक रूप से कमजोर वर्ग</option>
+						<option value="general">General / सामान्य</option>
+						<option value="obc">OBC / अन्य पिछड़ा वर्ग</option>
+						<option value="sc">SC / अनुसूचित जाति</option>
+						<option value="st">ST / अनुसूचित जनजाति</option>
+						<option value="ews">EWS / आर्थिक रूप से कमजोर वर्ग</option>
 					</select>
 					{errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
 				</div>
