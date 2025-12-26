@@ -23,7 +23,11 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
     })
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     if (!agreed) {
       alert("Please agree to the declaration before submitting.")
       return
@@ -621,6 +625,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
         </button>
 
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!agreed || isSubmitting}
           className={`nss-button-primary w-full sm:w-auto text-sm sm:text-base ${!agreed || isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}

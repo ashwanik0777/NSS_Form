@@ -148,7 +148,10 @@ export async function POST(request: NextRequest) {
       // NSS Enrollment Details
       nssEnrollmentYear: formData.nssEnrollmentYear,
       attendedSpecialCamp: formData.attendedSpecialCamp || false,
-      specialCampDetails: formData.specialCampDetails || undefined,
+      specialCampDetails: formData.attendedSpecialCamp ? {
+        ...formData.specialCampDetails,
+        proof: formData.specialCampProof || formData.specialCampDetails?.proof
+      } : undefined,
       
       // My Bharat Portal
       myBharatPortalRegistered: formData.myBharatPortalRegistered || false,

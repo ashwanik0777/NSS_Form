@@ -37,6 +37,7 @@ export interface INSSApplication extends Document {
     villageName: string
     date: string
     venue: string
+    proof?: string
   }
   myBharatPortalRegistered: boolean
   myBharatPortalScreenshot?: string
@@ -225,6 +226,10 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
       },
       venue: {
         type: String,
+        trim: true,
+      },
+      proof: {
+        type: String, // File URL
         trim: true,
       },
     },
