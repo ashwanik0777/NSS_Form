@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate unit number
-    if (!["1", "2", "3", "4", "5"].includes(newUnitNo)) {
+    if (!["1", "2", "3", "4", "5", "6"].includes(newUnitNo)) {
       return NextResponse.json({ success: false, message: "Invalid unit number" }, { status: 400 })
     }
 
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       })
     } else {
       // Get counts for all units
-      const units = ["1", "2", "3", "4", "5"]
+      const units = ["1", "2", "3", "4", "5", "6"]
       const unitStats = await Promise.all(
         units.map(async (unit) => {
           const count = await NSSApplication.countDocuments({

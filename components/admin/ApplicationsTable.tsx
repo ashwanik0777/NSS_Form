@@ -843,7 +843,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                   disabled={isTransferring}
                 >
                   <option value="">Select Unit</option>
-                  {["1", "2", "3", "4", "5"]
+                  {["1", "2", "3", "4", "5", "6"]
                     .filter((unit) => unit !== transferringApp.unitNo)
                     .map((unit) => {
                       const capacity = unitCapacity[unit]

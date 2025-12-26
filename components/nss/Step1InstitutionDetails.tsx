@@ -25,6 +25,10 @@ const coordinatorData = [
 		name: "Dr. Shrutee Kanwar",
 		units: ["5"],
 	},
+	{
+		name: "Dr. Indrajeet Singh",
+		units: ["6"],
+	},
 ]
 
 type UnitCapacityInfo = {

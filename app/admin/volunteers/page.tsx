@@ -478,6 +478,7 @@ export default function VolunteersPage() {
                 <option value="3">Unit 3</option>
                 <option value="4">Unit 4</option>
                 <option value="5">Unit 5</option>
+                <option value="6">Unit 6</option>
               </select>
             </div>
             <div>
@@ -1267,7 +1268,7 @@ export default function VolunteersPage() {
                       />
                       <span className="text-foreground">All Units</span>
                     </label>
-                    {[1, 2, 3, 4, 5].map((unit) => (
+                    {[1, 2, 3, 4, 5, 6].map((unit) => (
                       <label
                         key={unit}
                         className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"

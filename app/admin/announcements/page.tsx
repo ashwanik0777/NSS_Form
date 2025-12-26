@@ -28,7 +28,7 @@ export default function AnnouncementsPage() {
   const { data: session } = useSession()
   const isSuperAdmin = (session?.user as any)?.role === "admin"
 
-  const unitOptions = useMemo(() => ["1", "2", "3", "4", "5"], [])
+  const unitOptions = useMemo(() => ["1", "2", "3", "4", "5", "6"], [])
 
   useEffect(() => {
     fetchData()

@@ -432,7 +432,7 @@ export default function UserManagement() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Assigned Units</label>
                 <div className="space-y-2 border border-border rounded-md p-3 max-h-40 overflow-y-auto">
-                  {["1", "2", "3", "4", "5"].map((unit) => (
+                  {["1", "2", "3", "4", "5", "6"].map((unit) => (
                     <label key={unit} className="flex items-center">
                       <input
                         type="checkbox"
@@ -559,7 +559,7 @@ export default function UserManagement() {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Assigned Units</label>
                     <div className="space-y-2 border border-border rounded-md p-3 max-h-40 overflow-y-auto">
-                      {["1", "2", "3", "4", "5"].map((unit) => (
+                      {["1", "2", "3", "4", "5", "6"].map((unit) => (
                         <label key={unit} className="flex items-center">
                           <input
                             type="checkbox"

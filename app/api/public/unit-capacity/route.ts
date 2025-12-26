@@ -3,7 +3,7 @@ import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 
 const MAX_STUDENTS_PER_UNIT = 100
-const TRACKED_UNITS = ["1", "2", "3", "4", "5"]
+const TRACKED_UNITS = ["1", "2", "3", "4", "5", "6"]
 const ACTIVE_STATUSES = ["submitted", "under-review", "approved"]
 
 export async function GET() {
