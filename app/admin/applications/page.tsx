@@ -11,6 +11,7 @@ const statusFilters = [
   { value: "under-review", label: "Under Review" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
+  { value: "duplicate", label: "Duplicate Applications" },
 ]
 
 export default function ApplicationsPage() {

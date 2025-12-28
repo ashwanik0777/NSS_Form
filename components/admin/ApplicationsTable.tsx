@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { ArrowRightLeft, AlertCircle, CheckCircle } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Application {
   schoolName: string
@@ -267,8 +268,56 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-muted/50">
+              <tr>
+                {[...Array(isSuperAdmin ? 6 : 5)].map((_, i) => (
+                  <th key={i} className="px-6 py-3 text-left">
+                    <Skeleton className="h-4 w-24" />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-card divide-y divide-border">
+              {[...Array(5)].map((_, i) => (
+                <tr key={i}>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <Skeleton className="h-10 w-10 rounded-full mr-3" />
+                      <div>
+                        <Skeleton className="h-4 w-32 mb-1" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Skeleton className="h-4 w-32 mb-1" />
+                    <Skeleton className="h-3 w-24" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <Skeleton className="h-4 w-24" />
+                  </td>
+                  {isSuperAdmin && (
+                    <td className="px-6 py-4">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                  )}
+                  <td className="px-6 py-4">
+                    <Skeleton className="h-8 w-20" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     )
   }

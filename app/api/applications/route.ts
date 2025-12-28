@@ -241,8 +241,34 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * (limit || 1)
 
     let query: any = {}
-    if (status && status !== "all") {
-      query = { status }
+    if (status === "duplicate") {
+      const duplicates = await NSSApplication.aggregate([
+        {
+          $facet: {
+            byEmail: [
+              { $group: { _id: { $toLower: "$emailId" }, count: { $sum: 1 }, ids: { $push: "$_id" } } },
+              { $match: { count: { $gt: 1 } } }
+            ],
+            byMobile: [
+              { $group: { _id: "$mobileNo", count: { $sum: 1 }, ids: { $push: "$_id" } } },
+              { $match: { count: { $gt: 1 } } }
+            ],
+            byName: [
+              { $group: { _id: { name: { $toLower: "$nameEnglish" }, father: { $toLower: "$fatherName" } }, count: { $sum: 1 }, ids: { $push: "$_id" } } },
+              { $match: { count: { $gt: 1 } } }
+            ]
+          }
+        }
+      ]);
+      
+      const duplicateIds = new Set<string>();
+      duplicates[0].byEmail.forEach((d: any) => d.ids.forEach((id: any) => duplicateIds.add(id.toString())));
+      duplicates[0].byMobile.forEach((d: any) => d.ids.forEach((id: any) => duplicateIds.add(id.toString())));
+      duplicates[0].byName.forEach((d: any) => d.ids.forEach((id: any) => duplicateIds.add(id.toString())));
+      
+      query._id = { $in: Array.from(duplicateIds) };
+    } else if (status && status !== "all") {
+      query.status = status
     }
     
     // If sub-admin has assigned units, filter by those units
@@ -270,6 +296,7 @@ export async function GET(request: NextRequest) {
       .populate("userId", "name email")
       .populate("reviewedBy", "name email")
       .sort({ createdAt: -1 })
+      .lean()
 
     if (limit) {
       applicationsQuery = applicationsQuery.skip(skip).limit(limit)
