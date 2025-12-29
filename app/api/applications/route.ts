@@ -243,6 +243,7 @@ export async function GET(request: NextRequest) {
     let query: any = {}
     if (status === "duplicate") {
       const duplicates = await NSSApplication.aggregate([
+        { $match: { status: { $ne: "rejected" } } },
         {
           $facet: {
             byEmail: [
