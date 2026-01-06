@@ -7,6 +7,8 @@ import VolunteerEvent from "@/models/VolunteerEvent"
 import Event from "@/models/Event"
 import AdminNotificationRead from "@/models/AdminNotificationRead"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

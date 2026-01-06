@@ -19,7 +19,7 @@ const ViewerCountSchema = new Schema<IViewerCount>(
 )
 
 // Ensure only one document exists
-ViewerCountSchema.index({ _id: 1 }, { unique: true })
+// ViewerCountSchema.index({ _id: 1 }, { unique: true })
 
 const ViewerCount = models.ViewerCount || model<IViewerCount>("ViewerCount", ViewerCountSchema)
 

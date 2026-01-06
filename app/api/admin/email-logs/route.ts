@@ -5,6 +5,8 @@ import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import EmailLog from "@/models/EmailLog"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

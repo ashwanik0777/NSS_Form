@@ -9,6 +9,8 @@ import AnnouncementView from "@/models/AnnouncementView"
 import { sendCustomEmail } from "@/lib/email"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

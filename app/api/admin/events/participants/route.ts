@@ -7,6 +7,8 @@ import EventRegistration from "@/models/EventRegistration"
 import VolunteerEvent from "@/models/VolunteerEvent"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

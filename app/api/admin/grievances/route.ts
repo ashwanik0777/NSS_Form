@@ -7,6 +7,8 @@ import User from "@/models/User"
 import Notification from "@/models/Notification"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

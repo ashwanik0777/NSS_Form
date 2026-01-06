@@ -372,9 +372,9 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
 // Indexes for efficient queries
 NSSApplicationSchema.index({ userId: 1, status: 1 })
 NSSApplicationSchema.index({ status: 1, createdAt: -1 })
-NSSApplicationSchema.index({ formNo: 1 }, { unique: true })
-NSSApplicationSchema.index({ emailId: 1 })
-NSSApplicationSchema.index({ mobileNo: 1 })
+// NSSApplicationSchema.index({ formNo: 1 }, { unique: true })
+// NSSApplicationSchema.index({ emailId: 1 })
+// NSSApplicationSchema.index({ mobileNo: 1 })
 NSSApplicationSchema.index({ nameEnglish: 1 })
 
 export default mongoose.models.NSSApplication || mongoose.model<INSSApplication>("NSSApplication", NSSApplicationSchema)

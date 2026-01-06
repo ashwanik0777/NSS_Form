@@ -724,3 +724,115 @@ export async function sendEndAttendanceReminderEmail(to: string, data: EndAttend
 
   await transporter.sendMail(mailOptions)
 }
+
+interface EventNotificationData {
+  name: string
+  eventTitle: string
+  eventDescription: string
+  eventDate: string | Date
+  startTime: string
+  endTime: string
+  location: string
+  coordinator: string
+}
+
+export async function sendEventNotificationEmail(to: string, data: EventNotificationData) {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: `New NSS Event: ${data.eventTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #1e40af; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">New NSS Event Announcement</h1>
+        </div>
+        <div style="padding: 20px; background-color: white;">
+          <h2 style="color: #1e3a8a;">📅 New Event: ${data.eventTitle}</h2>
+          <p>Dear ${data.name},</p>
+          <p>A new event has been scheduled. Please check the details below:</p>
+          
+          <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e40af;">
+            <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(data.eventDate).toLocaleDateString()}</p>
+            <p style="margin: 5px 0;"><strong>Time:</strong> ${data.startTime} - ${data.endTime}</p>
+            <p style="margin: 5px 0;"><strong>Location:</strong> ${data.location}</p>
+            <p style="margin: 5px 0;"><strong>Coordinator:</strong> ${data.coordinator}</p>
+          </div>
+
+          <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin: 0 0 10px 0; color: #374151;">Description:</h3>
+            <p style="margin: 0; color: #4b5563;">${data.eventDescription}</p>
+          </div>
+          
+          <p>Please log in to the portal to register for this event.</p>
+          
+          <p>Best regards,<br>NSS Team</p>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+          <p>This email was sent from NSS Registration System</p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}
+
+interface DefaulterNotificationData {
+  name: string
+  eventTitle: string
+  eventDate: string | Date
+  defaulterCount: number
+  reason: string
+}
+
+export async function sendDefaulterEmail(to: string, data: DefaulterNotificationData) {
+  const isRemoved = data.defaulterCount >= 3
+  
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: `NSS Attendance Warning - ${data.eventTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #dc2626; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">NSS Attendance Warning</h1>
+        </div>
+        <div style="padding: 20px; background-color: white;">
+          <h2 style="color: #dc2626;">⚠️ Absent from Event</h2>
+          <p>Dear ${data.name},</p>
+          <p>You have been marked as absent/defaulter for the following event:</p>
+          
+          <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <p style="margin: 5px 0;"><strong>Event:</strong> ${data.eventTitle}</p>
+            <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(data.eventDate).toLocaleDateString()}</p>
+            <p style="margin: 5px 0;"><strong>Reason:</strong> ${data.reason}</p>
+          </div>
+
+          <div style="background-color: #fff1f2; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #fda4af;">
+            <h3 style="margin: 0 0 10px 0; color: #991b1b;">Defaulter Status:</h3>
+            <p style="margin: 5px 0; font-size: 18px; font-weight: bold; color: #ef4444;">
+              Count: ${data.defaulterCount} / 3
+            </p>
+            ${isRemoved 
+              ? `<p style="color: #dc2626; font-weight: bold; margin-top: 10px;">
+                   CRITICAL: You have reached the maximum allowed defaulter limit. You have been removed from the active volunteer list.
+                 </p>`
+              : `<p style="color: #4b5563; font-size: 14px; margin-top: 10px;">
+                   Please note: 3 defaulter marks will result in removal from the NSS program.
+                 </p>`
+            }
+          </div>
+          
+          <p>If you believe this is a mistake, please contact the program coordinator immediately.</p>
+          
+          <p>Best regards,<br>NSS Disciplinary Committee</p>
+        </div>
+        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+          <p>This email was sent from NSS Registration System</p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}

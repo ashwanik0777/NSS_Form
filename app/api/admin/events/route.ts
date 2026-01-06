@@ -11,6 +11,8 @@ import VolunteerEvent from "@/models/VolunteerEvent"
 import { sendEventNotificationEmail } from "@/lib/email"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any
