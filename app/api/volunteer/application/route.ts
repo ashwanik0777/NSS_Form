@@ -19,7 +19,9 @@ export async function GET(_request: NextRequest) {
       .lean()
 
     if (!application) {
-      return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+      // Return success with null application instead of 404 error
+      // This prevents client-side handling issues for users passing other checks
+      return NextResponse.json({ success: true, application: null })
     }
 
     return NextResponse.json({ success: true, application })

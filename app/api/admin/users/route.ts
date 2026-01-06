@@ -83,8 +83,46 @@ export async function POST(request: NextRequest) {
 
     // Check if user already exists
     const existingUser = await User.findOne({ email })
+    
     if (existingUser) {
-      return NextResponse.json({ success: false, message: "User with this email already exists" }, { status: 400 })
+      // Update existing user (Promotion/Role Change)
+      existingUser.role = role
+      existingUser.permissions = permissions || []
+      existingUser.hierarchy = hierarchy || ""
+      existingUser.assignedUnits = assignedUnits || []
+      
+      // Only update name if provided
+      if (name) existingUser.name = name
+      
+      // DO NOT update password for existing users to preserve their login
+      // DO NOT change mustChangePassword
+      
+      await existingUser.save()
+      
+      // Send email notification about role update
+      try {
+        await sendCustomEmail(
+          email,
+          "NSS Role Updated",
+          `Dear ${name},\n\nYour role in the NSS system has been updated to ${role}${hierarchy ? ` (${hierarchy})` : ""}.\n\nYou can continue to login with your existing credentials.\n\nNew Permissions have been assigned to your account.\n\nBest regards,\nNSS Administration Team`
+        )
+      } catch (emailError) {
+        console.error("Error sending email:", emailError)
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "User role updated successfully",
+        user: {
+          _id: existingUser._id,
+          name: existingUser.name,
+          email: existingUser.email,
+          role: existingUser.role,
+          permissions: existingUser.permissions,
+          assignedUnits: existingUser.assignedUnits,
+          hierarchy: existingUser.hierarchy
+        },
+      })
     }
 
     // Use provided password or generate temporary

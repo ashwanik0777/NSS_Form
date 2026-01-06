@@ -17,6 +17,10 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
+    // Role check is not strictly needed as we query by ID, but implicit safety is good.
+    // Ensure we don't block subs/admins:
+    // if (session.user.role !== 'volunteer' ...) -> We DO NOT have this check, which is good.
+
     await dbConnect()
 
     let volunteerObjectId: mongoose.Types.ObjectId

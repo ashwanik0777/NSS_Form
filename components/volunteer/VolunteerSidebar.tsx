@@ -17,6 +17,7 @@ import {
   Menu,
   Calendar,
   CreditCard,
+  Shield,
 } from "lucide-react"
 
 
@@ -97,6 +98,22 @@ export default function VolunteerSidebar() {
   const { data: session } = useSession()
   const user = session?.user as any
 
+  const items = [...sidebarItems]
+
+  if (user?.role === "admin" || user?.role === "sub-admin") {
+    let label = "Admin Access"
+    if (user?.hierarchy === "convener") label = "Convener Access"
+    else if (user?.hierarchy === "co-convener") label = "Co-Convener Access"
+    else if (user?.role === "sub-admin") label = "Sub-Admin Access"
+
+    items.push({
+      id: "admin-access",
+      label: label,
+      href: "/admin",
+      icon: <Shield className="w-5 h-5 text-red-500" />,
+    })
+  }
+
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: "/login" })
   }
@@ -153,7 +170,7 @@ export default function VolunteerSidebar() {
 
         <nav className="p-4 flex-1">
           <ul className="space-y-2">
-            {sidebarItems.map((item) => {
+            {items.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href))
               return (
                 <li key={item.id}>

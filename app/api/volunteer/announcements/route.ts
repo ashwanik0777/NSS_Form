@@ -22,11 +22,8 @@ export async function GET(_request: NextRequest) {
       status: "approved",
     }).lean()
 
-    if (!application) {
-      return NextResponse.json({ success: true, announcements: [], notifications: [] })
-    }
-
-    const unitNo = application.unitNo
+    // If no application (e.g. sub-admin), show all "all" target announcements but not unit specific ones.
+    const unitNo = application?.unitNo
     const buildAudienceFilter = () => {
       const clauses: any[] = [{ targetType: { $exists: false } }, { targetType: "all" }]
       if (unitNo) {

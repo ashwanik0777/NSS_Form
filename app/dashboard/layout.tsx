@@ -19,10 +19,25 @@ export default function VolunteerDashboardLayout({
   const [checkingProfile, setCheckingProfile] = useState(true)
 
   useEffect(() => {
+    // Immediate logging to track lifecycle
+    console.log("Layout Effect Run. Status:", status, "Session User:", session?.user);
+
     if (status === "loading") return
     
+    // Handle unauthenticated state immediately to prevent hanging
+    if (status === "unauthenticated" || !session) {
+      console.log("User unauthenticated in Layout, stopping profile check.");
+      setCheckingProfile(false);
+      return;
+    }
+
     const user = session?.user as any
-    if (!user) return
+    // Extra safety
+    if (!user) {
+       console.log("Authenticated but no user object, stopping check.");
+       setCheckingProfile(false);
+       return;
+    }
     
     // Allow access to profile page always
     if (pathname === "/dashboard/profile") {
@@ -32,43 +47,74 @@ export default function VolunteerDashboardLayout({
     
     // Check profile completion for other pages
     const checkProfile = async () => {
+      console.log("Checking profile for user:", user);
+      
+      // Skip check for admins/sub-admins to prevent lockout
+      // Also check for user ID existence to avoid race conditions
+      // MODIFIED: Do NOT skip if we are on dashboard layout. We want them to see their volunteer data.
+      // But we must handle the case where they haven't applied yet.
+      
+      if (!user || !user.id) {
+         setCheckingProfile(false)
+         return
+      }
+
       try {
+        console.log("Fetching profile completion status...");
         const res = await fetch("/api/volunteer/profile")
         const data = await res.json()
+        console.log("Profile data received:", data);
         
-        if (data.success && data.completion) {
-          // If profile not complete, redirect to profile page
-          if (data.completion.percent < 100) {
-            router.push("/dashboard/profile")
-            return
-          }
-          
-          // If profile complete, check project selection
-          if (data.completion.percent === 100) {
-            const projectRes = await fetch("/api/volunteer/projects")
-            const projectData = await projectRes.json()
-            
-            // If no project selected and not on projects page, redirect to projects
-            if (!projectData.selectedProject && pathname !== "/dashboard/projects") {
-              router.push("/dashboard/projects")
-              return
-            }
-          }
+        if (data.success) { 
+             if (data.completion && data.completion.percent < 100) {
+                 console.log("Profile incomplete, redirecting to /dashboard/profile");
+                 router.push("/dashboard/profile")
+                 return
+             }
+             
+             if (data.completion && data.completion.percent === 100) {
+                 console.log("Profile complete. Checking projects...");
+                 const projectRes = await fetch("/api/volunteer/projects")
+                 const projectData = await projectRes.json()
+                 
+                 // If no project selected and not on projects page, redirect to projects
+                 if (!projectData.selectedProject && pathname !== "/dashboard/projects") {
+                   console.log("No project selected, redirecting to /dashboard/projects");
+                   router.push("/dashboard/projects")
+                   return
+                 }
+             }
         }
       } catch (error) {
         console.error("Error checking profile:", error)
       } finally {
+        console.log("Finished checking profile, setting checkingProfile = false");
         setCheckingProfile(false)
       }
     }
     
+    // Safety timeout - IF profile check hangs, force show dashboard after 5s
+    const timer = setTimeout(() => {
+        if (checkingProfile) {
+            console.warn("Profile check timed out, forcing dashboard render.");
+            setCheckingProfile(false);
+        }
+    }, 5000); // 5 seconds timeout
+
     checkProfile()
+    
+    return () => clearTimeout(timer);
   }, [session, status, pathname, router])
 
   if (status === "loading" || checkingProfile) {
+    console.log("Dashboard Layout Rendering Loader. Status:", status, "CheckingProfile:", checkingProfile);
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
         <Loader2 className="animate-spin w-8 h-8 text-primary" />
+        <p className="text-muted-foreground animate-pulse">Loading Dashboard...</p>
+        <div className="text-xs text-muted-foreground/50">
+           Status: {status} | Checking: {checkingProfile.toString()}
+        </div>
       </div>
     )
   }

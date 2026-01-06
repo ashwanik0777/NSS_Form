@@ -13,12 +13,18 @@ export async function GET(_request: NextRequest) {
     await dbConnect()
 
     // Get volunteer's selected project
-    const volunteerProject = await VolunteerProject.findOne({
-      volunteerId: session.user.id,
-      status: "active",
-    })
-      .populate("projectId")
-      .lean()
+    // Use try/catch specifically for finding volunteer project just in case
+    let volunteerProject = null;
+    try {
+        volunteerProject = await VolunteerProject.findOne({
+          volunteerId: session.user.id,
+          status: "active",
+        })
+          .populate("projectId")
+          .lean()
+    } catch (e) {
+        console.warn("Failed to find volunteer project:", e);
+    }
 
     // Get all available projects
     const allProjects = await NSSProject.find({ status: "active" }).sort({ createdAt: -1 }).lean()

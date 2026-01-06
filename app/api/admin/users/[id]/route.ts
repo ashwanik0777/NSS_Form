@@ -33,12 +33,16 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       name,
       email,
       role,
-      permissions: permissions || [],
-      assignedUnits: assignedUnits || [],
-      status: "accepted", // Accept karte waqt status update karein
+      permissions: role === "volunteer" ? [] : (permissions || []), // Clear permissions if demoted to volunteer
+      assignedUnits: role === "volunteer" ? [] : (assignedUnits || []), // Clear units if demoted
+      status: "accepted",
     }
 
-    if (hierarchy !== undefined) {
+    if (role === "volunteer") {
+      updateData.designation = undefined; // Remove designation if demoted
+      updateData.hierarchy = undefined;
+    } else if (hierarchy !== undefined) {
+      updateData.designation = hierarchy || undefined
       updateData.hierarchy = hierarchy || undefined
     }
 

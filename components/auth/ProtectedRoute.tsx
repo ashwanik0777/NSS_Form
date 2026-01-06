@@ -35,8 +35,9 @@ export default function ProtectedRoute({
     if (requiredRole) {
       const userRole = session.user.role
       if (requiredRole === "volunteer") {
-        // For volunteer route, user must be volunteer
-        if (userRole !== "volunteer" && userRole !== "user") {
+        // For volunteer route, allow volunteer, user, sub-admin, and admin
+        // This ensures promoted volunteers (sub-admins) can still access their dashboard
+        if (userRole !== "volunteer" && userRole !== "user" && userRole !== "sub-admin" && userRole !== "admin") {
           router.push("/unauthorized")
           return
         }

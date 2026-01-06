@@ -6,6 +6,7 @@ declare module "next-auth" {
       name: string
       role: string
       permissions: string[]
+      hierarchy?: string
     }
   }
 
@@ -15,6 +16,7 @@ declare module "next-auth" {
     name: string
     role: string
     permissions: string[]
+    hierarchy?: string
   }
 }
 
@@ -23,5 +25,6 @@ declare module "next-auth/jwt" {
     sub: string
     role: string
     permissions: string[]
+    hierarchy?: string
   }
 }

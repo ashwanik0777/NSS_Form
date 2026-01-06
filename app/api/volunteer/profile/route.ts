@@ -9,14 +9,17 @@ export async function GET(_request: NextRequest) {
     const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
 
+    // Allow admin/sub-admin to access without restriction, but still try to find their application
+    // If they don't have an application, we might return empty or specific message, but NOT error.
+
     await dbConnect()
     
     // Try to find application by userId first
-    let app = await NSSApplication.findOne({ userId: session.user.id }).lean()
+    let app = (await NSSApplication.findOne({ userId: session.user.id }).lean()) as any
     
     // If not found, try to find by email (for newly created volunteers)
     if (!app || Array.isArray(app)) {
-      app = await NSSApplication.findOne({ emailId: session.user.email }).lean()
+      app = (await NSSApplication.findOne({ emailId: session.user.email }).lean()) as any
       // If found by email, update it with userId
       if (app && !Array.isArray(app)) {
         await NSSApplication.updateOne(

@@ -10,6 +10,7 @@ export default function LoginForm() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    loginAs: "volunteer", // "volunteer" or "admin"
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -29,17 +30,13 @@ export default function LoginForm() {
       })
 
       if (result?.error) {
-        // More specific error messages
         if (result.error === "CredentialsSignin") {
           setError("Invalid email or password. Please check your credentials and try again.")
         } else {
           setError("Invalid email or password")
         }
       } else {
-        // Small delay to ensure session is updated
         await new Promise(resolve => setTimeout(resolve, 100))
-        
-        // Get session to check user role
         const session = await getSession()
         const user = session?.user as any
         
@@ -51,15 +48,24 @@ export default function LoginForm() {
         const userRole = user?.role ?? "user"
         const mustChangePassword = user?.mustChangePassword ?? false
         
-        // If must change password, redirect to set-password page
         if (mustChangePassword) {
           router.push("/set-password")
-        } else if (userRole === "admin" || userRole === "sub-admin") {
-          router.push("/admin")
-        } else if (userRole === "volunteer" || userRole === "user") {
-          router.push("/dashboard")
         } else {
-          router.push("/dashboard")
+          // Check login preference
+          if (formData.loginAs === "admin") {
+            // User wants to login as Admin/Convener
+            if (userRole === "admin" || userRole === "sub-admin") {
+              router.push("/admin")
+            } else {
+              // Not an admin but tried to login as one
+              setError("You do not have administrative privileges.")
+              // We could sign them out here, or just redirect them to dashboard anyway
+              // But 'setError' implies we stop them.
+            }
+          } else {
+            // User wants to login as Volunteer
+            router.push("/dashboard")
+          }
         }
       }
     } catch (error) {
@@ -95,6 +101,39 @@ export default function LoginForm() {
         <div className="bg-card/80 backdrop-blur-md rounded-2xl shadow-2xl border border-border/50 p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-3">
+                  <span className="flex items-center">
+                    <Shield className="w-4 h-4 mr-2 text-primary" />
+                    Login As
+                  </span>
+                </label>
+                <div className="grid grid-cols-2 gap-4 p-1 bg-muted/50 rounded-lg border border-border/50">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, loginAs: "volunteer" })}
+                    className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      formData.loginAs === "volunteer"
+                        ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    Volunteer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, loginAs: "admin" })}
+                    className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      formData.loginAs === "admin"
+                        ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    Convener / Admin
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="email" className="flex items-center text-sm font-semibold text-foreground mb-3">
                   <Mail className="w-4 h-4 mr-2 text-primary" />

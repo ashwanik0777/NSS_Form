@@ -32,7 +32,9 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
             permissions: user.permissions,
+            hierarchy: user.hierarchy,
             mustChangePassword: user.mustChangePassword,
+            designation: user.designation,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -49,16 +51,20 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.permissions = user.permissions
+        token.hierarchy = (user as any).hierarchy
         token.mustChangePassword = (user as any).mustChangePassword
+        token.designation = (user as any).designation
       }
       if (trigger === "update" && token?.sub) {
         try {
           await dbConnect()
-          const refreshedUser = await User.findById(token.sub).select("role permissions mustChangePassword")
+          const refreshedUser = await User.findById(token.sub).select("role permissions hierarchy mustChangePassword designation")
           if (refreshedUser) {
             token.role = refreshedUser.role
             token.permissions = refreshedUser.permissions
+            token.hierarchy = refreshedUser.hierarchy
             token.mustChangePassword = refreshedUser.mustChangePassword
+            token.designation = refreshedUser.designation
           }
         } catch (error) {
           console.error("Error refreshing auth token:", error)
@@ -71,7 +77,9 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!
         session.user.role = token.role as string
         session.user.permissions = token.permissions as string[]
+        session.user.hierarchy = token.hierarchy as string
         ;(session.user as any).mustChangePassword = token.mustChangePassword as boolean
+        ;(session.user as any).designation = token.designation as string
       }
       return session
     },

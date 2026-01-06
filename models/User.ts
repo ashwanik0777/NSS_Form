@@ -43,6 +43,11 @@ const UserSchema = new Schema<IUser>(
       enum: ["admin", "sub-admin", "user", "volunteer"],
       default: "user",
     },
+    hierarchy: {
+      type: String,
+      enum: ["convener", "co-convener", "member", ""],
+      default: "",
+    },
     mustChangePassword: {
       type: Boolean,
       default: false,

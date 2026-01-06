@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    if (session.user.role !== "volunteer" && session.user.role !== "user") {
+    if (session.user.role !== "volunteer" && session.user.role !== "user" && session.user.role !== "sub-admin" && session.user.role !== "admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
@@ -65,7 +65,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    if (session.user.role !== "volunteer" && session.user.role !== "user") {
+    if (session.user.role !== "volunteer" && session.user.role !== "user" && session.user.role !== "sub-admin" && session.user.role !== "admin") {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 

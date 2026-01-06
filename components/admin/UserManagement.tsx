@@ -192,7 +192,7 @@ export default function UserManagement() {
       email: user.email,
       role: user.role,
       hierarchy: (user as any).hierarchy || "",
-      permissions: user.permissions,
+      permissions: user.permissions || [],
       password: "",
       assignedUnits: (user as any).assignedUnits || [],
     })
@@ -392,6 +392,8 @@ export default function UserManagement() {
                   className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
                 >
                   <option value="">Select role</option>
+                  <option value="convener">Convener</option>
+                  <option value="co-convener">Co-Convener</option>
                   <option value="president">President</option>
                   <option value="vice-president">Vice President</option>
                   <option value="secretary">Secretary</option>
@@ -410,6 +412,7 @@ export default function UserManagement() {
                 >
                   <option value="sub-admin">Sub-Admin</option>
                   <option value="user">User</option>
+                  <option value="volunteer">Volunteer</option>
                 </select>
               </div>
 
@@ -553,63 +556,87 @@ export default function UserManagement() {
                     >
                       <option value="sub-admin">Sub-Admin</option>
                       <option value="user">User</option>
+                      <option value="volunteer">Volunteer (Demote)</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Assigned Units</label>
-                    <div className="space-y-2 border border-border rounded-md p-3 max-h-40 overflow-y-auto">
-                      {["1", "2", "3", "4", "5", "6"].map((unit) => (
-                        <label key={unit} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.assignedUnits.includes(unit)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  assignedUnits: [...prev.assignedUnits, unit],
-                                }))
-                              } else {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  assignedUnits: prev.assignedUnits.filter((u) => u !== unit),
-                                }))
-                              }
-                            }}
-                            className="mr-2"
-                          />
-                          <span className="text-sm text-foreground">Unit {unit}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  {formData.role !== "volunteer" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Hierarchy/Role</label>
+                        <select
+                          value={formData.hierarchy}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, hierarchy: e.target.value }))}
+                          className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
+                        >
+                          <option value="">Select role</option>
+                          <option value="convener">Convener</option>
+                          <option value="co-convener">Co-Convener</option>
+                          <option value="president">President</option>
+                          <option value="vice-president">Vice President</option>
+                          <option value="secretary">Secretary</option>
+                          <option value="treasurer">Treasurer</option>
+                          <option value="coordinator">Coordinator</option>
+                          <option value="member">Member</option>
+                        </select>
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Permissions</label>
-                    <div className="space-y-4 max-h-60 overflow-y-auto border border-border rounded-md p-4">
-                      {Object.entries(permissionsByCategory).map(([category, permissions]) => (
-                        <div key={category}>
-                          <h4 className="font-medium text-foreground mb-2">
-                            {PERMISSION_CATEGORIES[category as keyof typeof PERMISSION_CATEGORIES]}
-                          </h4>
-                          <div className="space-y-2 ml-4">
-                            {permissions.map(({ key, description }) => (
-                              <label key={key} className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  checked={formData.permissions.includes(key)}
-                                  onChange={(e) => handlePermissionChange(key, e.target.checked)}
-                                  className="mr-2"
-                                />
-                                <span className="text-sm text-foreground">{description}</span>
-                              </label>
-                            ))}
-                          </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Assigned Units</label>
+                        <div className="space-y-2 border border-border rounded-md p-3 max-h-40 overflow-y-auto">
+                          {["1", "2", "3", "4", "5", "6"].map((unit) => (
+                            <label key={unit} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={formData.assignedUnits.includes(unit)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      assignedUnits: [...prev.assignedUnits, unit],
+                                    }))
+                                  } else {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      assignedUnits: prev.assignedUnits.filter((u) => u !== unit),
+                                    }))
+                                  }
+                                }}
+                                className="mr-2"
+                              />
+                              <span className="text-sm text-foreground">Unit {unit}</span>
+                            </label>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Permissions</label>
+                        <div className="space-y-4 max-h-60 overflow-y-auto border border-border rounded-md p-4">
+                          {Object.entries(permissionsByCategory).map(([category, permissions]) => (
+                            <div key={category}>
+                              <h4 className="font-medium text-foreground mb-2">
+                                {PERMISSION_CATEGORIES[category as keyof typeof PERMISSION_CATEGORIES]}
+                              </h4>
+                              <div className="space-y-2 ml-4">
+                                {permissions.map(({ key, description }) => (
+                                  <label key={key} className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={formData.permissions.includes(key)}
+                                      onChange={(e) => handlePermissionChange(key, e.target.checked)}
+                                      className="mr-2"
+                                    />
+                                    <span className="text-sm text-foreground">{description}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
