@@ -65,38 +65,63 @@ export async function POST(request: NextRequest) {
     const existingEmailApp = await NSSApplication.findOne({
       emailId: formData.emailId?.toLowerCase().trim(),
     })
+    
     if (existingEmailApp) {
-      // If it's a different user, reject
-      if (existingEmailApp.userId.toString() !== user._id.toString()) {
+      // If application exists (same user or different), check status
+      // If status is active, prevent new submission
+      if (['submitted', 'under-review', 'approved'].includes(existingEmailApp.status)) {
         return NextResponse.json(
           {
             success: false,
-            message: "An application with this email address already exists. Please use a different email.",
-            errors: { emailId: "This email is already registered" },
+            message: "An active application with this email already exists. Please login to check status.",
+            errors: { emailId: "Application already submitted." },
           },
           { status: 400 },
         )
       }
-      // If same user, allow update (will be handled by save/update logic)
+      
+      // If different user owns the email (and it wasn't active? should unlikely happen if emails are unique users)
+      if (existingEmailApp.userId.toString() !== user._id.toString()) {
+         return NextResponse.json(
+          {
+            success: false,
+            message: "This email is linked to another application.",
+            errors: { emailId: "Email already taken" },
+          },
+          { status: 400 },
+        )
+      }
     }
 
     // Check for duplicate mobile number
     const existingMobileApp = await NSSApplication.findOne({
       mobileNo: formData.mobileNo?.trim(),
     })
+    
     if (existingMobileApp) {
+      // Check status to prevent duplicate active applications
+       if (['submitted', 'under-review', 'approved'].includes(existingMobileApp.status)) {
+         return NextResponse.json(
+          {
+            success: false,
+            message: "An active application with this mobile number already exists.",
+             errors: { mobileNo: "Application already submitted." },
+          },
+          { status: 400 },
+        )
+       }
+
       // If it's a different user, reject
       if (existingMobileApp.userId.toString() !== user._id.toString()) {
         return NextResponse.json(
           {
             success: false,
-            message: "An application with this mobile number already exists. Please use a different mobile number.",
+            message: "An application with this mobile number already exists.",
             errors: { mobileNo: "This mobile number is already registered" },
           },
           { status: 400 },
         )
       }
-      // If same user, allow update (will be handled by save/update logic)
     }
 
     // Get next form number from DB

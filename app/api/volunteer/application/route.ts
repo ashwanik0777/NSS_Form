@@ -12,17 +12,34 @@ export async function GET(_request: NextRequest) {
     }
 
     await dbConnect()
-    const application = await NSSApplication.findOne({ userId: session.user.id })
+
+    // Find all applications for the user to select the best one
+    // Prioritize: approved > under-review > submitted > rejected > draft
+    const applications = await NSSApplication.find({ userId: session.user.id })
       .populate("userId", "name email")
       .populate("reviewedBy", "name")
-      .sort({ createdAt: -1 })
-      .lean()
+      .sort({ createdAt: -1 }) // Get latest first, but we will sort by priority
+      .lean();
 
-    if (!application) {
-      // Return success with null application instead of 404 error
-      // This prevents client-side handling issues for users passing other checks
+    if (!applications || applications.length === 0) {
       return NextResponse.json({ success: true, application: null })
     }
+
+    // Define priority map
+    const priorityMap: Record<string, number> = {
+      "approved": 4,
+      "under-review": 3,
+      "submitted": 2,
+      "rejected": 1,
+      "draft": 0
+    };
+
+    // Sort to get best application
+    const application = applications.sort((a: any, b: any) => {
+      const pA = priorityMap[a.status] || 0;
+      const pB = priorityMap[b.status] || 0;
+      return pB - pA; // Descending priority
+    })[0];
 
     return NextResponse.json({ success: true, application })
   } catch (error) {

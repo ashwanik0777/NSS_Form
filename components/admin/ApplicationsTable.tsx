@@ -349,20 +349,21 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                     Reviewed By
                   </th>
                 )}
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {currentApplications.map((app) => (
-                <tr key={app._id} className="hover:bg-muted/25">
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="text-sm font-medium text-foreground">{app.nameEnglish}</div>
-                      <div className="text-sm text-muted-foreground">{app.emailId}</div>
-                    </div>
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {currentApplications.map((app) => (
+                  <tr key={app._id} className="hover:bg-muted/25">
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{app.nameEnglish}</div>
+                        <div className="text-sm text-muted-foreground">{app.emailId}</div>
+                        <div className="text-xs text-muted-foreground mt-1">{app.mobileNo}</div>
+                      </div>
+                    </td>
                   <td className="px-6 py-4">
                     <div>
                       <div className="text-sm font-medium text-foreground">{app.schoolName || "—"}</div>
@@ -402,6 +403,30 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                       >
                         View
                       </button>
+                      
+                      {app.status === "rejected" && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Are you sure you want to delete the user account for ${app.emailId}? The application record will NOT be deleted.`)) return;
+                            try {
+                              const res = await fetch('/api/admin/users/delete-by-email', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: app.emailId })
+                              });
+                              const d = await res.json();
+                              alert(d.message);
+                            } catch(e) {
+                              alert('Failed to delete user account');
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+                          title="Delete User Account but keep Application"
+                        >
+                          Del User
+                        </button>
+                      )}
+
                       {app.status === "submitted" && (
                         <button
                           onClick={() => {
@@ -773,7 +798,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                   {viewingApp.reviewedBy && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Reviewed By</label>
-                      <p className="text-foreground font-medium">{viewingApp.reviewedBy.name || viewingApp.reviewedBy}</p>
+                      <p className="text-foreground font-medium">{viewingApp.reviewedBy.name}</p>
                       {viewingApp.reviewedBy.email && (
                         <p className="text-sm text-muted-foreground">{viewingApp.reviewedBy.email}</p>
                       )}

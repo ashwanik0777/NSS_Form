@@ -186,9 +186,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
         // Check if user exists; create or reset password for first login
         let volunteerUser = await User.findOne({ email: application.emailId });
-        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+        
+        let credentialsToSend = null;
+
         if (!volunteerUser) {
-          volunteerUser = new User({
+           // Should not happen if application exists, but safety first
+           const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+           volunteerUser = new User({
             name: application.nameEnglish,
             email: application.emailId,
             password: hashedPassword,
@@ -196,12 +200,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             mustChangePassword: true,
           });
           await volunteerUser.save();
+          credentialsToSend = { email: application.emailId, password: generatedPassword };
         } else {
-          // Reset password for first login and ensure role is volunteer
-          volunteerUser.password = hashedPassword;
-          volunteerUser.role = "volunteer" as any;
-          volunteerUser.mustChangePassword = true;
-          await volunteerUser.save();
+            // If User exists, check if they are ALREADY a volunteer / verified user
+            if (volunteerUser.role === 'volunteer' || volunteerUser.role === 'admin' || volunteerUser.role === 'sub-admin') {
+                // Existing account. DO NOT RESET PASSWORD.
+                // Just ensure role is correct? (It is).
+                console.log(`User ${application.emailId} is already a ${volunteerUser.role}. Skipping password reset.`);
+                // We do NOT send credentials if we didn't reset password.
+            } else {
+                // User Role is 'user' (Pending/Applicant). FIRST TIME APPROVAL.
+                // Reset password for first login and ensure role is volunteer
+                const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+                volunteerUser.password = hashedPassword;
+                volunteerUser.role = "volunteer" as any;
+                volunteerUser.mustChangePassword = true;
+                await volunteerUser.save();
+                credentialsToSend = { email: application.emailId, password: generatedPassword };
+            }
         }
 
         // 5. Send acceptance email with credentials
@@ -210,11 +226,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           applicationId: application._id.toString(),
           institutionName: application.institutionName,
           formData,
-          // Always include first-login credentials
-          credentials: {
-            email: application.emailId,
-            password: generatedPassword,
-          },
+          // Only include credentials if we generated/reset them
+          credentials: credentialsToSend || undefined,
         })
       } else if (status === "rejected") {
         await sendApplicationRejectedEmail(application.emailId, {
