@@ -27,6 +27,7 @@ import {
   Book,
   CheckCircle2,
   LockKeyhole,
+  UserCog,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -57,6 +58,7 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
     items: [
       { id: "users", label: "User Management", href: "/admin/users", icon: <Users className="w-5 h-5" />, permission: "users.view" },
       { id: "volunteers", label: "Volunteers", href: "/admin/volunteers", icon: <UserCheck className="w-5 h-5" />, permission: "volunteers.view" },
+      { id: "manage-volunteers", label: "Manage Volunteer Data", href: "/admin/volunteers/manage", icon: <UserCog className="w-5 h-5" />, permission: "volunteers.edit" },
     ],
   },
   {
@@ -113,6 +115,8 @@ const getItemColorClass = (id: string): string => {
       return "text-sky-600"
     case "volunteers":
       return "text-blue-600"
+    case "manage-volunteers":
+      return "text-blue-700"
     case "projects":
       return "text-emerald-600"
     case "events":

@@ -9,6 +9,68 @@ import Event from "@/models/Event"
 import NSSApplication from "@/models/NSSApplication"
 import NSSProject from "@/models/NSSProject"
 import { generateVolunteerExportPDF } from "@/lib/generateVolunteerExportPDF"
+import { hasPermission } from "@/lib/permissions"
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "sub-admin")) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check specific permission
+    if (session.user.role !== "admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "volunteers.edit")) {
+        return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
+      }
+    }
+
+    await dbConnect()
+    const body = await request.json()
+    const { volunteerId, ...updateData } = body
+
+    if (!volunteerId) {
+      return NextResponse.json({ success: false, message: "Volunteer ID is required" }, { status: 400 })
+    }
+
+    // Update User model (basic info)
+    if (updateData.name || updateData.email) {
+       const userUpdate: any = {}
+       if (updateData.name) userUpdate.name = updateData.name
+       if (updateData.email) userUpdate.email = updateData.email
+       await User.findByIdAndUpdate(volunteerId, userUpdate)
+    }
+
+    // Update NSSApplication model (detailed info)
+    // We expect the body to contain keys that match the schema or mapped keys
+    // Common fields to update:
+    const appUpdate: any = {}
+    if (updateData.name) appUpdate.nameEnglish = updateData.name
+    if (updateData.nameHindi) appUpdate.nameHindi = updateData.nameHindi
+    if (updateData.email) appUpdate.emailId = updateData.email
+    if (updateData.mobileNo) appUpdate.mobileNo = updateData.mobileNo
+    if (updateData.fatherName) appUpdate.fatherName = updateData.fatherName
+    if (updateData.motherName) appUpdate.motherName = updateData.motherName
+    if (updateData.enrollmentNo) appUpdate.institutionalIdCard = updateData.enrollmentNo
+    if (updateData.course) appUpdate.courseName = updateData.course
+    if (updateData.department) appUpdate.departmentName = updateData.department
+    if (updateData.unit) appUpdate.unitNo = updateData.unit
+    if (updateData.category) appUpdate.category = updateData.category
+    if (updateData.gender) appUpdate.gender = updateData.gender
+    if (updateData.bloodGroup) appUpdate.bloodGroup = updateData.bloodGroup
+
+    if (Object.keys(appUpdate).length > 0) {
+      await NSSApplication.findOneAndUpdate({ userId: volunteerId }, appUpdate)
+    }
+
+    return NextResponse.json({ success: true, message: "Volunteer details updated successfully" })
+
+  } catch (error) {
+    console.error("Error updating volunteer:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
