@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { signIn, getSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Shield, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 
@@ -58,13 +58,17 @@ export default function LoginForm() {
               router.push("/admin")
             } else {
               // Not an admin but tried to login as one
-              setError("You do not have administrative privileges.")
-              // We could sign them out here, or just redirect them to dashboard anyway
-              // But 'setError' implies we stop them.
+              await signOut({ redirect: false })
+              setError("Access Denied: You are a registered Volunteer. Please switch to the 'Volunteer' tab to login.")
             }
           } else {
             // User wants to login as Volunteer
-            router.push("/dashboard")
+            if (userRole === "admin" || userRole === "sub-admin") {
+              await signOut({ redirect: false })
+              setError("Access Denied: You are an Administrator. Please switch to the 'Convener / Admin' tab to login.")
+            } else {
+              router.push("/dashboard")
+            }
           }
         }
       }
