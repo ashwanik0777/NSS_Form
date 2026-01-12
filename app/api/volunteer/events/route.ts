@@ -174,8 +174,10 @@ export async function POST(request: NextRequest) {
     const baseEventEnd = event.endTime
       ? new Date(event.endTime)
       : new Date(eventStartTime.getTime() + 3 * 60 * 60 * 1000) // fallback 3 hours after start
+      
+    // Attendance window: 1 hour before start to 2 hours after end (+ optional extension)
     const allowedFrom = new Date(eventStartTime.getTime() - 60 * 60 * 1000) // 1 hour before start
-    const allowedUntilBase = new Date(baseEventEnd.getTime() + 60 * 60 * 1000) // 1 hour after end
+    const allowedUntilBase = new Date(baseEventEnd.getTime() + 2 * 60 * 60 * 1000) // 2 hours after end
     const allowedUntil = new Date(
       allowedUntilBase.getTime() + (event.attendanceExtensionMinutes || 0) * 60 * 1000,
     )
@@ -339,7 +341,9 @@ export async function POST(request: NextRequest) {
 
       // Determine event-assigned hours with fallbacks and enforce cap
       let eventAssignedHours = 3 // default fallback
-      if (typeof (event.assignedHours ?? event.durationHours) === "number") {
+      if (typeof event.nssHours === "number") {
+        eventAssignedHours = event.nssHours
+      } else if (typeof (event.assignedHours ?? event.durationHours) === "number") {
         eventAssignedHours = (event.assignedHours ?? event.durationHours) as number
       } else if (!Array.isArray(event) && event.startTime && event.endTime) {
         const start = new Date(event.startTime).getTime()
