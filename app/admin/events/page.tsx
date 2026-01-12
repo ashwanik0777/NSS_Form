@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Calendar, Plus, Edit, Trash2, Users, Loader2, X, Save, Clock, MapPin } from "lucide-react"
+import { Calendar, Plus, Edit, Trash2, Users, Loader2, X, Save, Clock, MapPin, CheckCircle } from "lucide-react"
 import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
@@ -94,6 +94,33 @@ export default function EventsPage() {
     setCurrentPage(page)
   }
 
+  const handleBulkApprove = async () => {
+    if (!participantsEvent || !confirm("Are you sure you want to approve ALL pending participants? This will award NSS Hours based on the event's configured hours.")) return
+    
+    setParticipantsLoading(true) 
+    try {
+      const res = await fetch("/api/admin/events/participants", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ 
+           eventId: participantsEvent._id, 
+           action: "approve" 
+         }) 
+      })
+      const data = await res.json()
+      if (data.success) {
+         await handleViewParticipants(participantsEvent)
+      } else {
+         setParticipantsError(data.message || "Failed to bulk approve")
+         setParticipantsLoading(false)
+      }
+    } catch (e) {
+      console.error(e)
+      setParticipantsError("Failed to bulk approve")
+      setParticipantsLoading(false)
+    }
+  }
+
   const handleViewParticipants = async (event: any) => {
     setParticipantsEvent(event)
     setParticipantsData(null)
@@ -147,7 +174,7 @@ export default function EventsPage() {
         endTime: formData.endTime || undefined,
         coordinator: formData.coordinator || undefined,
         maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
-        attendanceExtensionMinutes: isSuperAdmin && formData.attendanceExtensionMinutes
+        attendanceExtensionMinutes: formData.attendanceExtensionMinutes
           ? parseInt(formData.attendanceExtensionMinutes)
           : undefined,
         nssHours: formData.nssHours ? parseFloat(formData.nssHours) : undefined,
@@ -829,6 +856,18 @@ export default function EventsPage() {
                       </p>
                     </div>
                   </div>
+
+                  {participantsData.summary.pendingAttendance > 0 && (
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleBulkApprove}
+                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                      >
+                         <CheckCircle className="w-4 h-4" />
+                         Approve All Pending ({participantsData.summary.pendingAttendance})
+                      </button>
+                    </div>
+                  )}
 
                   <div className="overflow-x-auto border border-border rounded-xl">
                     <table className="w-full text-sm">

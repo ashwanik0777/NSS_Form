@@ -152,6 +152,8 @@ export async function GET(request: NextRequest) {
         currentParticipants: event.currentParticipants,
         status: status,
         attendanceExtensionMinutes: event.attendanceExtensionMinutes,
+        nssHours: event.nssHours,
+        locationCoordinates: event.locationCoordinates,
         createdAt: event.createdAt,
         updatedAt: event.updatedAt,
         participantStats: {
@@ -204,7 +206,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, description, projectId, eventDate, location, startTime, endTime, coordinator, maxParticipants, nssHours } = body
+    const { 
+      title, 
+      description, 
+      projectId, 
+      eventDate, 
+      location, 
+      locationCoordinates,
+      startTime, 
+      endTime, 
+      coordinator, 
+      maxParticipants, 
+      attendanceExtensionMinutes, 
+      nssHours 
+    } = body
 
     if (!title || !description || !projectId || !eventDate) {
       return NextResponse.json(
@@ -222,12 +237,14 @@ export async function POST(request: NextRequest) {
       projectId,
       eventDate: new Date(eventDate),
       location,
+      locationCoordinates,
       startTime: startTime ? new Date(startTime) : undefined,
       endTime: endTime ? new Date(endTime) : undefined,
       coordinator,
       maxParticipants,
       status: "upcoming",
       currentParticipants: 0,
+      attendanceExtensionMinutes: attendanceExtensionMinutes ? parseInt(attendanceExtensionMinutes) : 30,
       nssHours: nssHours ? parseFloat(nssHours) : undefined,
     })
 
@@ -336,6 +353,13 @@ export async function PATCH(request: NextRequest) {
     // Convert nssHours to number if present
     if (updateData.nssHours !== undefined) {
       updateData.nssHours = updateData.nssHours ? parseFloat(updateData.nssHours) : undefined
+    }
+
+    // Convert attendanceExtensionMinutes to number if present
+    if (updateData.attendanceExtensionMinutes !== undefined) {
+      updateData.attendanceExtensionMinutes = updateData.attendanceExtensionMinutes 
+        ? parseInt(updateData.attendanceExtensionMinutes) 
+        : 0;
     }
 
     const event = await Event.findByIdAndUpdate(eventId, updateData, { new: true })
