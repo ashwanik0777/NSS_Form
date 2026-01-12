@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import Event from "@/models/Event"
-import VolunteerProject from "@/models/VolunteerProject"
+import NSSProject from "@/models/NSSProject"  // Changed from VolunteerProject
 import User from "@/models/User"
 import NSSApplication from "@/models/NSSApplication"
 import EventRegistration from "@/models/EventRegistration"
@@ -27,12 +27,21 @@ export async function GET(request: NextRequest) {
     // Check permission for sub-admin
     if (session.user.role === "sub-admin") {
       const userPermissions = session.user.permissions || []
-      if (!hasPermission(userPermissions, "events.view" as PermissionKey)) {
+      // Allow if user has view OR manage permission
+      if (!hasPermission(userPermissions, "events.view" as PermissionKey) && 
+          !hasPermission(userPermissions, "events.manage" as PermissionKey)) {
         return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
       }
     }
 
     await dbConnect()
+
+    // Ensure models are registered to prevent "Schema hasn't been registered" errors during populate
+    try {
+       await NSSProject.init()
+    } catch (e) {
+       // ignore if already done or fails, import is usually enough
+    }
 
     const { searchParams } = new URL(request.url)
     const pageParam = Number.parseInt(searchParams.get("page") || "1")

@@ -76,6 +76,13 @@ const groupedSidebar: { id: string; group: string; icon: React.ReactNode; colorC
         icon: <CheckCircle2 className="w-5 h-5" />,
         permission: "events.manage",
       },
+      {
+        id: "manual-attendance",
+        label: "Manual Attendance",
+        href: "/admin/attendance/manual",
+        icon: <UserCog className="w-5 h-5" />,
+        permission: "events.manage",
+      },
       { id: "meetings", label: "Meetings", href: "/admin/meetings", icon: <Calendar className="w-5 h-5" />, permission: "events.view" },
     ],
   },

@@ -62,9 +62,22 @@ export default function ManageVolunteersPage() {
             enrollmentNo: app.institutionalIdCard || "",
             unit: app.unitNo || "",
             fatherName: app.fatherName || "",
+            motherName: app.motherName || "", // Added
+            nameHindi: app.nameHindi || "", // Added
+            dateOfBirth: app.dateOfBirth ? new Date(app.dateOfBirth).toISOString().split('T')[0] : "", // Added
+            gender: app.gender || "", // Added
+            bloodGroup: app.bloodGroup || "", // Added
+            programOfficerName: app.programOfficerName || "", // Added
             course: app.courseName || "",
             department: app.departmentName || "",
             category: app.category || "",
+            addressType: app.addressType || "", // Added
+            hostelAddress: app.hostelAddress || "", // Added
+            homeAddress: app.homeAddress || "", // Added
+            highSchoolRollNo: app.highSchoolRollNo || "", // Added
+            classSemester: app.classSemester || "", // Added
+            nssEnrollmentYear: app.nssEnrollmentYear || "", // Added
+            myBharatPortalId: app.myBharatPortalId || "", // Added
         })
         setMessage(null)
       } else {
@@ -273,6 +286,151 @@ export default function ManageVolunteersPage() {
                             <option value="st">ST</option>
                             <option value="ews">EWS</option>
                         </select>
+                    </div>
+
+                    <div className="col-span-full border-t border-border mt-4 pt-4">
+                        <h4 className="font-semibold mb-3">Additional Personal Details</h4>
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Name (Hindi)</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.nameHindi}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, nameHindi: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Mother's Name</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.motherName}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, motherName: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Date of Birth</label>
+                        <input
+                            type="date"
+                            value={editingVolunteer.dateOfBirth}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, dateOfBirth: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Gender</label>
+                         <select
+                            value={editingVolunteer.gender}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, gender: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                        >
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Blood Group</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.bloodGroup}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, bloodGroup: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+
+                    <div className="col-span-full border-t border-border mt-4 pt-4">
+                        <h4 className="font-semibold mb-3">Academic & NSS Details</h4>
+                    </div>
+                    
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Program Officer Name</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.programOfficerName}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, programOfficerName: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">High School Roll No</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.highSchoolRollNo}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, highSchoolRollNo: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Current Semester</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.classSemester}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, classSemester: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">NSS Enrollment Year</label>
+                        <select
+                            value={editingVolunteer.nssEnrollmentYear}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, nssEnrollmentYear: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                        >
+                            <option value="">Select Year</option>
+                            <option value="first-year">First Year</option>
+                            <option value="second-year">Second Year</option>
+                        </select>
+                    </div>
+                    <div>
+                         <label className="text-sm font-medium mb-1 block">MyBharat Portal ID</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.myBharatPortalId}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, myBharatPortalId: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
+                    </div>
+
+                    <div className="col-span-full border-t border-border mt-4 pt-4">
+                        <h4 className="font-semibold mb-3">Address Details</h4>
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Accommodation Type</label>
+                        <select
+                            value={editingVolunteer.addressType}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, addressType: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                        >
+                            <option value="">Select Type</option>
+                            <option value="hostler">Hostler</option>
+                            <option value="dayscholar">Day Scholar</option>
+                        </select>
+                    </div>
+
+                    {editingVolunteer.addressType === 'hostler' && (
+                        <div className="md:col-span-2">
+                             <label className="text-sm font-medium mb-1 block">Hostel Address</label>
+                            <input
+                                type="text"
+                                value={editingVolunteer.hostelAddress}
+                                onChange={(e) => setEditingVolunteer({...editingVolunteer, hostelAddress: e.target.value})}
+                                className="w-full px-3 py-2 border border-border rounded-lg"
+                            />
+                        </div>
+                    )}
+                     <div className="md:col-span-2">
+                         <label className="text-sm font-medium mb-1 block">Home/Permanent Address</label>
+                        <input
+                            type="text"
+                            value={editingVolunteer.homeAddress}
+                            onChange={(e) => setEditingVolunteer({...editingVolunteer, homeAddress: e.target.value})}
+                            className="w-full px-3 py-2 border border-border rounded-lg"
+                        />
                     </div>
                  </div>
 

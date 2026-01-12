@@ -59,6 +59,15 @@ export async function PATCH(request: NextRequest) {
     if (updateData.category) appUpdate.category = updateData.category
     if (updateData.gender) appUpdate.gender = updateData.gender
     if (updateData.bloodGroup) appUpdate.bloodGroup = updateData.bloodGroup
+    if (updateData.programOfficerName) appUpdate.programOfficerName = updateData.programOfficerName
+    if (updateData.dateOfBirth) appUpdate.dateOfBirth = new Date(updateData.dateOfBirth)
+    if (updateData.addressType) appUpdate.addressType = updateData.addressType
+    if (updateData.hostelAddress) appUpdate.hostelAddress = updateData.hostelAddress
+    if (updateData.homeAddress) appUpdate.homeAddress = updateData.homeAddress
+    if (updateData.highSchoolRollNo) appUpdate.highSchoolRollNo = updateData.highSchoolRollNo
+    if (updateData.classSemester) appUpdate.classSemester = updateData.classSemester
+    if (updateData.nssEnrollmentYear) appUpdate.nssEnrollmentYear = updateData.nssEnrollmentYear
+    if (updateData.myBharatPortalId) appUpdate.myBharatPortalId = updateData.myBharatPortalId
 
     if (Object.keys(appUpdate).length > 0) {
       await NSSApplication.findOneAndUpdate({ userId: volunteerId }, appUpdate)

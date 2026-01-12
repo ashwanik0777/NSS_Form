@@ -15,6 +15,8 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  AlertCircle,
+  UploadCloud,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -72,6 +74,12 @@ export default function EventsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalEvents, setTotalEvents] = useState(0)
+  
+  // New states for better UX
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [locationLoading, setLocationLoading] = useState(false)
+  const [modalMessage, setModalMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null)
+  
   const eventsPerPage = 10
 
   useEffect(() => {
@@ -136,14 +144,26 @@ export default function EventsPage() {
   }
 
   const handlePhotoCapture = () => {
+    setModalMessage(null)
     const input = document.createElement("input")
     input.type = "file"
     input.accept = "image/*"
     input.capture = "environment"
+    
+    input.oncancel = () => {
+        setUploadingPhoto(false)
+    }
+
     input.onchange = async (e: any) => {
       const file = e.target.files[0]
       if (file) {
+        setUploadingPhoto(true)
         try {
+          // Check file size (limit to 5MB)
+          if (file.size > 5 * 1024 * 1024) {
+             throw new Error("File size too large. Please upload an image smaller than 5MB.")
+          }
+
           const formData = new FormData()
           formData.append("file", file)
 
@@ -155,9 +175,18 @@ export default function EventsPage() {
           const data = await res.json()
           if (data.success) {
             setPhoto(data.url)
+            setModalMessage({ type: "success", text: "Photo uploaded successfully!" })
+          } else {
+             throw new Error(data.message || "Upload failed")
           }
-        } catch (error) {
-          alert("Failed to upload photo")
+        } catch (error: any) {
+          console.error("Upload error:", error)
+          setModalMessage({ 
+              type: "error", 
+              text: error.message || "Failed to upload photo. Please check your internet connection and try again." 
+          })
+        } finally {
+            setUploadingPhoto(false)
         }
       }
     }
@@ -169,6 +198,9 @@ export default function EventsPage() {
     setAction("start")
     setPhoto(null)
     setLocation(null)
+    setModalMessage(null)
+    setLocationLoading(true)
+    setShowModal(true) // Show modal immediately so loading state is visible
 
     try {
       const loc = await getCurrentLocation()
@@ -176,9 +208,14 @@ export default function EventsPage() {
       setAttendanceWindowMessage(
         "You can mark attendance from 1 hour before event start until 1 hour after event end.",
       )
-      setShowModal(true)
-    } catch (error) {
-      alert("Failed to get location. Please enable location services.")
+    } catch (error: any) {
+      console.error("Location error:", error)
+      setModalMessage({ 
+          type: "error", 
+          text: "Failed to get location. Please ensure GPS is enabled and browser permission is granted." 
+      })
+    } finally {
+        setLocationLoading(false)
     }
   }
 
@@ -187,6 +224,9 @@ export default function EventsPage() {
     setAction("end")
     setPhoto(null)
     setLocation(null)
+    setModalMessage(null)
+    setLocationLoading(true)
+    setShowModal(true)
 
     try {
       const loc = await getCurrentLocation()
@@ -194,19 +234,26 @@ export default function EventsPage() {
       setAttendanceWindowMessage(
         "You can mark attendance from 1 hour before event start until 1 hour after event end.",
       )
-      setShowModal(true)
-    } catch (error) {
-      alert("Failed to get location. Please enable location services.")
+    } catch (error: any) {
+        console.error("Location error:", error)
+        setModalMessage({ 
+            type: "error", 
+            text: "Failed to get location. Please ensure GPS is enabled and browser permission is granted." 
+        })
+    } finally {
+        setLocationLoading(false)
     }
   }
 
   const handleSubmit = async () => {
     if (!selectedEvent || !photo || !location) {
-      alert("Please capture photo and ensure location is available")
+      setModalMessage({ type: "error", text: "Please capture photo and wait for location to be detected." })
       return
     }
 
     setSubmitting(true)
+    setModalMessage(null)
+    
     try {
       const res = await fetch("/api/volunteer/events", {
         method: "POST",
@@ -229,10 +276,10 @@ export default function EventsPage() {
         setAttendanceWindowMessage(null)
         fetchEvents()
       } else {
-        alert(data.message || "Failed to update event")
+        setModalMessage({ type: "error", text: data.message || "Failed to update event" })
       }
     } catch (error) {
-      alert("Error updating event")
+      setModalMessage({ type: "error", text: "Network error. Please try again." })
     } finally {
       setSubmitting(false)
     }
@@ -536,40 +583,100 @@ export default function EventsPage() {
       {/* Event Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl border border-border p-6 max-w-md w-full">
+          <div className="bg-card rounded-xl border border-border p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-foreground mb-4">
               {action === "start" ? "Start Event" : "End Event"}
             </h2>
 
+            {modalMessage && (
+               <div className={`mb-4 p-3 rounded-lg flex items-start gap-2 text-sm ${
+                   modalMessage.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 
+                   modalMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                   'bg-blue-50 text-blue-700 border border-blue-200'
+               }`}>
+                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                   <p>{modalMessage.text}</p>
+               </div>
+            )}
+
             <div className="space-y-4">
-              {location && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm font-medium text-foreground mb-1">Location:</p>
-                  <p className="text-sm text-muted-foreground">{location.address}</p>
-                </div>
-              )}
+              {/* Location Section */}
+              <div className="bg-muted/30 rounded-lg p-4 border border-border">
+                  <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-primary" /> Location Status
+                  </p>
+                  
+                  {locationLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Detecting your location...</span>
+                      </div>
+                  ) : location ? (
+                      <div>
+                          <p className="text-xs text-green-600 font-medium flex items-center gap-1 mb-1">
+                              <CheckCircle className="w-3 h-3" /> Location Verified
+                          </p>
+                          <p className="text-xs text-muted-foreground break-words">{location.address}</p>
+                      </div>
+                  ) : (
+                      <div className="text-sm text-red-500">
+                          <p>Location needed.</p>
+                          <button 
+                             onClick={async () => {
+                                 setLocationLoading(true)
+                                 try {
+                                     const loc = await getCurrentLocation()
+                                     setLocation(loc)
+                                 } catch(e) {
+                                     setModalMessage({ type: 'error', text: 'Retry failed. Check GPS.'})
+                                 } finally {
+                                     setLocationLoading(false)
+                                 }
+                             }}
+                             className="text-primary hover:underline text-xs mt-1"
+                          >
+                              Try Again
+                          </button>
+                      </div>
+                  )}
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   {action === "start" ? "Start Photo" : "End Photo"} *
                 </label>
-                {photo ? (
+                
+                {uploadingPhoto ? (
+                    <div className="w-full h-48 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center bg-muted/20">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                        <span className="text-sm font-medium text-foreground">Uploading photo...</span>
+                        <span className="text-xs text-muted-foreground mt-1">Please wait, do not close.</span>
+                    </div>
+                ) : photo ? (
                   <div className="relative">
-                    <img src={photo} alt="Event photo" className="w-full h-48 object-cover rounded-lg" />
+                    <img src={photo} alt="Event photo" className="w-full h-48 object-cover rounded-lg border border-border" />
                     <button
                       onClick={() => setPhoto(null)}
-                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg"
+                      className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-transform hover:scale-105"
+                      title="Retake photo"
                     >
                       <Camera className="w-4 h-4" />
                     </button>
+                    <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Uploaded
+                    </div>
                   </div>
                 ) : (
                   <button
                     onClick={handlePhotoCapture}
-                    className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-border rounded-lg hover:bg-muted transition-colors"
+                    disabled={locationLoading}
+                    className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    <span className="text-sm text-muted-foreground">Capture Photo</span>
+                    <div className="p-3 bg-primary/10 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                        <Camera className="w-6 h-6 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground">Tap to Capture Photo</span>
+                    <span className="text-xs text-muted-foreground mt-1">Camera will open automatically</span>
                   </button>
                 )}
               </div>
@@ -581,35 +688,40 @@ export default function EventsPage() {
                     value={workDescription}
                     onChange={(e) => setWorkDescription(e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground"
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-primary/20 transition-all"
                     placeholder="Describe the work done..."
                   />
                 </div>
               )}
 
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 pt-2">
                 <button
                   onClick={() => {
                     setShowModal(false)
                     setPhoto(null)
                     setLocation(null)
+                    setModalMessage(null)
                   }}
-                  className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                  disabled={submitting || uploadingPhoto}
+                  className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={!photo || !location || submitting}
-                  className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  disabled={!photo || !location || submitting || uploadingPhoto || locationLoading}
+                  className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="animate-spin w-4 h-4 mr-2 inline" />
+                      <Loader2 className="animate-spin w-4 h-4" />
                       Submitting...
                     </>
                   ) : (
-                    "Submit"
+                    <>
+                        <CheckCircle className="w-4 h-4" />
+                        Submit Attendance
+                    </>
                   )}
                 </button>
               </div>
