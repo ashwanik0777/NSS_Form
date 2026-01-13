@@ -5,9 +5,7 @@ import dbConnect from "@/lib/mongodb"
 import Event from "@/models/Event"
 import VolunteerEvent from "@/models/VolunteerEvent"
 import VolunteerProject from "@/models/VolunteerProject"
-import NSSProject from "@/models/NSSProject"
 import EventRegistration from "@/models/EventRegistration"
-import mongoose from "mongoose"
 
 export async function GET(request: NextRequest) {
   try {
@@ -127,9 +125,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Calculate distance between two coordinates using Haversine formula (in meters)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000 // Earth's radius in meters
+  const R = 6371000 
   const dLat = ((lat2 - lat1) * Math.PI) / 180
   const dLon = ((lon2 - lon1) * Math.PI) / 180
   const a =
@@ -156,13 +153,11 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    // Verify event exists (no longer restricted to volunteer's project)
     const event = await Event.findById(eventId).lean()
     if (!event) {
       return NextResponse.json({ success: false, message: "Event not found" }, { status: 404 })
     }
 
-    // Get volunteer's project (optional - for backward compatibility)
     const projectAssignment = await VolunteerProject.findOne({
       volunteerId: session.user.id,
       status: "active",
@@ -173,15 +168,13 @@ export async function POST(request: NextRequest) {
       eventId: eventId,
     })
 
-    // Compute global attendance window: 1 hour before start to 1 hour after end (+ optional extension)
     const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
     const baseEventEnd = event.endTime
       ? new Date(event.endTime)
-      : new Date(eventStartTime.getTime() + 3 * 60 * 60 * 1000) // fallback 3 hours after start
-      
-    // Attendance window: 1 hour before start to 2 hours after end (+ optional extension)
-    const allowedFrom = new Date(eventStartTime.getTime() - 60 * 60 * 1000) // 1 hour before start
-    const allowedUntilBase = new Date(baseEventEnd.getTime() + 2 * 60 * 60 * 1000) // 2 hours after end
+      : new Date(eventStartTime.getTime() + 3 * 60 * 60 * 1000) 
+     
+    const allowedFrom = new Date(eventStartTime.getTime() - 60 * 60 * 1000)
+    const allowedUntilBase = new Date(baseEventEnd.getTime() + 2 * 60 * 60 * 1000) 
     const allowedUntil = new Date(
       allowedUntilBase.getTime() + (event.attendanceExtensionMinutes || 0) * 60 * 1000,
     )
@@ -194,7 +187,6 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Check if volunteer is registered for the event
       const registration = await EventRegistration.findOne({
         volunteerId: session.user.id,
         eventId,
@@ -207,9 +199,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Check global attendance time window
       const now = new Date()
-      // NOTE: allow early start (mark as startedEarly) but block if after allowedUntil
       let startedEarly = false
       if (now < allowedFrom) {
         startedEarly = true
@@ -377,8 +367,6 @@ export async function POST(request: NextRequest) {
         )
 
         if (distance > 50) {
-          // More than 50 meters away - they already left
-          // Still allow ending but record pendingHours as capped assigned hours (admin will approve)
           volunteerEvent.endPhoto = photo
           volunteerEvent.endLocation = {
             latitude: location.latitude,
@@ -387,8 +375,6 @@ export async function POST(request: NextRequest) {
           }
           volunteerEvent.endTime = new Date()
           volunteerEvent.status = "completed"
-
-          // Set pendingHours to capped assigned hours; hoursWorked stays 0 until admin approves
           volunteerEvent.pendingHours = cappedHours
           volunteerEvent.hoursWorked = 0
           volunteerEvent.reviewStatus = "pending"
@@ -413,7 +399,6 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Volunteer is still at location - normal end
       volunteerEvent.endPhoto = photo
       volunteerEvent.endLocation = {
         latitude: location.latitude,
@@ -422,8 +407,6 @@ export async function POST(request: NextRequest) {
       }
       volunteerEvent.endTime = new Date()
       volunteerEvent.status = "completed"
-
-      // Assign capped event hours as pending for admin approval
       volunteerEvent.pendingHours = cappedHours
       volunteerEvent.hoursWorked = 0
       volunteerEvent.reviewStatus = "pending"
