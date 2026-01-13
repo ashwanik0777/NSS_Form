@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb"
 import Event from "@/models/Event"
 import VolunteerEvent from "@/models/VolunteerEvent"
 import VolunteerProject from "@/models/VolunteerProject"
+import NSSProject from "@/models/NSSProject"
 import EventRegistration from "@/models/EventRegistration"
 import mongoose from "mongoose"
 
@@ -117,9 +118,12 @@ export async function GET(request: NextRequest) {
         pages: Math.max(1, Math.ceil(totalEvents / limit)),
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Events fetch error:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ 
+      success: false, 
+      message: error?.message || "Internal server error" 
+    }, { status: 500 })
   }
 }
 
@@ -443,9 +447,12 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 })
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Event participation error:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ 
+      success: false, 
+      message: error?.message || "Internal server error" 
+    }, { status: 500 })
   }
 }
 
