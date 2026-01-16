@@ -174,15 +174,15 @@ export async function POST(request: NextRequest) {
       : new Date(eventStartTime.getTime() + 3 * 60 * 60 * 1000) 
      
     const allowedFrom = new Date(eventStartTime.getTime() - 60 * 60 * 1000)
-    const allowedUntilBase = new Date(baseEventEnd.getTime() + 2 * 60 * 60 * 1000) 
+    const allowedUntilBase = new Date(baseEventEnd.getTime() + 1 * 60 * 60 * 1000) 
     const allowedUntil = new Date(
       allowedUntilBase.getTime() + (event.attendanceExtensionMinutes || 0) * 60 * 1000,
     )
 
-    if (action === "start") {
+    if (action === "start" || action === "mark_attendance") {
       if (!photo || !location) {
         return NextResponse.json(
-          { success: false, message: "Photo and location required for event start" },
+          { success: false, message: "Photo and location required" },
           { status: 400 }
         )
       }
