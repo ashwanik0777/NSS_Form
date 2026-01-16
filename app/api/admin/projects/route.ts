@@ -42,14 +42,16 @@ export async function GET(request: NextRequest) {
         .populate("volunteerId", "name email")
         .lean()
 
+      const validVolunteers = volunteers.filter((v: any) => v.volunteerId)
+
       return NextResponse.json({
         success: true,
         project: {
           ...project,
-          volunteers: volunteers.map((v) => ({
+          volunteers: validVolunteers.map((v: any) => ({
             _id: v.volunteerId._id,
-            name: (v.volunteerId as any).name,
-            email: (v.volunteerId as any).email,
+            name: v.volunteerId.name,
+            email: v.volunteerId.email,
             selectedAt: v.selectedAt,
           })),
         },
