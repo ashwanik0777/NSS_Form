@@ -49,6 +49,7 @@ export default function EventsPage() {
   const [participantsData, setParticipantsData] = useState<any>(null)
   const [participantsLoading, setParticipantsLoading] = useState(false)
   const [participantsError, setParticipantsError] = useState<string | null>(null)
+  const [participantSearch, setParticipantSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalEvents, setTotalEvents] = useState(0)
@@ -148,6 +149,7 @@ export default function EventsPage() {
     setParticipantsEvent(null)
     setParticipantsData(null)
     setParticipantsError(null)
+    setParticipantSearch("")
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -824,6 +826,18 @@ export default function EventsPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+            
+            {/* Search Bar */}
+            <div className="px-6 pt-4">
+                 <input
+                    type="text"
+                    placeholder="Search volunteer by name or email..."
+                    value={participantSearch}
+                    onChange={(e) => setParticipantSearch(e.target.value)}
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                 />
+            </div>
+
             <div className="p-6 space-y-4 overflow-y-auto">
               {participantsError && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
@@ -887,7 +901,12 @@ export default function EventsPage() {
                             </td>
                           </tr>
                         ) : (
-                          participantsData.participants.map((participant: any) => (
+                          participantsData.participants
+                            .filter((p: any) => 
+                                p.name?.toLowerCase().includes(participantSearch.toLowerCase()) || 
+                                p.email?.toLowerCase().includes(participantSearch.toLowerCase())
+                            )
+                            .map((participant: any) => (
                             <tr key={participant.volunteerId} className="hover:bg-muted/30 transition-colors">
                               <td className="px-4 py-3">
                                 <p className="font-medium text-foreground">{participant.name}</p>

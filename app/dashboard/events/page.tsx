@@ -19,6 +19,7 @@ import {
   UploadCloud,
 } from "lucide-react"
 import Link from "next/link"
+import { compressImage } from "@/lib/utils"
 
 interface Event {
   _id: string
@@ -159,13 +160,17 @@ export default function EventsPage() {
       if (file) {
         setUploadingPhoto(true)
         try {
-          // Check file size (limit to 5MB)
-          if (file.size > 5 * 1024 * 1024) {
-             throw new Error("File size too large. Please upload an image smaller than 5MB.")
+          // Check file size (limit to 20MB before compression)
+          if (file.size > 20 * 1024 * 1024) {
+             throw new Error("File size too large. Please upload an image smaller than 20MB.")
           }
 
+          // Compress image
+          const compressedBlob = await compressImage(file, 0.7, 1024);
+          const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+
           const formData = new FormData()
-          formData.append("file", file)
+          formData.append("file", compressedFile)
 
           const res = await fetch("/api/upload/cloudinary", {
             method: "POST",
@@ -195,7 +200,7 @@ export default function EventsPage() {
 
   const handleStartEvent = async (eventId: string) => {
     setSelectedEvent(eventId)
-    setAction("start")
+    setAction("mark_attendance")
     setPhoto(null)
     setLocation(null)
     setModalMessage(null)
@@ -206,7 +211,7 @@ export default function EventsPage() {
       const loc = await getCurrentLocation()
       setLocation(loc)
       setAttendanceWindowMessage(
-        "You can mark attendance from 1 hour before event start until 1 hour after event end.",
+        "Mark your attendance by capturing a photo at the event location.",
       )
     } catch (error: any) {
       console.error("Location error:", error)
@@ -219,31 +224,7 @@ export default function EventsPage() {
     }
   }
 
-  const handleEndEvent = async (eventId: string) => {
-    setSelectedEvent(eventId)
-    setAction("end")
-    setPhoto(null)
-    setLocation(null)
-    setModalMessage(null)
-    setLocationLoading(true)
-    setShowModal(true)
-
-    try {
-      const loc = await getCurrentLocation()
-      setLocation(loc)
-      setAttendanceWindowMessage(
-        "You can mark attendance from 1 hour before event start until 1 hour after event end.",
-      )
-    } catch (error: any) {
-        console.error("Location error:", error)
-        setModalMessage({ 
-            type: "error", 
-            text: "Failed to get location. Please ensure GPS is enabled and browser permission is granted." 
-        })
-    } finally {
-        setLocationLoading(false)
-    }
-  }
+  // End event handler removed as requested - Single photo attendance flow
 
   const handleSubmit = async () => {
     if (!selectedEvent || !photo || !location) {
@@ -488,8 +469,8 @@ export default function EventsPage() {
                       onClick={() => handleStartEvent(event._id)}
                       className="w-full flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                     >
-                      <PlayCircle className="w-4 h-4 mr-2" />
-                      Start Event
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Mark Attendance
                     </button>
                   )}
                   {event.registrationStatus === "declined" && !myEvent && (
@@ -502,16 +483,16 @@ export default function EventsPage() {
                       onClick={() => handleStartEvent(event._id)}
                       className="w-full flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                     >
-                      <PlayCircle className="w-4 h-4 mr-2" />
-                      Start Event
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Mark Attendance
                     </button>
                   ) : myEvent && myEvent.status === "started" ? (
                     <button
-                      onClick={() => handleEndEvent(event._id)}
-                      className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      End Event
+                        disabled
+                        className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors opacity-90 cursor-default"
+                        >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Attendance Marked
                     </button>
                   ) : (
                     <div className="w-full flex items-center justify-center px-4 py-2 bg-green-100 text-green-800 rounded-lg">
@@ -585,7 +566,7 @@ export default function EventsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-xl border border-border p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-foreground mb-4">
-              {action === "start" ? "Start Event" : "End Event"}
+              Mark Attendance
             </h2>
 
             {modalMessage && (
@@ -643,13 +624,13 @@ export default function EventsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  {action === "start" ? "Start Photo" : "End Photo"} *
+                  Attendance Photo *
                 </label>
                 
                 {uploadingPhoto ? (
                     <div className="w-full h-48 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center bg-muted/20">
                         <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
-                        <span className="text-sm font-medium text-foreground">Uploading photo...</span>
+                        <span className="text-sm font-medium text-foreground">Uploading & Compressing...</span>
                         <span className="text-xs text-muted-foreground mt-1">Please wait, do not close.</span>
                     </div>
                 ) : photo ? (
@@ -680,19 +661,6 @@ export default function EventsPage() {
                   </button>
                 )}
               </div>
-
-              {action === "end" && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Work Description</label>
-                  <textarea
-                    value={workDescription}
-                    onChange={(e) => setWorkDescription(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-2 focus:ring-primary/20 transition-all"
-                    placeholder="Describe the work done..."
-                  />
-                </div>
-              )}
 
               <div className="flex space-x-4 pt-2">
                 <button

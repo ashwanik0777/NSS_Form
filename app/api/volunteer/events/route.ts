@@ -230,12 +230,12 @@ export async function POST(request: NextRequest) {
           location.longitude
         )
 
-        if (distance > 50) {
-          // More than 50 meters away
+        // Increased radius to 150 meters as requested
+        if (distance > 150) {
           return NextResponse.json(
             {
               success: false,
-              message: "You are not at the event location. Please be within 50 meters of the event location to start.",
+              message: "You are not at the event location. Please be within 150 meters of the event location to mark attendance.",
               distance: Math.round(distance),
             },
             { status: 400 }
@@ -243,23 +243,47 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Use upsert to ensure startPhoto/startLocation/startTime are persisted even if a document exists
+      // Determine event-assigned hours
+      let eventAssignedHours = 3 // default fallback
+      if (typeof event.nssHours === "number") {
+        eventAssignedHours = event.nssHours
+      } else if (typeof (event.assignedHours ?? event.durationHours) === "number") {
+        eventAssignedHours = (event.assignedHours ?? event.durationHours) as number
+      } else if (!Array.isArray(event) && event.startTime && event.endTime) {
+        const start = new Date(event.startTime).getTime()
+        const end = new Date(event.endTime).getTime()
+        if (!isNaN(start) && !isNaN(end) && end > start) {
+          eventAssignedHours = (end - start) / (1000 * 60 * 60)
+        }
+      }
+      const eventMaxHours = typeof event.maxHours === "number" ? event.maxHours : eventAssignedHours
+      const assignedHoursRounded = Math.max(0, Math.round(eventAssignedHours * 10) / 10)
+      const cappedHours = Math.max(0, Math.round(Math.min(assignedHoursRounded, eventMaxHours) * 10) / 10)
+
+      // Use upsert to ensure attendance is persisted
       const updateDoc: any = {
         $set: {
           startPhoto: photo,
+          endPhoto: photo, // Single photo serves as both start/end evidence for simplicity
           startLocation: {
             latitude: location.latitude,
             longitude: location.longitude,
             address: location.address,
           },
+          endLocation: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            address: location.address,
+          },
           startTime: new Date(),
-          status: "started",
+          endTime: new Date(), // Mark simultaneous end for single-checkin flow
+          status: "completed", // Immediately mark as completed
           reviewStatus: "pending",
-          reviewNotes: startedEarly ? "Started before allowed attendance window (needs admin review)" : undefined,
+          reviewNotes: startedEarly ? "Marked attendance before allowed window (needs admin review)" : undefined,
           reviewedBy: undefined,
           reviewedAt: undefined,
           hoursWorked: 0,
-          pendingHours: 0,
+          pendingHours: cappedHours, // Assign hours immediately pending review
         },
         $setOnInsert: {
           volunteerId: session.user.id,
@@ -279,35 +303,49 @@ export async function POST(request: NextRequest) {
       // Ensure we have the freshest document
       if (!volunteerEvent) {
         // fallback: create and save explicitly
-        volunteerEvent = new VolunteerEvent({
+        const newEvent = new VolunteerEvent({
           volunteerId: session.user.id,
           eventId: eventId,
           projectId: event.projectId || (projectAssignment?.projectId),
           startPhoto: photo,
+          endPhoto: photo,
           startLocation: {
             latitude: location.latitude,
             longitude: location.longitude,
             address: location.address,
           },
+          endLocation: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            address: location.address,
+          },
           startTime: new Date(),
-          status: "started",
+          endTime: new Date(),
+          status: "completed",
           reviewStatus: "pending",
-          reviewNotes: startedEarly ? "Started before allowed attendance window (needs admin review)" : undefined,
+          reviewNotes: startedEarly ? "Marked attendance before allowed window (needs admin review)" : undefined,
           hoursWorked: 0,
-          pendingHours: 0,
+          pendingHours: cappedHours,
         })
-        await volunteerEvent.save()
+        volunteerEvent = await newEvent.save()
       }
+
+      // Convert to object to avoid circular reference issues in response
+      const responseEvent = volunteerEvent.toObject ? volunteerEvent.toObject() : volunteerEvent
 
       return NextResponse.json({
         success: true,
-        message: startedEarly ? "Event started (outside allowed window) — admin will review." : "Event started successfully",
-        volunteerEvent,
+        message: startedEarly ? "Attendance marked (outside allowed window) — admin will review." : "Attendance marked successfully",
+        volunteerEvent: responseEvent,
         startedEarly,
         allowedFrom,
         allowedUntil,
       })
     } else if (action === "end") {
+       // Deprecated/Disabled as per request, but keeping a fallback just in case
+       // or simply return success if called by accident
+       return NextResponse.json({ success: true, message: "Attendance already completed via single-step." })
+    } else {
       if (!photo || !location) {
         return NextResponse.json(
           { success: false, message: "Photo and location required for event end" },
@@ -388,10 +426,12 @@ export async function POST(request: NextRequest) {
 
           await volunteerEvent.save()
 
+          const responseEvent = volunteerEvent.toObject ? volunteerEvent.toObject() : volunteerEvent
+
           return NextResponse.json({
             success: true,
             message: "You have already left the event. Attendance submitted for admin review.",
-            volunteerEvent,
+            volunteerEvent: responseEvent,
             leftEarly: true,
             distance: Math.round(distance),
             pendingHours: volunteerEvent.pendingHours,
@@ -420,16 +460,16 @@ export async function POST(request: NextRequest) {
 
       await volunteerEvent.save()
 
+      const responseEvent = volunteerEvent.toObject ? volunteerEvent.toObject() : volunteerEvent
+
       return NextResponse.json({
         success: true,
         message: "Attendance submitted and is pending admin review. Assigned hours recorded as pending.",
-        volunteerEvent,
+        volunteerEvent: responseEvent,
         hoursEligible: true,
         pendingHours: volunteerEvent.pendingHours,
       })
-    } else {
-      return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 })
-    }
+    } 
   } catch (error: any) {
     console.error("Event participation error:", error)
     return NextResponse.json({ 
