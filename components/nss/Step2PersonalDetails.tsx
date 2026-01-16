@@ -42,7 +42,8 @@ const schoolDepartmentData = [
 			"History",
 			"Education",
 			"Forensic science",
-			"Social Work"
+			"Social Work",
+			"B.A. Journalism and Mass Communication",
 		],
 	},
 	{

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import {
@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 
 interface Project {
+  volunteerCount: ReactNode
   _id: string
   title: string
   description: string
