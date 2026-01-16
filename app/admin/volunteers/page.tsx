@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import AdminHeader from "@/components/admin/AdminHeader"
+import { schoolDepartmentData } from "@/lib/constants"
 import {
   TrendingUp,
   Users,
@@ -507,12 +508,29 @@ export default function VolunteersPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Department</label>
-              <input 
-                value={departmentName} 
-                onChange={(e) => setDepartmentName(e.target.value)} 
-                placeholder="Search Department" 
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" 
-              />
+              {schoolName && schoolDepartmentData.find((s) => s.name === schoolName) ? (
+                <select
+                  value={departmentName}
+                  onChange={(e) => setDepartmentName(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                >
+                  <option value="">All Departments</option>
+                  {schoolDepartmentData
+                    .find((s) => s.name === schoolName)
+                    ?.departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                </select>
+              ) : (
+                <input
+                  value={departmentName}
+                  onChange={(e) => setDepartmentName(e.target.value)}
+                  placeholder="Search Department"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                />
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
