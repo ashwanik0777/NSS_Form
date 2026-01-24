@@ -228,6 +228,13 @@ export default function EventsPage() {
     }
   }
 
+const toLocalISOString = (dateString: string) => {
+    const date = new Date(dateString)
+    const offset = date.getTimezoneOffset() * 60000
+    const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16)
+    return localISOTime
+  }
+
   const handleEdit = (event: any) => {
     setEditingEvent(event)
     setFormData({
@@ -239,9 +246,9 @@ export default function EventsPage() {
       locationLat: event.locationCoordinates?.latitude?.toString() || "",
       locationLng: event.locationCoordinates?.longitude?.toString() || "",
       startTime: event.startTime
-        ? new Date(event.startTime).toISOString().slice(0, 16)
+        ? toLocalISOString(event.startTime)
         : "",
-      endTime: event.endTime ? new Date(event.endTime).toISOString().slice(0, 16) : "",
+      endTime: event.endTime ? toLocalISOString(event.endTime) : "",
       coordinator: event.coordinator || "",
       maxParticipants: event.maxParticipants?.toString() || "",
       attendanceExtensionMinutes: event.attendanceExtensionMinutes?.toString() || "",

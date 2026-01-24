@@ -16,14 +16,10 @@ export async function GET() {
     await dbConnect()
 
     const userId = new mongoose.Types.ObjectId(session.user.id)
-
-    // Fetch all meetings (you might want to filter by date or unit/project visibility later)
-    // For now, fetch all upcoming or recent meetings
-    // Logic: Meeting date >= today OR (Meeting date < today but status not cancelled) - broad filter for now
     const meetings = await Meeting.find({
         status: { $ne: "cancelled" }
     })
-    .sort({ meetingDate: 1 }) // Closest dates first
+    .sort({ meetingDate: 1 }) 
     .lean()
 
     // Get user's registrations
