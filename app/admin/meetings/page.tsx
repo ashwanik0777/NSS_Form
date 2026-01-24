@@ -151,6 +151,13 @@ export default function MeetingsPage() {
     }
   }
 
+  const toLocalISOString = (dateString: string) => {
+    const date = new Date(dateString)
+    const offset = date.getTimezoneOffset() * 60000
+    const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16)
+    return localISOTime
+  }
+
   const handleEdit = (meeting: any) => {
     setEditingMeeting(meeting)
     setFormData({
@@ -160,8 +167,8 @@ export default function MeetingsPage() {
       unitNo: meeting.unitNo || "",
       meetingDate: meeting.meetingDate ? new Date(meeting.meetingDate).toISOString().split("T")[0] : "",
       location: meeting.location || "",
-      startTime: meeting.startTime ? new Date(meeting.startTime).toISOString().slice(0, 16) : "",
-      endTime: meeting.endTime ? new Date(meeting.endTime).toISOString().slice(0, 16) : "",
+      startTime: meeting.startTime ? toLocalISOString(meeting.startTime) : "",
+      endTime: meeting.endTime ? toLocalISOString(meeting.endTime) : "",
     })
     setError(null)
     setShowModal(true)
@@ -461,7 +468,7 @@ export default function MeetingsPage() {
                         onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
                         className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       >
-                        <option value="">Select Project (Optional)</option>
+                        <option value="">All Projects</option>
                         {projects.map((project) => (
                           <option key={project._id} value={project._id}>
                             {project.title}
@@ -477,7 +484,7 @@ export default function MeetingsPage() {
                         onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
                         className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       >
-                        <option value="">Select Unit (Optional)</option>
+                        <option value="">All Units</option>
                         {units.map((unit) => (
                           <option key={unit} value={unit}>
                             Unit {unit}
