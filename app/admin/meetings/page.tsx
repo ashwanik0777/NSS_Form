@@ -100,8 +100,8 @@ export default function MeetingsPage() {
         unitNo: formData.unitNo || undefined,
         meetingDate: formData.meetingDate,
         location: formData.location || undefined,
-        startTime: formData.startTime || undefined,
-        endTime: formData.endTime || undefined,
+        startTime: formData.startTime ? new Date(formData.startTime).toISOString() : undefined,
+        endTime: formData.endTime ? new Date(formData.endTime).toISOString() : undefined,
       }
 
       let response

@@ -25,10 +25,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 })
     }
 
-    // Check permission for sub-admin
     if (session.user.role === "sub-admin") {
       const userPermissions = session.user.permissions || []
-      // Allow if user has view OR manage permission
       if (!hasPermission(userPermissions, "events.view" as PermissionKey) && 
           !hasPermission(userPermissions, "events.manage" as PermissionKey)) {
         return NextResponse.json({ success: false, message: "Permission denied" }, { status: 403 })
@@ -37,11 +35,10 @@ export async function GET(request: NextRequest) {
 
     await dbConnect()
 
-    // Ensure models are registered to prevent "Schema hasn't been registered" errors during populate
     try {
        await NSSProject.init()
     } catch (e) {
-       // ignore if already done or fails, import is usually enough
+
     }
 
     const { searchParams } = new URL(request.url)

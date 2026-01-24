@@ -172,8 +172,8 @@ export default function EventsPage() {
         projectId: formData.projectId,
         eventDate: formData.eventDate,
         location: formData.location,
-        startTime: formData.startTime || undefined,
-        endTime: formData.endTime || undefined,
+        startTime: formData.startTime ? new Date(formData.startTime).toISOString() : undefined,
+        endTime: formData.endTime ? new Date(formData.endTime).toISOString() : undefined,
         coordinator: formData.coordinator || undefined,
         maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
         attendanceExtensionMinutes: formData.attendanceExtensionMinutes
@@ -233,6 +233,7 @@ const toLocalISOString = (dateString: string) => {
     const offset = date.getTimezoneOffset() * 60000
     const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16)
     return localISOTime
+
   }
 
   const handleEdit = (event: any) => {
