@@ -66,6 +66,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <Calendar className="w-5 h-5 text-rose-500" />,
   },
   {
+    id: "meetings",
+    label: "Meetings",
+    href: "/dashboard/meetings",
+    icon: <Calendar className="w-5 h-5 text-blue-500" />,
+  },
+  {
     id: "grievances",
     label: "Grievances",
     href: "/dashboard/grievances",

@@ -21,6 +21,7 @@ const VolunteerMeetingSchema = new Schema<IVolunteerMeeting>(
     },
     checkInTime: { type: Date },
     checkOutTime: { type: Date },
+    hoursGranted: { type: Number, default: 0 },
   },
   { timestamps: true },
 )

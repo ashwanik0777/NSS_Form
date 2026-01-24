@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Calendar, Plus, Edit, Trash2, Loader2, X, Save, Clock, MapPin, XCircle } from "lucide-react"
+import Link from "next/link"
+import { Calendar, Plus, Edit, Trash2, Loader2, X, Save, Clock, MapPin, XCircle, Users } from "lucide-react"
 import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
@@ -366,6 +367,13 @@ export default function MeetingsPage() {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
+                          <Link
+                            href={`/admin/meetings/${meeting._id}/attendance`}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Attendance"
+                          >
+                            <Users className="w-4 h-4" />
+                          </Link>
                           {meeting.status !== "cancelled" && (
                             <button
                               onClick={() => openCancelModal(meeting)}

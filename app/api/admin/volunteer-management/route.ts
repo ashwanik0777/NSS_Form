@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb"
 import User from "@/models/User"
 import VolunteerProject from "@/models/VolunteerProject"
 import VolunteerEvent from "@/models/VolunteerEvent"
+import VolunteerMeeting from "@/models/VolunteerMeeting"
 import Event from "@/models/Event"
 import NSSApplication from "@/models/NSSApplication"
 import NSSProject from "@/models/NSSProject"
@@ -134,12 +135,16 @@ export async function GET(request: NextRequest) {
         .sort({ createdAt: -1 })
         .lean()
 
+      const meetings = await VolunteerMeeting.find({ volunteerId, status: "attended" }).lean()
+      const meetingHours = meetings.reduce((sum: number, m: any) => sum + (m.hoursGranted || 0), 0)
+
       const totalEvents = events.length
       const approvedEvents = events.filter(
         (e: any) => e.reviewStatus === "approved" || (!e.reviewStatus && (e.hoursWorked || 0) > 0),
       )
       const completedEvents = approvedEvents.length
-      const totalHours = events.reduce((sum: number, e: any) => sum + (e.hoursWorked || 0), 0)
+      const eventHours = events.reduce((sum: number, e: any) => sum + (e.hoursWorked || 0), 0)
+      const totalHours = eventHours + meetingHours
       const attendanceRate = totalEvents > 0 ? (completedEvents / totalEvents) * 100 : 0
 
       return NextResponse.json({
@@ -152,6 +157,8 @@ export async function GET(request: NextRequest) {
             totalEvents,
             completedEvents,
             totalHours,
+            eventHours,
+            meetingHours,
             attendanceRate: Math.round(attendanceRate),
           },
           events: events.map((e: any) => ({
@@ -264,6 +271,18 @@ export async function GET(request: NextRequest) {
         }
       },
 
+      // 5.5 Lookup Volunteer Meetings for stats
+      {
+        $lookup: {
+          from: "volunteermeetings",
+          let: { userId: "$userId" },
+          pipeline: [
+             { $match: { $expr: { $and: [{ $eq: ["$volunteerId", "$$userId"] }, { $eq: ["$status", "attended"] }] } } }
+          ],
+          as: "attendedMeetings"
+        }
+      },
+
       // 6. Calculate Stats
       {
         $addFields: {
@@ -283,7 +302,14 @@ export async function GET(request: NextRequest) {
               }
             }
           },
-          totalHours: { $sum: "$events.hoursWorked" }
+          eventHours: { $sum: "$events.hoursWorked" },
+          meetingHours: { $sum: "$attendedMeetings.hoursGranted" }
+        }
+      },
+      
+      {
+        $addFields: {
+            totalHours: { $add: ["$eventHours", "$meetingHours"] }
         }
       },
 
