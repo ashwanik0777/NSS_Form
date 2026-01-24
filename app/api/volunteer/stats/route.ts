@@ -36,8 +36,8 @@ export async function GET(_request: NextRequest) {
       status: "active",
     }).lean()
 
-    // Calculate total hours - sum both approved hoursWorked and pendingHours
-    const hoursAggregation = await VolunteerEvent.aggregate([
+    // Calculate event hours - sum both approved hoursWorked and pendingHours
+    const eventHoursAggregation = await VolunteerEvent.aggregate([
       { $match: { volunteerId: volunteerObjectId } },
       {
         $project: {
@@ -57,7 +57,36 @@ export async function GET(_request: NextRequest) {
       }
     ])
 
-    const totalHours = hoursAggregation[0]?.total || 0
+    const eventHours = eventHoursAggregation[0]?.total || 0
+
+    // Calculate meeting hours
+    const meetingHoursAggregation = await VolunteerMeeting.aggregate([
+      { $match: { volunteerId: volunteerObjectId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $ifNull: ["$hoursGranted", 0] } }
+        }
+      }
+    ])
+
+    const meetingHours = meetingHoursAggregation[0]?.total || 0
+
+    // Calculate task hours
+    const taskHoursAggregation = await Task.aggregate([
+      { $match: { assignedTo: volunteerObjectId, status: "completed" } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $ifNull: ["$hoursGranted", 0] } }
+        }
+      }
+    ])
+    
+    const taskHours = taskHoursAggregation[0]?.total || 0
+
+    // Calculate Grand Total
+    const totalHours = eventHours + meetingHours + taskHours
 
     // Get upcoming events and event stats
     let upcomingEvents: any[] = []
@@ -146,10 +175,16 @@ export async function GET(_request: NextRequest) {
     }
 
     const roundedHours = Math.round(totalHours * 10) / 10
+    const roundedEventHours = Math.round(eventHours * 10) / 10
+    const roundedMeetingHours = Math.round(meetingHours * 10) / 10
+    const roundedTaskHours = Math.round(taskHours * 10) / 10
 
     return NextResponse.json({
       success: true,
       totalHours: roundedHours,
+      eventHours: roundedEventHours,
+      meetingHours: roundedMeetingHours,
+      taskHours: roundedTaskHours,
       hoursWorked: roundedHours,
       tasks: tasksSummary,
       events: eventsSummary,

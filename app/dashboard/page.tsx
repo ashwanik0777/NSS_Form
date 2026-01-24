@@ -65,6 +65,9 @@ export default function VolunteerDashboard() {
   const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null)
   const [loading, setLoading] = useState(true)
   const [hoursWorked, setHoursWorked ] = useState(0)
+  const [eventHours, setEventHours] = useState(0)
+  const [meetingHours, setMeetingHours] = useState(0)
+  const [taskHours, setTaskHours] = useState(0)
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
   const [taskStats, setTaskStats] = useState<any | null>(null)
   const [eventStats, setEventStats] = useState<any | null>(null)
@@ -133,7 +136,10 @@ export default function VolunteerDashboard() {
       }
 
       if (statsData.success) {
-        setHoursWorked(statsData.hoursWorked ?? statsData.totalHours ?? 0)
+        setHoursWorked(statsData.totalHours ?? 0)
+        setEventHours(statsData.eventHours ?? 0)
+        setMeetingHours(statsData.meetingHours ?? 0)
+        setTaskHours(statsData.taskHours ?? 0)
         setUpcomingEvents(statsData.upcomingEvents || [])
         setTaskStats(statsData.tasks || null)
         setEventStats(statsData.events || null)
@@ -378,22 +384,31 @@ export default function VolunteerDashboard() {
             </h3>
             <Clock className="w-5 h-5 text-primary" />
           </div>
-          <p className="text-3xl font-bold text-foreground mb-2">{hoursWorked.toFixed(1)}</p>
-          <p className="text-xs text-muted-foreground">Cumulative volunteering hours</p>
-          {completion && (
-            <div className="mt-4 pt-3 border-t border-border/60">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                <span>Profile Completion</span>
-                <span className="font-semibold text-primary">{completion.percent}%</span>
-              </div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all"
-                  style={{ width: `${completion.percent}%` }}
-                />
-              </div>
+          <div className="flex items-baseline gap-2 mb-4">
+            <p className="text-3xl font-bold text-foreground">{hoursWorked.toFixed(1)}</p>
+            <p className="text-xs text-muted-foreground">Cumulative Hours</p>
+          </div>
+          
+          <div className="space-y-2.5 pt-3 border-t border-border/60">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground flex items-center">
+                <Calendar className="w-3 h-3 mr-1.5" /> Events
+              </span>
+              <span className="text-sm font-medium">{eventHours.toFixed(1)} hrs</span>
             </div>
-          )}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground flex items-center">
+                <Users className="w-3 h-3 mr-1.5" /> Meetings
+              </span>
+              <span className="text-sm font-medium">{meetingHours.toFixed(1)} hrs</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground flex items-center">
+                <CheckCircle className="w-3 h-3 mr-1.5" /> Tasks
+              </span>
+              <span className="text-sm font-medium">{taskHours.toFixed(1)} hrs</span>
+            </div>
+          </div>
         </div>
 
         {/* Announcements Snapshot */}

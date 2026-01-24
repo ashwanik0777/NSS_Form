@@ -11,6 +11,7 @@ export interface ITask extends Document {
   dueDate?: Date
   completedAt?: Date
   completionNotes?: string
+  hoursGranted?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -61,8 +62,10 @@ const TaskSchema = new Schema<ITask>(
     completionNotes: {
       type: String,
       trim: true,
-    },
-  },
+    },    hoursGranted: {
+      type: Number,
+      default: 0,
+    },  },
   { timestamps: true }
 )
 
