@@ -24,6 +24,8 @@ export default function MeetingsPage() {
     location: "",
     startTime: "",
     endTime: "",
+    locationLat: "",
+    locationLng: "",
   })
   const { data: session } = useSession()
   const isSuperAdmin = (session?.user as any)?.role === "admin"
@@ -104,6 +106,14 @@ export default function MeetingsPage() {
         endTime: formData.endTime ? new Date(formData.endTime).toISOString() : undefined,
       }
 
+      // Add coordinates if provided
+      if (formData.locationLat && formData.locationLng) {
+        meetingData.locationCoordinates = {
+          latitude: parseFloat(formData.locationLat),
+          longitude: parseFloat(formData.locationLng),
+        }
+      }
+
       let response
       if (editingMeeting) {
         // Update meeting
@@ -138,6 +148,8 @@ export default function MeetingsPage() {
           location: "",
           startTime: "",
           endTime: "",
+          locationLat: "",
+          locationLng: "",
         })
         fetchData()
       } else {
@@ -167,6 +179,8 @@ export default function MeetingsPage() {
       unitNo: meeting.unitNo || "",
       meetingDate: meeting.meetingDate ? new Date(meeting.meetingDate).toISOString().split("T")[0] : "",
       location: meeting.location || "",
+      locationLat: meeting.locationCoordinates?.latitude?.toString() || "",
+      locationLng: meeting.locationCoordinates?.longitude?.toString() || "",
       startTime: meeting.startTime ? toLocalISOString(meeting.startTime) : "",
       endTime: meeting.endTime ? toLocalISOString(meeting.endTime) : "",
     })
@@ -192,6 +206,26 @@ export default function MeetingsPage() {
       console.error("Error deleting meeting:", error)
       alert("Failed to delete meeting")
     }
+  }
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser")
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          locationLat: position.coords.latitude.toString(),
+          locationLng: position.coords.longitude.toString(),
+        }))
+      },
+      (error) => {
+        alert("Failed to get location: " + error.message)
+      }
+    )
   }
 
   const handleCancel = async () => {
@@ -272,6 +306,8 @@ export default function MeetingsPage() {
                 location: "",
                 startTime: "",
                 endTime: "",
+                locationLat: "",
+                locationLng: "",
               })
               setError(null)
               setShowModal(true)
@@ -535,6 +571,40 @@ export default function MeetingsPage() {
                         className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         placeholder="Enter meeting location"
                       />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-foreground">
+                          Location Coordinates (for geo-fencing)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={getCurrentLocation}
+                          className="text-xs text-primary hover:underline flex items-center"
+                        >
+                          <MapPin className="w-3 h-3 mr-1" />
+                          Get Current Location
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <input
+                          type="number"
+                          step="any"
+                          value={formData.locationLat}
+                          onChange={(e) => setFormData({ ...formData, locationLat: e.target.value })}
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="Latitude"
+                        />
+                        <input
+                          type="number"
+                          step="any"
+                          value={formData.locationLng}
+                          onChange={(e) => setFormData({ ...formData, locationLng: e.target.value })}
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          placeholder="Longitude"
+                        />
+                      </div>
                     </div>
                   </div>
                 </form>

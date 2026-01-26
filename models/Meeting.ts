@@ -23,6 +23,12 @@ const MeetingSchema = new Schema<IMeeting>(
     unitNo: { type: String, trim: true },
     meetingDate: { type: Date, required: true },
     location: { type: String, trim: true },
+    locationCoordinates: {
+      latitude: { type: Number },
+      longitude: { type: Number },
+    },
+    attendanceRadius: { type: Number, default: 100 }, // in meters
+    isAttendanceOpen: { type: Boolean, default: true },
     startTime: { type: Date },
     endTime: { type: Date },
     status: {

@@ -24,6 +24,46 @@ export default function MeetingAttendancePage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [inputHours, setInputHours] = useState<number>(0)
   const [updating, setUpdating] = useState(false)
+  const [filterUnit, setFilterUnit] = useState("")
+  const [filterLetter, setFilterLetter] = useState("")
+  const [isToggling, setIsToggling] = useState(false)
+
+  // Derived state for stats
+  const stats = registrations.reduce((acc: any, reg) => {
+    const unit = reg.unitNo || "Unknown"
+    if (!acc[unit]) acc[unit] = { total: 0, attended: 0, absent: 0 }
+    acc[unit].total++
+    if (reg.status === "attended") acc[unit].attended++
+    if (reg.status === "absent") acc[unit].absent++
+    return acc
+  }, {})
+
+  const unitStats = Object.keys(stats).map(unit => ({
+      unit,
+      ...stats[unit]
+  })).sort((a,b) => a.unit.localeCompare(b.unit))
+
+  const toggleAttendanceWindow = async () => {
+      setIsToggling(true)
+      try {
+          const res = await fetch("/api/admin/meetings", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                  meetingId: meeting._id,
+                  isAttendanceOpen: !meeting.isAttendanceOpen
+              })
+          })
+          const data = await res.json()
+          if(data.success) {
+              setMeeting({ ...meeting, isAttendanceOpen: data.meeting.isAttendanceOpen })
+          }
+      } catch(e) {
+          console.error("Failed to toggle", e)
+      } finally {
+          setIsToggling(false)
+      }
+  }
 
   useEffect(() => {
     fetchData()
@@ -54,15 +94,26 @@ export default function MeetingAttendancePage() {
     }
   }
 
+  const filteredRegistrations = registrations.filter((r) => {
+    const matchUnit = filterUnit ? r.unitNo === filterUnit : true
+    const matchLetter = filterLetter ? r.name.toLowerCase().startsWith(filterLetter.toLowerCase()) : true
+    return matchUnit && matchLetter
+  }).sort((a,b) => a.name.localeCompare(b.name))
+
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedIds(registrations.map(r => r._id))
+      // Only select those who haven't been marked yet
+      const selectableIds = filteredRegistrations
+        .filter(r => r.status === 'registered')
+        .map(r => r._id)
+      setSelectedIds(selectableIds)
     } else {
       setSelectedIds([])
     }
   }
 
   const handleSelectOne = (id: string) => {
+    // Only allow selection if status is registered (handled by checkbox disabled state too)
     if (selectedIds.includes(id)) {
       setSelectedIds(selectedIds.filter(sid => sid !== id))
     } else {
@@ -103,22 +154,111 @@ export default function MeetingAttendancePage() {
             <button onClick={() => router.back()} className="mb-4 flex items-center text-sm text-muted-foreground hover:text-primary">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Back to Meetings
             </button>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold">{meeting?.title}</h1>
-                    <p className="text-muted-foreground">Attendance Management</p>
+            <div className="flex flex-col gap-6 mb-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h1 className="text-2xl font-bold">{meeting?.title}</h1>
+                        <p className="text-muted-foreground flex items-center gap-2">
+                           Attendance Management 
+                           <span className={`px-2 py-0.5 rounded-full text-xs ${meeting?.isAttendanceOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                               {meeting?.isAttendanceOpen ? 'Active' : 'Closed'}
+                           </span>
+                        </p>
+                    </div>
+                     <div className="flex items-center gap-3">
+                         {meeting && (
+                             <button
+                                onClick={toggleAttendanceWindow}
+                                disabled={isToggling}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    meeting.isAttendanceOpen 
+                                    ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                }`}
+                             >
+                                 {meeting.isAttendanceOpen ? 'Stop Attendance' : 'Open Attendance'}
+                             </button>
+                         )}
+                         <div className="flex items-center gap-2 bg-card p-2 rounded-lg border border-border">
+                             <div className="text-sm font-medium whitespace-nowrap">Hours to Grant:</div>
+                             <input 
+                                type="number" 
+                                min="0" 
+                                step="0.5" 
+                                value={inputHours} 
+                                onChange={(e) => setInputHours(Number(e.target.value))}
+                                className="w-16 px-2 py-1 border rounded text-right"
+                             />
+                         </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3 bg-card p-3 rounded-lg border border-border">
-                    <div className="flex items-center gap-2">
-                         <div className="text-sm font-medium">Meeting Hours:</div>
-                         <input 
-                            type="number" 
-                            min="0" 
-                            step="0.5" 
-                            value={inputHours} 
-                            onChange={(e) => setInputHours(Number(e.target.value))}
-                            className="w-20 px-2 py-1 border rounded"
-                         />
+
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                     <div className="bg-white p-4 rounded-lg border">
+                         <div className="text-sm text-muted-foreground">Total Registered</div>
+                         <div className="text-2xl font-bold">{registrations.length}</div>
+                     </div>
+                     <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                         <div className="text-sm text-green-600">Present</div>
+                         <div className="text-2xl font-bold text-green-700">
+                             {registrations.filter(r => r.status === 'attended').length}
+                         </div>
+                     </div>
+                     <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                         <div className="text-sm text-red-600">Absent</div>
+                         <div className="text-2xl font-bold text-red-700">
+                             {registrations.filter(r => r.status === 'absent').length}
+                         </div>
+                     </div>
+                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                         <div className="text-sm text-gray-600">Pending</div>
+                         <div className="text-2xl font-bold text-gray-700">
+                             {registrations.filter(r => r.status === 'registered').length}
+                         </div>
+                     </div>
+                </div>
+
+                {/* Unit Wise Breakdown */}
+                <div className="bg-white p-4 rounded-lg border">
+                    <h3 className="font-semibold mb-3">Unit-wise Summary</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {unitStats.map(stat => (
+                            <div key={stat.unit} className="px-3 py-1.5 bg-gray-50 rounded border text-sm">
+                                <span className="font-medium">Unit {stat.unit}:</span> {stat.attended}/{stat.total} Present
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <div className="flex gap-4 p-4 bg-gray-50 rounded-lg border items-center flex-wrap">
+                    <div className="flex-1 min-w-[300px]">
+                        <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">Filter by Name (Start Letter)</label>
+                        <div className="flex flex-wrap gap-1">
+                            <button 
+                                onClick={() => setFilterLetter("")}
+                                className={`px-2 py-1 text-xs rounded ${filterLetter === "" ? 'bg-primary text-primary-foreground' : 'bg-white border hover:bg-gray-100'}`}
+                            >All</button>
+                            {Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ").map(letter => (
+                                <button
+                                    key={letter}
+                                    onClick={() => setFilterLetter(letter)}
+                                    className={`px-2 py-1 text-xs rounded ${filterLetter === letter ? 'bg-primary text-primary-foreground' : 'bg-white border hover:bg-gray-100'}`}
+                                >{letter}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="w-48">
+                        <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">Filter by Unit</label>
+                        <select 
+                            value={filterUnit} 
+                            onChange={(e) => setFilterUnit(e.target.value)}
+                            className="w-full px-3 py-2 bg-white border rounded"
+                        >
+                            <option value="">All Units</option>
+                            {unitStats.map(s => <option key={s.unit} value={s.unit}>Unit {s.unit}</option>)}
+                        </select>
                     </div>
                 </div>
             </div>
@@ -149,7 +289,12 @@ export default function MeetingAttendancePage() {
                                 <input 
                                     type="checkbox" 
                                     onChange={handleSelectAll} 
-                                    checked={selectedIds.length === registrations.length && registrations.length > 0}
+                                    checked={
+                                        filteredRegistrations.some(r => r.status === 'registered') && 
+                                        filteredRegistrations
+                                            .filter(r => r.status === 'registered')
+                                            .every(r => selectedIds.includes(r._id))
+                                    }
                                 />
                             </th>
                             <th className="px-4 py-3 text-left">Volunteer</th>
@@ -159,20 +304,24 @@ export default function MeetingAttendancePage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y">
-                        {registrations.length === 0 ? (
-                            <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No registrations found.</td></tr>
+                        {filteredRegistrations.length === 0 ? (
+                            <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No matching volunteers found.</td></tr>
                         ) : (
-                            registrations.map(reg => (
-                                <tr key={reg._id} className="hover:bg-gray-50">
+                            filteredRegistrations.map(reg => {
+                                const isProcessed = reg.status !== "registered"
+                                return (
+                                <tr key={reg._id} className={`hover:bg-gray-50 ${isProcessed ? 'bg-gray-50/50' : ''}`}>
                                     <td className="px-4 py-3">
                                         <input 
                                             type="checkbox" 
                                             checked={selectedIds.includes(reg._id)}
                                             onChange={() => handleSelectOne(reg._id)}
+                                            disabled={isProcessed}
+                                            className="disabled:opacity-50"
                                         />
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div className="font-medium">{reg.name}</div>
+                                        <div className={`font-medium ${isProcessed ? 'text-muted-foreground' : ''}`}>{reg.name}</div>
                                         <div className="text-xs text-muted-foreground">{reg.email}</div>
                                     </td>
                                     <td className="px-4 py-3">{reg.unitNo}</td>
@@ -189,7 +338,7 @@ export default function MeetingAttendancePage() {
                                         {reg.status === 'attended' ? reg.hoursGranted : '-'}
                                     </td>
                                 </tr>
-                            ))
+                            )})
                         )}
                     </tbody>
                 </table>

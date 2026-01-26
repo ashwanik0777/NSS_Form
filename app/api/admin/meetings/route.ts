@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import Meeting from "@/models/Meeting"
 import User from "@/models/User"
+import VolunteerMeeting from "@/models/VolunteerMeeting"
+import Notification from "@/models/Notification"
+import Announcement from "@/models/Announcement"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 export async function GET(_request: NextRequest) {
@@ -125,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, description, projectId, unitNo, meetingDate, location, startTime, endTime } = body
+    const { title, description, projectId, unitNo, meetingDate, location, locationCoordinates, startTime, endTime } = body
 
     if (!title || !meetingDate) {
       return NextResponse.json({ success: false, message: "Title and meeting date are required" }, { status: 400 })
@@ -151,6 +154,7 @@ export async function POST(request: NextRequest) {
       unitNo: unitNo || undefined,
       meetingDate: new Date(meetingDate),
       location,
+      locationCoordinates,
       startTime: startTime ? new Date(startTime) : undefined,
       endTime: endTime ? new Date(endTime) : undefined,
       status: "upcoming",
@@ -238,6 +242,42 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Meeting not found" }, { status: 404 })
     }
 
+    // Handle Cancellation Notifications
+    if (updateData.status === 'cancelled') {
+        const registered = await VolunteerMeeting.find({ meetingId }).select('volunteerId').lean();
+        const userIds = registered.map((r:any) => r.volunteerId);
+        const dateStr = new Date(meeting.meetingDate).toLocaleDateString('en-IN');
+        
+        if (userIds.length > 0) {
+            const notifications = userIds.map((uid:any) => ({
+                userId: uid,
+                title: "Meeting Cancelled",
+                content: `The meeting "${meeting.title}" on ${dateStr} has been cancelled.${updateData.cancelReason ? ' Reason: ' + updateData.cancelReason : ''}`,
+                type: "alert",
+                isRead: false,
+                createdAt: new Date()
+            }));
+            await Notification.insertMany(notifications);
+        }
+
+        // Create Announcement
+        try {
+            const announcement = new Announcement({
+                title: `Meeting Cancelled: ${meeting.title}`,
+                content: `The meeting scheduled for ${dateStr} has been cancelled.${updateData.cancelReason ? ' Reason: ' + updateData.cancelReason : ''}`,
+                type: "notification",
+                status: "active",
+                targetType: meeting.unitNo ? "units" : "all",
+                targetUnits: meeting.unitNo ? [meeting.unitNo] : [],
+                createdBy: session.user.id,
+                sendEmail: false
+            });
+            await announcement.save();
+        } catch (e) {
+            console.error("Failed to create cancellation announcement", e);
+        }
+    }
+
     return NextResponse.json({
       success: true,
       message: "Meeting updated successfully",
@@ -297,6 +337,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await Meeting.findByIdAndDelete(meetingId)
+    await VolunteerMeeting.deleteMany({ meetingId })
 
     return NextResponse.json({
       success: true,
