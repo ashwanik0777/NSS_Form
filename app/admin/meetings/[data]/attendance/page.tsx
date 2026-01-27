@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2, ArrowLeft, CheckCircle, XCircle, Clock, Users, Save } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle, XCircle, Clock, Users, Save, Search } from "lucide-react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 
 interface Registration {
@@ -25,7 +25,7 @@ export default function MeetingAttendancePage() {
   const [inputHours, setInputHours] = useState<number>(0)
   const [updating, setUpdating] = useState(false)
   const [filterUnit, setFilterUnit] = useState("")
-  const [filterLetter, setFilterLetter] = useState("")
+  const [searchName, setSearchName] = useState("")
   const [isToggling, setIsToggling] = useState(false)
 
   // Derived state for stats
@@ -75,7 +75,18 @@ export default function MeetingAttendancePage() {
       const result = await res.json()
       if (result.success) {
         setMeeting(result.meeting)
-        setRegistrations(result.registrations)
+        
+        // Deduplicate registrations by volunteerId
+        const uniqueRegistrations = Object.values(
+            result.registrations.reduce((acc: any, current: any) => {
+                if (!acc[current.volunteerId]) {
+                    acc[current.volunteerId] = current;
+                }
+                return acc;
+            }, {})
+        ) as Registration[];
+
+        setRegistrations(uniqueRegistrations)
         
         // Calculate default hours based on start/end time
         if (result.meeting.startTime && result.meeting.endTime) {
@@ -96,9 +107,23 @@ export default function MeetingAttendancePage() {
 
   const filteredRegistrations = registrations.filter((r) => {
     const matchUnit = filterUnit ? r.unitNo === filterUnit : true
-    const matchLetter = filterLetter ? r.name.toLowerCase().startsWith(filterLetter.toLowerCase()) : true
-    return matchUnit && matchLetter
-  }).sort((a,b) => a.name.localeCompare(b.name))
+    const matchName = searchName 
+        ? r.name.toLowerCase().includes(searchName.toLowerCase()) || r.email.toLowerCase().includes(searchName.toLowerCase())
+        : true
+    return matchUnit && matchName
+  }).sort((a,b) => {
+    // Primary Sort: Unit Number (Ascending)
+    const unitA = parseInt(a.unitNo) || 9999;
+    const unitB = parseInt(b.unitNo) || 9999;
+    
+    // Sort logic handled here to ensure 1, 2, 10 order not 1, 10, 2
+    if (unitA !== unitB) {
+        return unitA - unitB;
+    }
+
+    // Secondary Sort: Name (A-Z)
+    return a.name.localeCompare(b.name)
+  })
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -234,19 +259,16 @@ export default function MeetingAttendancePage() {
                 {/* Filters */}
                 <div className="flex gap-4 p-4 bg-gray-50 rounded-lg border items-center flex-wrap">
                     <div className="flex-1 min-w-[300px]">
-                        <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">Filter by Name (Start Letter)</label>
-                        <div className="flex flex-wrap gap-1">
-                            <button 
-                                onClick={() => setFilterLetter("")}
-                                className={`px-2 py-1 text-xs rounded ${filterLetter === "" ? 'bg-primary text-primary-foreground' : 'bg-white border hover:bg-gray-100'}`}
-                            >All</button>
-                            {Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ").map(letter => (
-                                <button
-                                    key={letter}
-                                    onClick={() => setFilterLetter(letter)}
-                                    className={`px-2 py-1 text-xs rounded ${filterLetter === letter ? 'bg-primary text-primary-foreground' : 'bg-white border hover:bg-gray-100'}`}
-                                >{letter}</button>
-                            ))}
+                        <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">Search Volunteer</label>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                            <input 
+                                type="text"
+                                placeholder="Search by name or email..." 
+                                value={searchName}
+                                onChange={(e) => setSearchName(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
                         </div>
                     </div>
                     <div className="w-48">
