@@ -17,11 +17,12 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
     }
 
-    // Role check is not strictly needed as we query by ID, but implicit safety is good.
-    // Ensure we don't block subs/admins:
-    // if (session.user.role !== 'volunteer' ...) -> We DO NOT have this check, which is good.
-
+    // Role check is not strictly needed as we query by ID
+    
     await dbConnect()
+
+    // Ensure models are registered (sometimes explicitly referencing them helps in edge cases)
+    // We already import them, which triggers registration. 
 
     let volunteerObjectId: mongoose.Types.ObjectId
     try {
@@ -36,15 +37,15 @@ export async function GET(_request: NextRequest) {
       status: "active",
     }).lean()
 
-    // Calculate event hours - sum both approved hoursWorked and pendingHours
+    // Calculate event hours - robustly handling potential string types in DB
     const eventHoursAggregation = await VolunteerEvent.aggregate([
       { $match: { volunteerId: volunteerObjectId } },
       {
         $project: {
           totalHours: {
             $add: [
-              { $ifNull: ["$hoursWorked", 0] },
-              { $ifNull: ["$pendingHours", 0] }
+              { $toDouble: { $ifNull: ["$hoursWorked", 0] } },
+              { $toDouble: { $ifNull: ["$pendingHours", 0] } }
             ]
           }
         }
@@ -65,7 +66,7 @@ export async function GET(_request: NextRequest) {
       {
         $group: {
           _id: null,
-          total: { $sum: { $ifNull: ["$hoursGranted", 0] } }
+          total: { $sum: { $toDouble: { $ifNull: ["$hoursGranted", 0] } } }
         }
       }
     ])
@@ -78,7 +79,7 @@ export async function GET(_request: NextRequest) {
       {
         $group: {
           _id: null,
-          total: { $sum: { $ifNull: ["$hoursGranted", 0] } }
+          total: { $sum: { $toDouble: { $ifNull: ["$hoursGranted", 0] } } }
         }
       }
     ])
@@ -200,9 +201,9 @@ export async function GET(_request: NextRequest) {
         status: e.status,
       })),
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Stats fetch error:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ success: false, message: error.message || "Internal server error", details: error.toString() }, { status: 500 })
   }
 }
 
