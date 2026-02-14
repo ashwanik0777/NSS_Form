@@ -40,7 +40,6 @@ const DefaulterSchema = new Schema<IDefaulter>(
 )
 
 // Index for efficient queries
-DefaulterSchema.index({ volunteerId: 1 })
 DefaulterSchema.index({ isRemoved: 1 })
 
 export default mongoose.models.Defaulter || mongoose.model<IDefaulter>("Defaulter", DefaulterSchema)

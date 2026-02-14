@@ -10,6 +10,8 @@ import Task from "@/models/Task"
 import Meeting from "@/models/Meeting"
 import VolunteerMeeting from "@/models/VolunteerMeeting"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(_request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

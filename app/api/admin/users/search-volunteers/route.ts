@@ -5,6 +5,8 @@ import dbConnect from "@/lib/mongodb"
 import User from "@/models/User"
 import NSSApplication from "@/models/NSSApplication"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

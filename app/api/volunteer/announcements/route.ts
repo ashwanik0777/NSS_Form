@@ -7,6 +7,8 @@ import Notification from "@/models/Notification"
 import NSSApplication from "@/models/NSSApplication"
 import NotificationRead from "@/models/NotificationRead"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(_request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

@@ -141,7 +141,6 @@ const ReportSchema = new Schema<IReport>(
 )
 
 // Indexes for efficient queries
-ReportSchema.index({ reportId: 1 })
 ReportSchema.index({ userId: 1, status: 1 })
 ReportSchema.index({ status: 1, priority: 1 })
 ReportSchema.index({ category: 1, status: 1 })

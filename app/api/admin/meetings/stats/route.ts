@@ -6,6 +6,8 @@ import Meeting from "@/models/Meeting"
 import VolunteerMeeting from "@/models/VolunteerMeeting"
 import User from "@/models/User"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(_request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

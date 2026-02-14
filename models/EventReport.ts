@@ -23,8 +23,6 @@ const EventReportSchema = new Schema<IEventReport>(
   { timestamps: true },
 )
 
-EventReportSchema.index({ eventId: 1 })
-
 export default mongoose.models.EventReport || mongoose.model<IEventReport>("EventReport", EventReportSchema)
 
 

@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   try {
     const session = (await getServerSession(authOptions)) as any

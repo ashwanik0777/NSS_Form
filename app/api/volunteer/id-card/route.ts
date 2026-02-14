@@ -7,6 +7,8 @@ import NSSProject from "@/models/NSSProject"
 import VolunteerProject from "@/models/VolunteerProject"
 import { generateVolunteerIDCard } from "@/lib/generateVolunteerIDCard"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(_request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any

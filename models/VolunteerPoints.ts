@@ -56,7 +56,6 @@ const VolunteerPointsSchema = new Schema<IVolunteerPoints>(
   },
 )
 
-VolunteerPointsSchema.index({ volunteerId: 1 })
 VolunteerPointsSchema.index({ "pointsHistory.earnedAt": -1 })
 
 export default mongoose.models.VolunteerPoints ||
