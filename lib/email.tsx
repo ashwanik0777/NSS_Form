@@ -296,6 +296,45 @@ interface PasswordResetConfirmationData {
   temporaryPassword: string
 }
 
+interface VolunteerSelfResetOTPData {
+  name: string
+  otp: string
+}
+
+export async function sendVolunteerSelfResetOTPEmail(to: string, data: VolunteerSelfResetOTPData) {
+  const appUrl = process.env.NEXTAUTH_URL || "https://nss.gov.in"
+
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: "NSS Volunteer Password Reset OTP",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #1d4ed8; padding: 20px; text-align: center; color: #fff;">
+          <h2 style="margin: 0;">NSS Volunteer Password Reset</h2>
+        </div>
+        <div style="padding: 24px; background-color: #ffffff;">
+          <p>Namaste ${data.name.split(" ")[0] || "Volunteer"},</p>
+          <p>You requested to reset your NSS volunteer portal password.</p>
+          <p style="margin: 16px 0;">Use this OTP to verify your request:</p>
+          <div style="background: #f3f4f6; padding: 18px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 6px; border-radius: 8px; color: #111827;">
+            ${data.otp}
+          </div>
+          <p style="margin: 18px 0 4px 0; color: #ef4444; font-weight: 600;">Important:</p>
+          <ul style="color: #4b5563; padding-left: 20px; line-height: 1.6;">
+            <li>This OTP will expire in <strong>10 minutes</strong>.</li>
+            <li>Do not share this code with anyone.</li>
+            <li>If you did not request this reset, ignore this email.</li>
+          </ul>
+          <p style="margin-top: 20px;">Regards,<br/>NSS Digital Support Team<br/><a href="${appUrl}" style="color: #1d4ed8;">${appUrl}</a></p>
+        </div>
+      </div>
+    `,
+  }
+
+  await transporter.sendMail(mailOptions)
+}
+
 export async function sendPasswordResetConfirmationEmail(to: string, data: PasswordResetConfirmationData) {
   const loginUrl = `${process.env.NEXTAUTH_URL || "https://nss.gov.in"}/login`
 
