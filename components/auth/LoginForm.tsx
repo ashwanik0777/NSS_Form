@@ -230,134 +230,134 @@ export default function LoginForm() {
         </div>
 
         <div className="bg-card/80 backdrop-blur-md rounded-2xl shadow-2xl border border-border/50 p-8">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-foreground mb-3">
-                  <span className="flex items-center">
-                    <Shield className="w-4 h-4 mr-2 text-primary" />
-                    Login As
-                  </span>
-                </label>
-                <div className="grid grid-cols-2 gap-4 p-1 bg-muted/50 rounded-lg border border-border/50">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, loginAs: "volunteer" })}
-                    className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                      formData.loginAs === "volunteer"
-                        ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                  >
-                    Volunteer
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, loginAs: "admin" })}
-                    className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                      formData.loginAs === "admin"
-                        ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                  >
-                    Convener / Admin
-                  </button>
+          {!forgotOpen ? (
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    <span className="flex items-center">
+                      <Shield className="w-4 h-4 mr-2 text-primary" />
+                      Login As
+                    </span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-4 p-1 bg-muted/50 rounded-lg border border-border/50">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, loginAs: "volunteer" })}
+                      className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                        formData.loginAs === "volunteer"
+                          ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      Volunteer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, loginAs: "admin" })}
+                      className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                        formData.loginAs === "admin"
+                          ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      Convener / Admin
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="email" className="flex items-center text-sm font-semibold text-foreground mb-3">
-                  <Mail className="w-4 h-4 mr-2 text-primary" />
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-4 py-3 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
-                  placeholder="Enter your email"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="flex items-center text-sm font-semibold text-foreground mb-3">
-                  <Lock className="w-4 h-4 mr-2 text-primary" />
-                  Password
-                </label>
-                <div className="relative">
+                <div>
+                  <label htmlFor="email" className="flex items-center text-sm font-semibold text-foreground mb-3">
+                    <Mail className="w-4 h-4 mr-2 text-primary" />
+                    Email Address
+                  </label>
                   <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
+                    id="email"
+                    name="email"
+                    type="email"
                     required
-                    value={formData.password}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
-                    className="w-full px-4 py-3 pr-12 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
-                    placeholder="Enter your password"
+                    value={formData.email}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-4 py-3 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
+                    placeholder="Enter your email"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
                 </div>
-                <div className="mt-2 text-right">
-                  <button
-                    type="button"
-                    onClick={openForgot}
-                    className="text-xs text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
-                  >
-                    Forgot password?
-                  </button>
+
+                <div>
+                  <label htmlFor="password" className="flex items-center text-sm font-semibold text-foreground mb-3">
+                    <Lock className="w-4 h-4 mr-2 text-primary" />
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={formData.password}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                      className="w-full px-4 py-3 pr-12 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
+                      placeholder="Enter your password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  <div className="mt-2 text-right">
+                    <button
+                      type="button"
+                      onClick={openForgot}
+                      className="text-xs text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm font-medium animate-in slide-in-from-top-2 duration-300">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center py-3 px-4 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:from-primary/90 hover:to-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin w-5 h-5 mr-2" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <Shield className="w-5 h-5 mr-2" />
-                  Sign in
-                </>
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm font-medium animate-in slide-in-from-top-2 duration-300">
+                  {error}
+                </div>
               )}
-            </button>
 
-            <div className="text-center">
-              <a
-                href="/register"
-                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center py-3 px-4 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:from-primary/90 hover:to-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
               >
-                Apply for NSS Registration →
-              </a>
-            </div>
-          </form>
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin w-5 h-5 mr-2" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-5 h-5 mr-2" />
+                    Sign in
+                  </>
+                )}
+              </button>
 
-          {forgotOpen && (
-            <div className="mt-6 border border-border/60 rounded-lg bg-muted/20 p-4 space-y-4">
+              <div className="text-center">
+                <a
+                  href="/register"
+                  className="text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
+                >
+                  Apply for NSS Registration →
+                </a>
+              </div>
+            </form>
+          ) : (
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-sm text-foreground">Volunteer Password Reset</h4>
                 <button type="button" onClick={closeForgot} className="text-xs text-muted-foreground hover:text-foreground">
-                  Close
+                  Back to Login
                 </button>
               </div>
 
