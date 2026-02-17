@@ -39,28 +39,42 @@ export async function GET(_request: NextRequest) {
       status: "active",
     }).lean()
 
-    // Calculate event hours - robustly handling potential string types in DB
-    const eventHoursAggregation = await VolunteerEvent.aggregate([
-      { $match: { volunteerId: volunteerObjectId } },
-      {
-        $project: {
-          totalHours: {
-            $add: [
-              { $toDouble: { $ifNull: ["$hoursWorked", 0] } },
-              { $toDouble: { $ifNull: ["$pendingHours", 0] } }
-            ]
-          }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$totalHours" }
-        }
-      }
+    // Calculate event hours separately:
+    // - eventHours: approved/actual hours only (shown in actual totals)
+    // - pendingEventHours: pending approval hours (shown separately)
+    const [approvedEventHoursAggregation, pendingEventHoursAggregation] = await Promise.all([
+      VolunteerEvent.aggregate([
+        {
+          $match: {
+            volunteerId: volunteerObjectId,
+            $or: [{ reviewStatus: "approved" }, { reviewStatus: { $exists: false } }],
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: { $toDouble: { $ifNull: ["$hoursWorked", 0] } } },
+          },
+        },
+      ]),
+      VolunteerEvent.aggregate([
+        {
+          $match: {
+            volunteerId: volunteerObjectId,
+            reviewStatus: "pending",
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: { $toDouble: { $ifNull: ["$pendingHours", 0] } } },
+          },
+        },
+      ]),
     ])
 
-    const eventHours = eventHoursAggregation[0]?.total || 0
+    const eventHours = approvedEventHoursAggregation[0]?.total || 0
+    const pendingEventHours = pendingEventHoursAggregation[0]?.total || 0
 
     // Calculate meeting hours
     const meetingHoursAggregation = await VolunteerMeeting.aggregate([
@@ -181,11 +195,13 @@ export async function GET(_request: NextRequest) {
     const roundedEventHours = Math.round(eventHours * 10) / 10
     const roundedMeetingHours = Math.round(meetingHours * 10) / 10
     const roundedTaskHours = Math.round(taskHours * 10) / 10
+    const roundedPendingEventHours = Math.round(pendingEventHours * 10) / 10
 
     return NextResponse.json({
       success: true,
       totalHours: roundedHours,
       eventHours: roundedEventHours,
+      pendingEventHours: roundedPendingEventHours,
       meetingHours: roundedMeetingHours,
       taskHours: roundedTaskHours,
       hoursWorked: roundedHours,

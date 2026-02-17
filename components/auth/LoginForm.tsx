@@ -10,7 +10,7 @@ export default function LoginForm() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    loginAs: "volunteer", // "volunteer" or "admin"
+    loginAs: "volunteer", 
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -452,24 +452,7 @@ export default function LoginForm() {
             </div>
           )}
         </div>
-
-        {/* <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-6 border border-border/30">
-          <h3 className="font-semibold text-foreground mb-3 flex items-center">
-            <Shield className="w-4 h-4 mr-2 text-primary" />
-            Admin Credentials
-          </h3>
-          <div className="space-y-2 text-sm">
-            <p className="text-muted-foreground">
-              <span className="font-medium text-foreground">Email:</span> admin@nss.gov.in
-            </p>
-            <p className="text-muted-foreground">
-              <span className="font-medium text-foreground">Password:</span> admin123
-            </p>
-          </div>
-        </div> */}
-
         <div className="text-center text-xs text-muted-foreground space-y-1">
-          {/* <p className="font-medium">Government of India | भारत सरकार</p> */}
           <p>National Service Scheme - Uttar Pradesh</p>
         </div>
       </div>

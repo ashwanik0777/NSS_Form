@@ -66,6 +66,7 @@ export default function VolunteerDashboard() {
   const [loading, setLoading] = useState(true)
   const [hoursWorked, setHoursWorked ] = useState(0)
   const [eventHours, setEventHours] = useState(0)
+  const [pendingEventHours, setPendingEventHours] = useState(0)
   const [meetingHours, setMeetingHours] = useState(0)
   const [taskHours, setTaskHours] = useState(0)
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
@@ -138,6 +139,7 @@ export default function VolunteerDashboard() {
       if (statsData.success) {
         setHoursWorked(statsData.totalHours ?? 0)
         setEventHours(statsData.eventHours ?? 0)
+        setPendingEventHours(statsData.pendingEventHours ?? 0)
         setMeetingHours(statsData.meetingHours ?? 0)
         setTaskHours(statsData.taskHours ?? 0)
         setUpcomingEvents(statsData.upcomingEvents || [])
@@ -395,6 +397,12 @@ export default function VolunteerDashboard() {
                 <Calendar className="w-3 h-3 mr-1.5" /> Events
               </span>
               <span className="text-sm font-medium">{eventHours.toFixed(1)} hrs</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-yellow-700 dark:text-yellow-400 flex items-center">
+                <Clock className="w-3 h-3 mr-1.5" /> Events (Pending Approval)
+              </span>
+              <span className="text-sm font-medium text-yellow-700 dark:text-yellow-400">{pendingEventHours.toFixed(1)} hrs</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground flex items-center">
