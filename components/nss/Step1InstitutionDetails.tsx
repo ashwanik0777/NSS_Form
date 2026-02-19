@@ -254,8 +254,6 @@ export default function Step1InstitutionDetails({
 						<option value="">Select enrollment type</option>
 						<option value="first-year">First Year / प्रथम वर्ष</option>
 						<option value="second-year">Second Year / द्वितीय वर्ष</option>
-						<option value="third-year">Third Year / तृतीय वर्ष</option>
-						<option value="fourth-year">Fourth Year / चतुर्थ वर्ष</option>
 					</select>
 					{errors.enrollment && (
 						<p className="text-sm text-destructive">{errors.enrollment}</p>
