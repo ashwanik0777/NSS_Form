@@ -251,7 +251,7 @@ export default function Step1InstitutionDetails({
 						value={formData.enrollment}
 						onChange={(e) => handleInputChange("enrollment", e.target.value)}
 					>
-						<option value="">Select enrollment type</option>
+						<option value="">Select nss enrollment year</option>
 						<option value="first-year">First Year / प्रथम वर्ष</option>
 						<option value="second-year">Second Year / द्वितीय वर्ष</option>
 					</select>
