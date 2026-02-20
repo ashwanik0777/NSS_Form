@@ -9,7 +9,7 @@ import { authOptions } from "@/lib/auth"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
 const MAX_STUDENTS_PER_UNIT = 100
-const ACTIVE_UNIT_STATUSES = ["submitted", "under-review", "approved"]
+const CAPACITY_BLOCKING_STATUSES = ["approved"]
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     const currentUnitCount = await NSSApplication.countDocuments({
       unitNo: selectedUnitNo,
-      status: { $in: ACTIVE_UNIT_STATUSES },
+      status: { $in: CAPACITY_BLOCKING_STATUSES },
     })
 
     if (currentUnitCount >= MAX_STUDENTS_PER_UNIT) {

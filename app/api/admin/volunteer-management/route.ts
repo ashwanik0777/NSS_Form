@@ -12,6 +12,8 @@ import NSSProject from "@/models/NSSProject"
 import { generateVolunteerExportPDF } from "@/lib/generateVolunteerExportPDF"
 import { hasPermission } from "@/lib/permissions"
 
+const normalizeUnitValue = (unit?: string | null) => (unit || "").trim()
+
 export async function PATCH(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any
@@ -198,7 +200,7 @@ export async function GET(request: NextRequest) {
       const user = await User.findById(session.user.id).select("assignedUnits").lean()
       const userAssignedUnits = (user as any)?.assignedUnits || []
       if (userAssignedUnits.length > 0) {
-        applicationFilter.unitNo = { $in: userAssignedUnits }
+        applicationFilter.unitNo = { $in: userAssignedUnits.map((unit: string) => normalizeUnitValue(unit)) }
       } else {
         // No units assigned, return empty
         return NextResponse.json({
@@ -214,7 +216,7 @@ export async function GET(request: NextRequest) {
         })
       }
     } else if (unitNo && unitNo !== "all") {
-      applicationFilter.unitNo = unitNo
+      applicationFilter.unitNo = normalizeUnitValue(unitNo)
     }
     
     if (enrollment && (enrollment === "first-year" || enrollment === "second-year")) {
@@ -244,10 +246,17 @@ export async function GET(request: NextRequest) {
           as: "user"
         }
       },
-      { $unwind: "$user" },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
       
       // 3. Filter by user role (just in case)
-      { $match: { "user.role": { $in: ["volunteer", "user"] } } },
+      {
+        $match: {
+          $or: [
+            { user: null },
+            { "user.role": { $in: ["volunteer", "user"] } }
+          ]
+        }
+      },
 
       // 4. Lookup Volunteer Events for stats
       {
@@ -335,10 +344,10 @@ export async function GET(request: NextRequest) {
       const aggregatedData = await NSSApplication.aggregate(pipeline)
       
       const rows = aggregatedData.map((v: any) => ({
-        name: v.nameEnglish || v.user.name || "",
+        name: v.nameEnglish || v.user?.name || "",
         fatherName: v.fatherName || "",
         motherName: v.motherName || "",
-        email: v.user.email || "",
+        email: v.user?.email || v.emailId || "",
         mobileNo: v.mobileNo || "",
         dob: v.dateOfBirth ? new Date(v.dateOfBirth).toLocaleDateString("en-IN") : "",
         gender: v.gender || "",
@@ -419,9 +428,9 @@ export async function GET(request: NextRequest) {
 
     // Format data for frontend
     const formattedVolunteers = volunteersData.map((v: any) => ({
-      _id: v.user._id,
-      name: v.user.name,
-      email: v.user.email,
+      _id: String(v.user?._id || v.userId),
+      name: v.user?.name || v.nameEnglish || "Unknown",
+      email: v.user?.email || v.emailId || "",
       application: {
         _id: v._id,
         formNo: v.formNo,

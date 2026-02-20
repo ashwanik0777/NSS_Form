@@ -4,7 +4,7 @@ import NSSApplication from "@/models/NSSApplication"
 
 const MAX_STUDENTS_PER_UNIT = 100
 const TRACKED_UNITS = ["1", "2", "3", "4", "5", "6"]
-const ACTIVE_STATUSES = ["submitted", "under-review", "approved"]
+const CAPACITY_STATUSES = ["approved"]
 
 export async function GET() {
   try {
@@ -14,7 +14,7 @@ export async function GET() {
       TRACKED_UNITS.map(async (unitNo) => {
         const count = await NSSApplication.countDocuments({
           unitNo,
-          status: { $in: ACTIVE_STATUSES },
+          status: { $in: CAPACITY_STATUSES },
         })
 
         return {

@@ -86,6 +86,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       const currentCount = await NSSApplication.countDocuments({
         unitNo: application.unitNo,
         status: "approved",
+        _id: { $ne: application._id },
       })
 
       if (currentCount >= MAX_STUDENTS_PER_UNIT) {
