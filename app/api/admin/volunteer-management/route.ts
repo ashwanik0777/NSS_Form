@@ -11,8 +11,7 @@ import NSSApplication from "@/models/NSSApplication"
 import NSSProject from "@/models/NSSProject"
 import { generateVolunteerExportPDF } from "@/lib/generateVolunteerExportPDF"
 import { hasPermission } from "@/lib/permissions"
-
-const normalizeUnitValue = (unit?: string | null) => (unit || "").trim()
+import { getUnitNoQuery, normalizeUnitNo } from "@/lib/unit"
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -58,7 +57,7 @@ export async function PATCH(request: NextRequest) {
     if (updateData.enrollmentNo) appUpdate.institutionalIdCard = updateData.enrollmentNo
     if (updateData.course) appUpdate.courseName = updateData.course
     if (updateData.department) appUpdate.departmentName = updateData.department
-    if (updateData.unit) appUpdate.unitNo = updateData.unit
+    if (updateData.unit) appUpdate.unitNo = normalizeUnitNo(updateData.unit)
     if (updateData.category) appUpdate.category = updateData.category
     if (updateData.gender) appUpdate.gender = updateData.gender
     if (updateData.bloodGroup) appUpdate.bloodGroup = updateData.bloodGroup
@@ -118,8 +117,8 @@ export async function GET(request: NextRequest) {
       // Check unit access for sub-admin
       if (session.user.role === "sub-admin" && application) {
         const user = await User.findById(session.user.id).select("assignedUnits").lean()
-        const userAssignedUnits = (user as any)?.assignedUnits || []
-        if (userAssignedUnits.length > 0 && !userAssignedUnits.includes(application.unitNo)) {
+        const userAssignedUnits = ((user as any)?.assignedUnits || []).map((unit: string) => normalizeUnitNo(unit))
+        if (userAssignedUnits.length > 0 && !userAssignedUnits.includes(normalizeUnitNo(application.unitNo))) {
           return NextResponse.json({ success: false, message: "Access denied" }, { status: 403 })
         }
       }
@@ -184,7 +183,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get filter parameters
-    const unitNo = searchParams.get("unitNo")
+    const unitNo = normalizeUnitNo(searchParams.get("unitNo"))
     const enrollment = searchParams.get("enrollment")
     const schoolName = searchParams.get("schoolName")
     const departmentName = searchParams.get("departmentName")
@@ -198,9 +197,9 @@ export async function GET(request: NextRequest) {
     // Unit-based filtering for sub-admins
     if (session.user.role === "sub-admin") {
       const user = await User.findById(session.user.id).select("assignedUnits").lean()
-      const userAssignedUnits = (user as any)?.assignedUnits || []
+      const userAssignedUnits = ((user as any)?.assignedUnits || []).map((unit: string) => normalizeUnitNo(unit))
       if (userAssignedUnits.length > 0) {
-        applicationFilter.unitNo = { $in: userAssignedUnits.map((unit: string) => normalizeUnitValue(unit)) }
+        applicationFilter.$or = userAssignedUnits.map((unit: string) => ({ unitNo: getUnitNoQuery(unit) }))
       } else {
         // No units assigned, return empty
         return NextResponse.json({
@@ -216,7 +215,7 @@ export async function GET(request: NextRequest) {
         })
       }
     } else if (unitNo && unitNo !== "all") {
-      applicationFilter.unitNo = normalizeUnitValue(unitNo)
+      applicationFilter.unitNo = getUnitNoQuery(unitNo)
     }
     
     if (enrollment && (enrollment === "first-year" || enrollment === "second-year")) {

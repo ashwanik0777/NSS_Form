@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 import User from "@/models/User"
+import { getUnitNoQuery, normalizeUnitNo } from "@/lib/unit"
 
 export const dynamic = "force-dynamic"
 
@@ -17,12 +18,12 @@ export async function GET(request: NextRequest) {
     if (session?.user?.role === "sub-admin") {
       const user = await User.findById(session.user.id).select("assignedUnits")
       if (user && (user as any).assignedUnits && (user as any).assignedUnits.length > 0) {
-        userAssignedUnits = (user as any).assignedUnits
+        userAssignedUnits = (user as any).assignedUnits.map((unit: string) => normalizeUnitNo(unit))
       }
     }
     
     const { searchParams } = new URL(request.url)
-    const unitNo = searchParams.get('unitNo')
+    const unitNo = normalizeUnitNo(searchParams.get('unitNo'))
     const enrollment = searchParams.get('enrollment')
     const schoolName = searchParams.get('schoolName')
     const departmentName = searchParams.get('departmentName')
@@ -31,9 +32,9 @@ export async function GET(request: NextRequest) {
     
     // If sub-admin has assigned units, filter by those units
     if (userAssignedUnits && userAssignedUnits.length > 0) {
-      match.unitNo = { $in: userAssignedUnits }
+      match.$or = userAssignedUnits.map((unit) => ({ unitNo: getUnitNoQuery(unit) }))
     } else if (unitNo && unitNo !== 'all') {
-      match.unitNo = unitNo
+      match.unitNo = getUnitNoQuery(unitNo)
     }
     
     if (enrollment && (enrollment === 'first-year' || enrollment === 'second-year')) match.enrollment = enrollment

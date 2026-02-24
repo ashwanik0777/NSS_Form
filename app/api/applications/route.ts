@@ -7,6 +7,7 @@ import { sendApplicationSubmittedEmail } from "@/lib/email"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
+import { getUnitNoQuery, normalizeUnitNo } from "@/lib/unit"
 
 const MAX_STUDENTS_PER_UNIT = 100
 const CAPACITY_BLOCKING_STATUSES = ["approved"]
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
 
-    const selectedUnitNo = formData.unitNo?.trim()
+    const selectedUnitNo = normalizeUnitNo(formData.unitNo)
     if (!selectedUnitNo) {
       return NextResponse.json(
         { success: false, message: "Unit number is required before submission" },
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const currentUnitCount = await NSSApplication.countDocuments({
-      unitNo: selectedUnitNo,
+      unitNo: getUnitNoQuery(selectedUnitNo),
       status: { $in: CAPACITY_BLOCKING_STATUSES },
     })
 
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest) {
       institutionName: formData.institutionName,
       enrollment: formData.enrollment,
       programOfficerName: formData.programOfficerName,
-      unitNo: formData.unitNo,
+      unitNo: selectedUnitNo,
       schoolName: formData.schoolName || '',
       
       // Personal Details

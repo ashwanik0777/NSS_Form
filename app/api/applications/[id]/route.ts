@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth"
 import mongoose from "mongoose"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 import bcrypt from "bcryptjs"   
+import { getUnitNoQuery } from "@/lib/unit"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -84,7 +85,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
       const MAX_STUDENTS_PER_UNIT = 100
       const currentCount = await NSSApplication.countDocuments({
-        unitNo: application.unitNo,
+        unitNo: getUnitNoQuery(application.unitNo),
         status: "approved",
         _id: { $ne: application._id },
       })

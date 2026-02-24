@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
+import { getUnitNoQuery } from "@/lib/unit"
 
 const MAX_STUDENTS_PER_UNIT = 100
 const TRACKED_UNITS = ["1", "2", "3", "4", "5", "6"]
@@ -13,7 +14,7 @@ export async function GET() {
     const unitStats = await Promise.all(
       TRACKED_UNITS.map(async (unitNo) => {
         const count = await NSSApplication.countDocuments({
-          unitNo,
+          unitNo: getUnitNoQuery(unitNo),
           status: { $in: CAPACITY_STATUSES },
         })
 

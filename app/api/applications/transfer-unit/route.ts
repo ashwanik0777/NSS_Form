@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { getUnitNoQuery, normalizeUnitNo } from "@/lib/unit"
 
 const MAX_STUDENTS_PER_UNIT = 100
 
@@ -23,8 +24,9 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { applicationId, newUnitNo } = body
+    const normalizedNewUnitNo = normalizeUnitNo(newUnitNo)
 
-    if (!applicationId || !newUnitNo) {
+    if (!applicationId || !normalizedNewUnitNo) {
       return NextResponse.json({ success: false, message: "Application ID and new unit number are required" }, { status: 400 })
     }
 
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate unit number
-    if (!["1", "2", "3", "4", "5", "6"].includes(newUnitNo)) {
+    if (!["1", "2", "3", "4", "5", "6"].includes(normalizedNewUnitNo)) {
       return NextResponse.json({ success: false, message: "Invalid unit number" }, { status: 400 })
     }
 
@@ -48,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Check if new unit has capacity (only for approved applications)
     if (application.status === "approved") {
       const currentCount = await NSSApplication.countDocuments({
-        unitNo: newUnitNo,
+        unitNo: getUnitNoQuery(normalizedNewUnitNo),
         status: "approved",
       })
 
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { 
             success: false, 
-            message: `Unit ${newUnitNo} is full. Maximum ${MAX_STUDENTS_PER_UNIT} students allowed per unit.` 
+            message: `Unit ${normalizedNewUnitNo} is full. Maximum ${MAX_STUDENTS_PER_UNIT} students allowed per unit.` 
           }, 
           { status: 400 }
         )
@@ -66,13 +68,13 @@ export async function POST(request: NextRequest) {
     // Update the unit using findByIdAndUpdate to bypass pre-save validation
     const updatedApplication = await NSSApplication.findByIdAndUpdate(
       applicationId,
-      { unitNo: newUnitNo },
+      { unitNo: normalizedNewUnitNo },
       { new: true }
     )
 
     return NextResponse.json({
       success: true,
-      message: `Application transferred from Unit ${oldUnitNo} to Unit ${newUnitNo}`,
+      message: `Application transferred from Unit ${oldUnitNo} to Unit ${normalizedNewUnitNo}`,
       application: updatedApplication,
     })
   } catch (error: any) {
@@ -99,12 +101,12 @@ export async function GET(request: NextRequest) {
     await dbConnect()
 
     const { searchParams } = new URL(request.url)
-    const unitNo = searchParams.get("unitNo")
+    const unitNo = normalizeUnitNo(searchParams.get("unitNo"))
 
     if (unitNo) {
       // Get count for specific unit
       const count = await NSSApplication.countDocuments({
-        unitNo: unitNo,
+        unitNo: getUnitNoQuery(unitNo),
         status: "approved",
       })
       return NextResponse.json({
@@ -112,7 +114,7 @@ export async function GET(request: NextRequest) {
         unitNo,
         count,
         maxCapacity: MAX_STUDENTS_PER_UNIT,
-        available: MAX_STUDENTS_PER_UNIT - count,
+        available: Math.max(MAX_STUDENTS_PER_UNIT - count, 0),
         isFull: count >= MAX_STUDENTS_PER_UNIT,
       })
     } else {
@@ -121,14 +123,14 @@ export async function GET(request: NextRequest) {
       const unitStats = await Promise.all(
         units.map(async (unit) => {
           const count = await NSSApplication.countDocuments({
-            unitNo: unit,
+            unitNo: getUnitNoQuery(unit),
             status: "approved",
           })
           return {
             unitNo: unit,
             count,
             maxCapacity: MAX_STUDENTS_PER_UNIT,
-            available: MAX_STUDENTS_PER_UNIT - count,
+            available: Math.max(MAX_STUDENTS_PER_UNIT - count, 0),
             isFull: count >= MAX_STUDENTS_PER_UNIT,
           }
         })
