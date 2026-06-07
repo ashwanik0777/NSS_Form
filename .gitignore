@@ -25,3 +25,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+backups/*
+
+REPORT_FEBRUARY_2026.md
+REPORT_JANUARY_2026.md
