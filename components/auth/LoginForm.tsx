@@ -30,10 +30,6 @@ export default function LoginForm() {
   const router = useRouter()
 
   const openForgot = () => {
-    if (formData.loginAs !== "volunteer") {
-      setError("Forgot password is available only for Volunteer login.")
-      return
-    }
     setError("")
     setForgotOpen(true)
   }
@@ -133,7 +129,7 @@ export default function LoginForm() {
       }
 
       setForgotMessage(data?.message || "Password reset successful. Please login.")
-      setFormData((prev) => ({ ...prev, email: forgotData.email, password: "", loginAs: "volunteer" }))
+      setFormData((prev) => ({ ...prev, email: forgotData.email, password: "" }))
       setTimeout(() => {
         closeForgot()
       }, 1200)
@@ -355,7 +351,7 @@ export default function LoginForm() {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-sm text-foreground">Volunteer Password Reset</h4>
+                <h4 className="font-semibold text-sm text-foreground">{formData.loginAs === "admin" ? "Admin / Convener Password Reset" : "Volunteer Password Reset"}</h4>
                 <button type="button" onClick={closeForgot} className="text-xs text-muted-foreground hover:text-foreground">
                   Back to Login
                 </button>
@@ -367,7 +363,7 @@ export default function LoginForm() {
                 <div className="space-y-3">
                   <input
                     type="text"
-                    placeholder="Enter your full name"
+                    placeholder={formData.loginAs === "admin" ? "Enter your registered name" : "Enter your full name"}
                     value={forgotData.name}
                     onChange={(e) => setForgotData((prev) => ({ ...prev, name: e.target.value }))}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"

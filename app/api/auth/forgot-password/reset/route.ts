@@ -28,12 +28,13 @@ export async function POST(request: NextRequest) {
 
     const user = await User.findOne({ email })
     if (!user) {
-      return NextResponse.json({ success: false, message: "Volunteer not found" }, { status: 404 })
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
     }
 
-    if ((user as any).role === "admin" || (user as any).role === "sub-admin") {
+    // Block super admin — high security
+    if ((user as any).role === "admin") {
       return NextResponse.json(
-        { success: false, message: "Forgot password here is available only for volunteers" },
+        { success: false, message: "Super Admin account password cannot be reset from here." },
         { status: 403 },
       )
     }
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Password reset successful. Please login." })
   } catch (error) {
-    console.error("Volunteer forgot-password reset error:", error)
+    console.error("Forgot-password reset error:", error)
     return NextResponse.json({ success: false, message: "Failed to reset password" }, { status: 500 })
   }
 }

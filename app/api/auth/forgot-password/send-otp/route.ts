@@ -3,7 +3,7 @@ import dbConnect from "@/lib/mongodb"
 import User from "@/models/User"
 import NSSApplication from "@/models/NSSApplication"
 import VerificationCode from "@/models/VerificationCode"
-import { sendVolunteerSelfResetOTPEmail } from "@/lib/email"
+import { sendVolunteerSelfResetOTPEmail, sendAdminSelfResetOTPEmail } from "@/lib/email"
 
 const normalize = (value: string) => value.trim().replace(/\s+/g, " ").toLowerCase()
 const maskEmail = (email: string) => {
@@ -27,25 +27,38 @@ export async function POST(request: NextRequest) {
 
     const user = await User.findOne({ email }).lean()
     if (!user) {
-      return NextResponse.json({ success: false, message: "Volunteer not found" }, { status: 404 })
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 })
     }
 
-    if ((user as any).role === "admin" || (user as any).role === "sub-admin") {
+    const userRole = (user as any).role
+
+    // Block super admin — high security, password reset not allowed from here
+    if (userRole === "admin") {
       return NextResponse.json(
-        { success: false, message: "Forgot password here is available only for volunteers" },
+        { success: false, message: "Super Admin account password cannot be reset from here. Please contact the system administrator." },
         { status: 403 },
       )
     }
 
-    const application = await NSSApplication.findOne({ userId: (user as any)._id, status: "approved" }).lean()
-    if (!application) {
-      return NextResponse.json({ success: false, message: "Approved volunteer profile not found" }, { status: 404 })
-    }
+    // For sub-admins: verify name against User model
+    if (userRole === "sub-admin") {
+      const userName = normalize((user as any).name || "")
+      const typedName = normalize(name)
+      if (!userName || userName !== typedName) {
+        return NextResponse.json({ success: false, message: "Name does not match your admin profile" }, { status: 400 })
+      }
+    } else {
+      // For volunteers: verify name against NSSApplication
+      const application = await NSSApplication.findOne({ userId: (user as any)._id, status: "approved" }).lean()
+      if (!application) {
+        return NextResponse.json({ success: false, message: "Approved volunteer profile not found" }, { status: 404 })
+      }
 
-    const appName = normalize((application as any).nameEnglish || "")
-    const typedName = normalize(name)
-    if (!appName || appName !== typedName) {
-      return NextResponse.json({ success: false, message: "Name does not match your volunteer profile" }, { status: 400 })
+      const appName = normalize((application as any).nameEnglish || "")
+      const typedName = normalize(name)
+      if (!appName || appName !== typedName) {
+        return NextResponse.json({ success: false, message: "Name does not match your volunteer profile" }, { status: 400 })
+      }
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
@@ -56,17 +69,27 @@ export async function POST(request: NextRequest) {
       { upsert: true, new: true, setDefaultsOnInsert: true },
     )
 
-    await sendVolunteerSelfResetOTPEmail(email, {
-      name: (application as any).nameEnglish || (user as any).name || "Volunteer",
-      otp,
-    })
+    // Send role-appropriate email
+    if (userRole === "sub-admin") {
+      await sendAdminSelfResetOTPEmail(email, {
+        name: (user as any).name || "Admin",
+        otp,
+        designation: (user as any).designation || "",
+      })
+    } else {
+      const application = await NSSApplication.findOne({ userId: (user as any)._id, status: "approved" }).lean()
+      await sendVolunteerSelfResetOTPEmail(email, {
+        name: (application as any)?.nameEnglish || (user as any).name || "Volunteer",
+        otp,
+      })
+    }
 
     return NextResponse.json({
       success: true,
       message: `OTP sent to ${maskEmail(email)}. It will expire in 10 minutes.`,
     })
   } catch (error) {
-    console.error("Volunteer forgot-password send OTP error:", error)
+    console.error("Forgot-password send OTP error:", error)
     return NextResponse.json({ success: false, message: "Failed to send OTP" }, { status: 500 })
   }
 }
