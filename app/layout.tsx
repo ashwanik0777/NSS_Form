@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   description: "National Service Scheme volunteer registration and management system for Gautam Buddha University",
 }
 
+import { Toaster } from "@/components/ui/toaster"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +35,7 @@ export default function RootLayout({
         <SessionProviderWrapper>
           {children}
         </SessionProviderWrapper>
+        <Toaster />
       </body>
     </html>
   )

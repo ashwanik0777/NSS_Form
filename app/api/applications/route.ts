@@ -68,6 +68,18 @@ export async function POST(request: NextRequest) {
     })
     
     if (existingEmailApp) {
+      // Block removed volunteers from re-registering
+      if (existingEmailApp.status === 'removed') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Your account has been removed by the admin. You cannot register again. Please contact the NSS office.",
+            errors: { emailId: "Account removed. Contact NSS office." },
+          },
+          { status: 400 },
+        )
+      }
+      
       // If application exists (same user or different), check status
       // If status is active, prevent new submission
       if (['submitted', 'under-review', 'approved'].includes(existingEmailApp.status)) {
@@ -100,6 +112,18 @@ export async function POST(request: NextRequest) {
     })
     
     if (existingMobileApp) {
+      // Block removed volunteers from re-registering
+      if (existingMobileApp.status === 'removed') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Your account has been removed by the admin. You cannot register again. Please contact the NSS office.",
+            errors: { mobileNo: "Account removed. Contact NSS office." },
+          },
+          { status: 400 },
+        )
+      }
+
       // Check status to prevent duplicate active applications
        if (['submitted', 'under-review', 'approved'].includes(existingMobileApp.status)) {
          return NextResponse.json(

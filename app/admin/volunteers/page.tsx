@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import AdminHeader from "@/components/admin/AdminHeader"
 import { schoolDepartmentData } from "@/lib/constants"
+import { useToast } from "@/hooks/use-toast"
 import {
   TrendingUp,
   Users,
@@ -17,6 +18,7 @@ import {
   Loader2,
   X,
   User,
+  UserX,
   Mail,
   Phone,
   MapPin,
@@ -29,6 +31,9 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  Ban,
+  AlertTriangle,
+  RotateCcw,
 } from "lucide-react"
 
 const formatDate = (value?: string | Date) => {
@@ -131,6 +136,7 @@ interface Analytics {
 }
 
 export default function VolunteersPage() {
+  const { toast } = useToast()
   const [volunteers, setVolunteers] = useState<Volunteer[]>([])
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
@@ -164,6 +170,11 @@ export default function VolunteersPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalVolunteers, setTotalVolunteers] = useState(0)
   const itemsPerPage = 20
+
+  const [showRemoveModal, setShowRemoveModal] = useState(false)
+  const [removeTarget, setRemoveTarget] = useState<{id: string, name: string} | null>(null)
+  const [removeReason, setRemoveReason] = useState("")
+  const [removing, setRemoving] = useState(false)
 
   useEffect(() => {
     setCurrentPage(1) // Reset to first page when filters change
@@ -232,6 +243,55 @@ export default function VolunteersPage() {
       console.error('Error fetching schools:', error)
     } finally {
       setLoadingSchools(false)
+    }
+  }
+
+  const handleRemoveVolunteer = async () => {
+    if (!removeTarget || !removeReason.trim()) return
+    
+    setRemoving(true)
+    try {
+      const res = await fetch('/api/admin/volunteer-management', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          volunteerId: removeTarget.id,
+          reason: removeReason.trim(),
+        }),
+      })
+      
+      const data = await res.json()
+      if (data.success) {
+        toast({
+          title: "Volunteer Removed",
+          description: `${removeTarget.name} has been removed successfully.`,
+          variant: "default",
+        })
+        setShowRemoveModal(false)
+        setRemoveTarget(null)
+        setRemoveReason("")
+        // Close detail modal if open
+        setShowDetailModal(false)
+        setSelectedVolunteer(null)
+        // Refresh data
+        fetchData()
+        fetchStats()
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || 'Failed to remove volunteer',
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error removing volunteer:', error)
+      toast({
+        title: "Error",
+        description: 'Failed to remove volunteer',
+        variant: "destructive",
+      })
+    } finally {
+      setRemoving(false)
     }
   }
 
@@ -652,6 +712,18 @@ export default function VolunteersPage() {
                               <Download className="w-4 h-4" />
                             </a>
                           )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setRemoveTarget({ id: volunteer._id, name: volunteer.application?.nameEnglish || volunteer.name })
+                              setRemoveReason("")
+                              setShowRemoveModal(true)
+                            }}
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                            title="Remove Volunteer"
+                          >
+                            <Ban className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -730,17 +802,31 @@ export default function VolunteersPage() {
                     {selectedVolunteer.email}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowDetailModal(false)
-                    setSelectedVolunteer(null)
-                    setTasks([])
-                    setShowTaskForm(false)
-                  }}
-                  className="p-2 hover:bg-muted rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
+                      setRemoveReason("")
+                      setShowRemoveModal(true)
+                    }}
+                    className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
+                    title="Remove Volunteer"
+                  >
+                    <Ban className="w-4 h-4" />
+                    Remove
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowDetailModal(false)
+                      setSelectedVolunteer(null)
+                      setTasks([])
+                      setShowTaskForm(false)
+                    }}
+                    className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               {/* Tabs */}
@@ -1245,6 +1331,72 @@ export default function VolunteersPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Remove Volunteer Confirmation Modal */}
+        {showRemoveModal && removeTarget && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+            <div className="bg-card rounded-xl border border-border max-w-md w-full p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-100 dark:bg-red-950/50 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Remove Volunteer</h3>
+                  <p className="text-sm text-muted-foreground">This action cannot be easily undone</p>
+                </div>
+              </div>
+              
+              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+                <p className="text-sm text-red-800 dark:text-red-300">
+                  <strong>{removeTarget.name}</strong> will be deactivated:
+                </p>
+                <ul className="text-xs text-red-700 dark:text-red-400 mt-2 space-y-1 list-disc list-inside">
+                  <li>Cannot login to their account</li>
+                  <li>Unit seat will become available</li>
+                  <li>Active project assignments will be deactivated</li>
+                  <li>Cannot submit a new registration form</li>
+                  <li>Will move to Past Volunteers section</li>
+                </ul>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-foreground mb-1">Reason for removal <span className="text-red-500">*</span></label>
+                <textarea
+                  value={removeReason}
+                  onChange={(e) => setRemoveReason(e.target.value)}
+                  placeholder="e.g., Not attending events, left the institution, disciplinary action..."
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground text-sm min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowRemoveModal(false)
+                    setRemoveTarget(null)
+                    setRemoveReason("")
+                  }}
+                  className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                  disabled={removing}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRemoveVolunteer}
+                  disabled={!removeReason.trim() || removing}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {removing ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Removing...</>
+                  ) : (
+                    <><Ban className="w-4 h-4" /> Remove Volunteer</>
+                  )}
+                </button>
               </div>
             </div>
           </div>

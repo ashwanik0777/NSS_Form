@@ -188,8 +188,54 @@ export async function GET(request: NextRequest) {
     const schoolName = searchParams.get("schoolName")
     const departmentName = searchParams.get("departmentName")
     const nameSearch = searchParams.get("nameSearch")
+    const type = searchParams.get("type") // "past" for removed volunteers
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "20")
+
+    // Handle past/removed volunteers query
+    if (type === "past") {
+      const pastFilter: any = { status: "removed" }
+      
+      // Unit-based filtering for sub-admins
+      if (session.user.role === "sub-admin") {
+        const user = await User.findById(session.user.id).select("assignedUnits").lean()
+        const userAssignedUnits = ((user as any)?.assignedUnits || []).map((unit: string) => normalizeUnitNo(unit))
+        if (userAssignedUnits.length > 0) {
+          pastFilter.$or = userAssignedUnits.map((unit: string) => ({ unitNo: getUnitNoQuery(unit) }))
+        }
+      } else if (unitNo && unitNo !== "all") {
+        pastFilter.unitNo = getUnitNoQuery(unitNo)
+      }
+
+      if (nameSearch && nameSearch.trim()) {
+        pastFilter.nameEnglish = { $regex: new RegExp(`${nameSearch.trim()}`, 'i') }
+      }
+
+      const pastApps = await NSSApplication.find(pastFilter)
+        .populate("userId", "name email")
+        .populate("removedBy", "name email")
+        .sort({ removedAt: -1 })
+        .lean()
+
+      const pastVolunteers = pastApps.map((app: any) => ({
+        _id: String(app.userId?._id || app.userId),
+        name: app.nameEnglish || app.userId?.name || "Unknown",
+        email: app.userId?.email || app.emailId || "",
+        mobileNo: app.mobileNo || "",
+        unitNo: app.unitNo || "",
+        departmentName: app.departmentName || "",
+        schoolName: app.schoolName || "",
+        enrollment: app.enrollment || "",
+        removalReason: app.removalReason || "",
+        removedAt: app.removedAt,
+        removedBy: app.removedBy?.name || "Admin",
+      }))
+
+      return NextResponse.json({
+        success: true,
+        volunteers: pastVolunteers,
+      })
+    }
 
     // Build application filter query
     const applicationFilter: any = { status: "approved" }
@@ -503,3 +549,105 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = (await getServerSession(authOptions)) as any
+    if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "sub-admin")) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check specific permission for sub-admins
+    if (session.user.role !== "admin") {
+      const userPermissions = session.user.permissions || []
+      if (!hasPermission(userPermissions, "volunteers.edit")) {
+        return NextResponse.json({ success: false, message: "Permission denied. You need 'volunteers.edit' permission." }, { status: 403 })
+      }
+    }
+
+    await dbConnect()
+    const body = await request.json()
+    const { volunteerId, reason } = body
+
+    if (!volunteerId) {
+      return NextResponse.json({ success: false, message: "Volunteer ID is required" }, { status: 400 })
+    }
+
+    if (!reason || !reason.trim()) {
+      return NextResponse.json({ success: false, message: "Removal reason is required" }, { status: 400 })
+    }
+
+    // Find the volunteer user
+    const volunteerUser = await User.findById(volunteerId)
+    if (!volunteerUser) {
+      return NextResponse.json({ success: false, message: "Volunteer not found" }, { status: 404 })
+    }
+
+    // Don't allow removing admins or sub-admins
+    if (volunteerUser.role === "admin" || volunteerUser.role === "sub-admin") {
+      return NextResponse.json({ success: false, message: "Cannot remove admin users" }, { status: 400 })
+    }
+
+    // Check if already removed
+    if (volunteerUser.status === "removed") {
+      return NextResponse.json({ success: false, message: "Volunteer is already removed" }, { status: 400 })
+    }
+
+    // Find the application
+    const application = await NSSApplication.findOne({ userId: volunteerId })
+
+    // Check unit access for sub-admin
+    if (session.user.role === "sub-admin" && application) {
+      const adminUser = await User.findById(session.user.id).select("assignedUnits").lean()
+      const userAssignedUnits = ((adminUser as any)?.assignedUnits || []).map((unit: string) => normalizeUnitNo(unit))
+      if (userAssignedUnits.length > 0 && !userAssignedUnits.includes(normalizeUnitNo(application.unitNo))) {
+        return NextResponse.json({ success: false, message: "Access denied. This volunteer is not in your assigned units." }, { status: 403 })
+      }
+    }
+
+    // 1. Update User status to "removed"
+    await User.findByIdAndUpdate(volunteerId, { status: "removed" })
+
+    // 2. Update NSSApplication status to "removed" with tracking info
+    if (application) {
+      await NSSApplication.findOneAndUpdate(
+        { userId: volunteerId },
+        {
+          status: "removed",
+          removedAt: new Date(),
+          removedBy: session.user.id,
+          removalReason: reason.trim(),
+        }
+      )
+    }
+
+    // 3. Deactivate active project assignments
+    await VolunteerProject.updateMany(
+      { volunteerId, status: "active" },
+      { status: "removed" }
+    )
+
+    // 4. Cancel future event registrations (keep past ones for records)
+    // We don't delete past events — they're historical records
+    // Only cancel events that haven't started yet
+    const now = new Date()
+    await VolunteerEvent.updateMany(
+      { 
+        volunteerId, 
+        status: { $in: ["registered", "pending"] },
+        startTime: { $gt: now }
+      },
+      { status: "cancelled" }
+    )
+
+    const unitNo = application?.unitNo || "Unknown"
+
+    return NextResponse.json({
+      success: true,
+      message: `Volunteer removed successfully. Unit ${unitNo} seat is now available.`,
+      freedUnit: unitNo,
+    })
+  } catch (error) {
+    console.error("Error removing volunteer:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  }
+}
