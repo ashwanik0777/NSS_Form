@@ -157,7 +157,7 @@ export default function VolunteersPage() {
   const [unitNo, setUnitNo] = useState<string>("all")
   const [enrollment, setEnrollment] = useState<string>("all")
   const [schoolName, setSchoolName] = useState<string>("")
-  const [departmentName, setDepartmentName] = useState<string>("")
+  const [sortBy, setSortBy] = useState<string>("hours-desc")
   const [nameSearch, setNameSearch] = useState<string>("")
   const [stats, setStats] = useState<any | null>(null)
   const [schools, setSchools] = useState<string[]>([])
@@ -178,12 +178,12 @@ export default function VolunteersPage() {
 
   useEffect(() => {
     setCurrentPage(1) // Reset to first page when filters change
-  }, [unitNo, enrollment, schoolName, departmentName, nameSearch])
+  }, [unitNo, enrollment, schoolName, sortBy, nameSearch])
 
   useEffect(() => {
     fetchData()
     fetchStats()
-  }, [unitNo, enrollment, schoolName, departmentName, nameSearch, currentPage])
+  }, [unitNo, enrollment, schoolName, sortBy, nameSearch, currentPage])
 
   useEffect(() => {
     fetchSchools()
@@ -196,7 +196,7 @@ export default function VolunteersPage() {
       if (unitNo !== 'all') params.set('unitNo', unitNo)
       if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
       if (schoolName) params.set('schoolName', schoolName)
-      if (departmentName) params.set('departmentName', departmentName)
+      params.set('sortBy', sortBy)
       if (nameSearch) params.set('nameSearch', nameSearch)
       params.set('page', currentPage.toString())
       params.set('limit', itemsPerPage.toString())
@@ -222,7 +222,6 @@ export default function VolunteersPage() {
     if (unitNo !== 'all') params.set('unitNo', unitNo)
     if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
     if (schoolName) params.set('schoolName', schoolName)
-    if (departmentName) params.set('departmentName', departmentName)
     if (nameSearch) params.set('nameSearch', nameSearch)
     try {
       const res = await fetch(`/api/admin/applications-stats?${params.toString()}`)
@@ -567,30 +566,17 @@ export default function VolunteersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Department</label>
-              {schoolName && schoolDepartmentData.find((s) => s.name === schoolName) ? (
-                <select
-                  value={departmentName}
-                  onChange={(e) => setDepartmentName(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
-                >
-                  <option value="">All Departments</option>
-                  {schoolDepartmentData
-                    .find((s) => s.name === schoolName)
-                    ?.departments.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
-                </select>
-              ) : (
-                <input
-                  value={departmentName}
-                  onChange={(e) => setDepartmentName(e.target.value)}
-                  placeholder="Search Department"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
-                />
-              )}
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Sort By</label>
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)} 
+                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+              >
+                <option value="hours-desc">Most Hours (High to Low)</option>
+                <option value="hours-asc">Least Hours (Low to High)</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>

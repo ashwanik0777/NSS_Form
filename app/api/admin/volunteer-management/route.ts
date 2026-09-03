@@ -189,6 +189,7 @@ export async function GET(request: NextRequest) {
     const departmentName = searchParams.get("departmentName")
     const nameSearch = searchParams.get("nameSearch")
     const type = searchParams.get("type") // "past" for removed volunteers
+    const sortBy = searchParams.get("sortBy") || "hours-desc" // default to hours-desc for backwards compatibility
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "20")
 
@@ -381,7 +382,10 @@ export async function GET(request: NextRequest) {
       },
 
       // 8. Sort
-      { $sort: { totalHours: -1, attendanceRate: -1 } }
+      { $sort: sortBy === "hours-asc" ? { totalHours: 1, attendanceRate: 1 } 
+             : sortBy === "name-asc" ? { nameEnglish: 1 } 
+             : sortBy === "name-desc" ? { nameEnglish: -1 } 
+             : { totalHours: -1, attendanceRate: -1 } }
     ]
 
     // If export requested, return file instead of JSON
