@@ -24,6 +24,8 @@ export const authOptions: NextAuthOptions = {
             email: { $regex: new RegExp(`^${credentials.email}$`, "i") } 
           });
           if (!user) return null;
+          // Block removed/deactivated users from logging in
+          if (user.status === "removed") return null;
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
           if (!isPasswordValid) return null;
           return {
