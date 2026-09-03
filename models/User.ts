@@ -8,7 +8,7 @@ export interface IUser extends Document {
   permissions?: string[]
   mustChangePassword?: boolean
   assignedUnits?: string[] // Array of unit numbers like ["1", "2", "3"]
-  status: "pending" | "accepted" | "rejected"
+  status: "pending" | "accepted" | "rejected" | "removed"
   // Profile fields
   phone?: string
   photo?: string
@@ -64,7 +64,7 @@ const UserSchema = new Schema<IUser>(
     ],
     status: {
       type: String,
-      enum: ["pending", "accepted", "rejected"],
+      enum: ["pending", "accepted", "rejected", "removed"],
       default: "pending",
     },
     // Profile fields

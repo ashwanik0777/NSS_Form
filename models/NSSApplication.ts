@@ -55,10 +55,15 @@ export interface INSSApplication extends Document {
   socialLinkedin?: string
 
   // Application Status
-  status: "draft" | "submitted" | "under-review" | "approved" | "rejected"
+  status: "draft" | "submitted" | "under-review" | "approved" | "rejected" | "removed"
   rejectionReason?: string
   reviewedBy?: mongoose.Types.ObjectId
   reviewedAt?: Date
+
+  // Removal tracking
+  removedAt?: Date
+  removedBy?: mongoose.Types.ObjectId
+  removalReason?: string
 
   // User Reference
   userId: mongoose.Types.ObjectId
@@ -311,7 +316,7 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     // Application Status
     status: {
       type: String,
-      enum: ["draft", "submitted", "under-review", "approved", "rejected"],
+      enum: ["draft", "submitted", "under-review", "approved", "rejected", "removed"],
       default: "draft",
     },
     rejectionReason: {
@@ -324,6 +329,19 @@ const NSSApplicationSchema = new Schema<INSSApplication>(
     },
     reviewedAt: {
       type: Date,
+    },
+
+    // Removal tracking
+    removedAt: {
+      type: Date,
+    },
+    removedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    removalReason: {
+      type: String,
+      trim: true,
     },
 
     // User Reference
