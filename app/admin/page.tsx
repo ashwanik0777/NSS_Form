@@ -1,23 +1,68 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import AdminHeader from "@/components/admin/AdminHeader"
+import {
+  Users,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  FileText,
+  TrendingUp,
+  ChevronRight,
+  BarChart3,
+  Activity,
+  AlertCircle,
+  CalendarCheck,
+  UserCheck,
+  ClipboardList,
+  Eye,
+  Loader2,
+} from "lucide-react"
 
 interface DashboardStats {
+  totalVolunteers: number
+  totalEvents: number
+  upcomingEvents: number
+  completedEvents: number
   totalApplications: number
-  pendingReview: number
-  approved: number
-  rejected: number
+  pendingApprovals: number
+  totalParticipations: number
+  pendingAttendance: number
+}
+
+interface UpcomingEvent {
+  _id: string
+  title: string
+  eventDate: string
+  registrations: number
+  maxParticipants?: number
+  location?: string
+}
+
+interface CompletedEvent {
+  _id: string
+  title: string
+  eventDate: string
+  participation: number
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats>({
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
+  const [completedEvents, setCompletedEvents] = useState<CompletedEvent[]>([])
+  const [loading, setLoading] = useState(true)
+  const [social, setSocial] = useState<{facebook?: string; instagram?: string; twitter?: string; linkedin?: string}>({})
+
+  // Legacy stats for backward compat (applications stats)
+  const [legacyStats, setLegacyStats] = useState({
     totalApplications: 0,
     pendingReview: 0,
     approved: 0,
     rejected: 0,
   })
-  const [loading, setLoading] = useState(true)
+
   const [meetings, setMeetings] = useState<{ total: number; upcomingOrOngoing: number; completed: number; cancelled: number }>({
     total: 0,
     upcomingOrOngoing: 0,
@@ -29,17 +74,32 @@ export default function AdminDashboard() {
     attended: 0,
     absent: 0,
   })
-  const [social, setSocial] = useState<{facebook?: string; instagram?: string; twitter?: string; linkedin?: string}>({})
 
   useEffect(() => {
-    fetchStats()
+    fetchDashboardStats()
+    fetchLegacyStats()
     fetchSocial()
     fetchMeetingStats()
   }, [])
 
-  const fetchStats = async () => {
+  const fetchDashboardStats = async () => {
     try {
-      // Fetch stats from different status endpoints
+      const res = await fetch("/api/admin/dashboard-stats")
+      const data = await res.json()
+      if (data.success) {
+        setStats(data.stats)
+        setUpcomingEvents(data.recentUpcomingEvents || [])
+        setCompletedEvents(data.recentCompletedEvents || [])
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchLegacyStats = async () => {
+    try {
       const [total, pending, approved, rejected] = await Promise.all([
         fetch("/api/applications?status=all"),
         fetch("/api/applications?status=submitted"),
@@ -54,16 +114,14 @@ export default function AdminDashboard() {
         rejected.json(),
       ])
 
-      setStats({
+      setLegacyStats({
         totalApplications: totalData.pagination?.total || 0,
         pendingReview: pendingData.pagination?.total || 0,
         approved: approvedData.pagination?.total || 0,
         rejected: rejectedData.pagination?.total || 0,
       })
     } catch (error) {
-      console.error("Error fetching stats:", error)
-    } finally {
-      setLoading(false)
+      console.error("Error fetching legacy stats:", error)
     }
   }
 
@@ -93,98 +151,246 @@ export default function AdminDashboard() {
     } catch (e) {}
   }
 
-  const statCards = [
+  const formatDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+    } catch {
+      return "—"
+    }
+  }
+
+  const overviewCards = [
+    {
+      title: "Total Volunteers",
+      value: stats?.totalVolunteers ?? "—",
+      icon: <Users className="w-6 h-6" />,
+      color: "text-blue-600",
+      bg: "bg-blue-50 dark:bg-blue-950/30",
+      border: "border-blue-200 dark:border-blue-800",
+    },
+    {
+      title: "Total Events Till Date",
+      value: stats?.totalEvents ?? "—",
+      icon: <Calendar className="w-6 h-6" />,
+      color: "text-indigo-600",
+      bg: "bg-indigo-50 dark:bg-indigo-950/30",
+      border: "border-indigo-200 dark:border-indigo-800",
+    },
+    {
+      title: "Upcoming Events",
+      value: stats?.upcomingEvents ?? "—",
+      icon: <CalendarCheck className="w-6 h-6" />,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50 dark:bg-emerald-950/30",
+      border: "border-emerald-200 dark:border-emerald-800",
+    },
+    {
+      title: "Completed Events",
+      value: stats?.completedEvents ?? "—",
+      icon: <CheckCircle2 className="w-6 h-6" />,
+      color: "text-green-600",
+      bg: "bg-green-50 dark:bg-green-950/30",
+      border: "border-green-200 dark:border-green-800",
+    },
     {
       title: "Total Applications",
-      value: stats.totalApplications,
-      icon: (
-        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-600",
+      value: stats?.totalApplications ?? "—",
+      icon: <FileText className="w-6 h-6" />,
+      color: "text-purple-600",
+      bg: "bg-purple-50 dark:bg-purple-950/30",
+      border: "border-purple-200 dark:border-purple-800",
     },
     {
-      title: "Pending Review",
-      value: stats.pendingReview,
-      icon: (
-        <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      bgColor: "bg-yellow-50",
-      textColor: "text-yellow-600",
+      title: "Pending Approvals",
+      value: stats?.pendingApprovals ?? "—",
+      icon: <Clock className="w-6 h-6" />,
+      color: "text-amber-600",
+      bg: "bg-amber-50 dark:bg-amber-950/30",
+      border: "border-amber-200 dark:border-amber-800",
     },
     {
-      title: "Approved",
-      value: stats.approved,
-      icon: (
-        <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      bgColor: "bg-green-50",
-      textColor: "text-green-600",
+      title: "Total Participation",
+      value: stats?.totalParticipations ?? "—",
+      icon: <UserCheck className="w-6 h-6" />,
+      color: "text-cyan-600",
+      bg: "bg-cyan-50 dark:bg-cyan-950/30",
+      border: "border-cyan-200 dark:border-cyan-800",
     },
     {
-      title: "Rejected",
-      value: stats.rejected,
-      icon: (
-        <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      bgColor: "bg-red-50",
-      textColor: "text-red-600",
+      title: "Pending Attendance",
+      value: stats?.pendingAttendance ?? "—",
+      icon: <ClipboardList className="w-6 h-6" />,
+      color: "text-rose-600",
+      bg: "bg-rose-50 dark:bg-rose-950/30",
+      border: "border-rose-200 dark:border-rose-800",
     },
   ]
 
   return (
     <>
-      <AdminHeader title="Dashboard" subtitle="NSS Application Management Overview" />
+      <AdminHeader title="Dashboard" subtitle="NSS Application & Activity Management" />
 
-      <div className="p-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statCards.map((card, index) => (
-            <div key={index} className="bg-card rounded-lg border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
-                  <p className="text-3xl font-bold text-foreground">{loading ? "..." : card.value}</p>
+      <div className="p-6 space-y-6">
+
+        {/* Overview Statistics */}
+        <div>
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-primary" />
+            Overview Statistics
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {overviewCards.map((card, index) => (
+              <div
+                key={index}
+                className={`bg-card rounded-xl border ${card.border} p-5 hover:shadow-md transition-shadow`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">{card.title}</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {loading ? (
+                        <span className="inline-block w-8 h-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></span>
+                      ) : card.value}
+                    </p>
+                  </div>
+                  <div className={`p-2.5 rounded-xl ${card.bg}`}>
+                    <span className={card.color}>{card.icon}</span>
+                  </div>
                 </div>
-                <div className={`p-3 rounded-full ${card.bgColor}`}>{card.icon}</div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Meetings Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-card rounded-lg border border-border p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Meetings Overview</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        {/* Pending Actions */}
+        <div>
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-amber-500" />
+            Pending Actions
+          </h3>
+          <div className="bg-card rounded-xl border border-border divide-y divide-border">
+            <Link
+              href="/admin/applications"
+              className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors group first:rounded-t-xl"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">Application Reviews</p>
+                  <p className="text-sm text-muted-foreground">
+                    {loading ? "Loading..." : `${stats?.pendingApprovals || 0} pending applications`}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </Link>
+            <Link
+              href="/admin/attendance"
+              className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors group last:rounded-b-xl"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center">
+                  <ClipboardList className="w-5 h-5 text-rose-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">Attendance Verification</p>
+                  <p className="text-sm text-muted-foreground">
+                    {loading ? "Loading..." : `${stats?.pendingAttendance || 0} pending verifications`}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Events Overview */}
+        <div>
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-pink-500" />
+            Events Overview
+          </h3>
+          <div className="bg-card rounded-xl border border-border divide-y divide-border">
+            {/* Upcoming Events */}
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
+                  <CalendarCheck className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-sm">Upcoming Events</p>
+                  <p className="text-xs text-muted-foreground">Event name • Date • Registrations</p>
+                </div>
+              </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : upcomingEvents.length > 0 ? (
+                <div className="space-y-2 ml-11">
+                  {upcomingEvents.map((event) => (
+                    <div key={event._id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(event.eventDate)}{event.location ? ` • ${event.location}` : ""}</p>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 font-medium ml-2 whitespace-nowrap">
+                        {event.registrations}{event.maxParticipants ? `/${event.maxParticipants}` : ""} registered
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground ml-11">No upcoming events</p>
+              )}
+            </div>
+
+            {/* Recent Completed Events */}
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-950/30 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-sm">Recent Completed Events</p>
+                  <p className="text-xs text-muted-foreground">Event name • Participation</p>
+                </div>
+              </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : completedEvents.length > 0 ? (
+                <div className="space-y-2 ml-11">
+                  {completedEvents.map((event) => (
+                    <div key={event._id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(event.eventDate)}</p>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400 font-medium ml-2 whitespace-nowrap">
+                        {event.participation} participated
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground ml-11">No completed events yet</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Meetings Overview + Meeting Attendance (existing) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-card rounded-xl border border-border p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-orange-500" />
+              Meetings Overview
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
               <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
                 <p className="text-muted-foreground text-xs mb-1">Total</p>
                 <p className="text-xl font-bold">{meetings.total}</p>
@@ -203,9 +409,12 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Meeting Attendance</h3>
-            <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="bg-card rounded-xl border border-border p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-teal-500" />
+              Meeting Attendance
+            </h3>
+            <div className="grid grid-cols-3 gap-3 text-sm">
               <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
                 <p className="text-muted-foreground text-xs mb-1">Registrations</p>
                 <p className="text-xl font-bold">{meetingAttendance.totalRegistrations}</p>
@@ -222,89 +431,116 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Reports & Analytics + Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-card rounded-lg border border-border p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <a
-                href="/admin/applications"
-                className="flex items-center p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
-              >
-                <svg className="w-5 h-5 text-primary mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-foreground">Review Applications</span>
-              </a>
-              <a
-                href="/admin/users"
-                className="flex items-center p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
-              >
-                <svg className="w-5 h-5 text-primary mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-foreground">Manage Users</span>
-              </a>
-              <a
-                href="/admin/reports"
-                className="flex items-center p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
-              >
-                <svg className="w-5 h-5 text-primary mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-foreground">Generate Reports</span>
-              </a>
+          <Link
+            href="/admin/reports"
+            className="bg-card rounded-xl border border-border p-6 hover:shadow-md hover:border-primary/30 transition-all group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-6 h-6 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">Reports & Analytics</h3>
+                <p className="text-sm text-muted-foreground mt-1">Monthly events, attendance trends</p>
+              </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-card rounded-lg border border-border p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h3>
+          <div className="bg-card rounded-xl border border-border p-6">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+                <Activity className="w-6 h-6 text-sky-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Recent Activity</h3>
+                <p className="text-sm text-muted-foreground mt-1">Admin actions and updates</p>
+              </div>
+            </div>
             <div className="space-y-3">
               <div className="flex items-center p-3 bg-muted/25 rounded-lg">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">New application submitted</p>
-                  <p className="text-xs text-muted-foreground">2 minutes ago</p>
+                  <p className="text-sm font-medium text-foreground">System Active</p>
+                  <p className="text-xs text-muted-foreground">
+                    {legacyStats.approved} approved • {legacyStats.pendingReview} pending • {legacyStats.rejected} rejected
+                  </p>
                 </div>
               </div>
               <div className="flex items-center p-3 bg-muted/25 rounded-lg">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">Application approved</p>
-                  <p className="text-xs text-muted-foreground">1 hour ago</p>
+                  <p className="text-sm font-medium text-foreground">Events Summary</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats?.upcomingEvents || 0} upcoming • {stats?.completedEvents || 0} completed
+                  </p>
                 </div>
               </div>
               <div className="flex items-center p-3 bg-muted/25 rounded-lg">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">Application under review</p>
-                  <p className="text-xs text-muted-foreground">3 hours ago</p>
+                  <p className="text-sm font-medium text-foreground">Meetings</p>
+                  <p className="text-xs text-muted-foreground">
+                    {meetings.total} total • {meetings.upcomingOrOngoing} upcoming
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* NSS Social Media */}
-        <div className="mt-8 bg-card rounded-lg border border-border p-6">
+        {/* Quick Actions (kept from original) */}
+        <div className="bg-card rounded-xl border border-border p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Eye className="w-5 h-5 text-purple-500" />
+            Quick Actions
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Link
+              href="/admin/applications"
+              className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl hover:bg-muted/60 transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FileText className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Review Applications</p>
+                <p className="text-xs text-muted-foreground">{legacyStats.pendingReview} pending</p>
+              </div>
+            </Link>
+            <Link
+              href="/admin/users"
+              className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl hover:bg-muted/60 transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="w-5 h-5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Manage Users</p>
+                <p className="text-xs text-muted-foreground">Admin & sub-admin accounts</p>
+              </div>
+            </Link>
+            <Link
+              href="/admin/volunteers"
+              className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl hover:bg-muted/60 transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <UserCheck className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Manage Volunteers</p>
+                <p className="text-xs text-muted-foreground">{stats?.totalVolunteers || 0} active volunteers</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* NSS Social Media (kept from original) */}
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">NSS Social Media</h3>
-            <a href="/admin/social-links" className="text-sm text-primary hover:underline">Edit Links</a>
+            <Link href="/admin/social-links" className="text-sm text-primary hover:underline">Edit Links</Link>
           </div>
           <div className="flex items-center gap-4">
             {[
