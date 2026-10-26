@@ -1,37 +1,14 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 
-interface VolunteerRow {
-  name: string
-  fatherName: string
-  motherName: string
-  email: string
-  mobileNo: string
-  dob: string
-  gender: string
-  category: string
-  bloodGroup: string
-  schoolName: string
-  departmentName: string
-  courseName: string
-  year: string
-  rollNumber: string
-  unitNo: string
-  programOfficerName: string
-  highSchoolRollNo: string
-  classSemester: string
-  nssEnrollmentYear: string
-  addressType: string
-  hostelAddress: string
-  homeAddress: string
-  myBharatRegistered: string
-  myBharatPortalId: string
-  attendedSpecialCamp: string
-  attendedELP: string
+interface ExportColumn {
+  key: string
+  label: string
 }
 
 export async function generateVolunteerExportPDF(
-  volunteers: VolunteerRow[],
-  unitInfo: string
+  volunteers: Record<string, string>[],
+  unitInfo: string,
+  columns?: ExportColumn[]
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
@@ -47,38 +24,45 @@ export async function generateVolunteerExportPDF(
   const fontSize = 8
   const headerFontSize = 9
 
-  // Column widths - adjusted for more columns
-  const colWidths = {
-    name: 70,
-    fatherName: 70,
-    email: 90,
-    mobile: 55,
-    dob: 45,
-    gender: 35,
-    category: 35,
-    school: 60,
-    department: 60,
-    course: 50,
-    year: 30,
-    roll: 50,
-    unit: 25,
-    address: 80,
-    myBharat: 30,
-    camp: 30,
-    programOfficer: 60,
-    hsRoll: 50,
-    sem: 30,
-    nssYear: 30,
-    mbId: 50,
-    elp: 30,
+  // If no columns provided, derive from the first row keys (backward compat)
+  const cols: ExportColumn[] = columns || (
+    volunteers.length > 0
+      ? Object.keys(volunteers[0]).map(key => ({ key, label: key }))
+      : []
+  )
+
+  if (cols.length === 0) {
+    // No data — return empty PDF
+    pdfDoc.addPage([pageWidth, pageHeight])
+    return await pdfDoc.save()
   }
+
+  // Auto-distribute column widths based on count
+  const usableWidth = pageWidth - margin * 2
+  const colCount = cols.length
+
+  // Give wider columns to fields that typically have more text
+  const wideFields = new Set(["name", "email", "schoolName", "departmentName", "hostelAddress", "homeAddress", "programOfficerName", "specialNSSAchievements", "otherAchievements", "fatherName", "motherName", "courseName"])
+  const narrowFields = new Set(["gender", "category", "unitNo", "year", "myBharatRegistered", "attendedSpecialCamp", "attendedELP", "classSemester", "nssEnrollmentYear", "totalHours", "eventHours", "meetingHours", "totalEvents", "completedEvents", "attendanceRate", "activeProjects", "bloodGroup"])
+
+  // Calculate weighted width
+  let totalWeight = 0
+  const weights: number[] = cols.map(col => {
+    let w = 2  // normal
+    if (wideFields.has(col.key)) w = 3
+    if (narrowFields.has(col.key)) w = 1.2
+    totalWeight += w
+    return w
+  })
+
+  const colWidths = weights.map(w => (w / totalWeight) * usableWidth)
 
   let currentY = tableStartY
   let currentPage = pdfDoc.addPage([pageWidth, pageHeight])
   let rowIndex = 0
 
   // Title
-  currentPage.drawText("NSS Volunteers Detailed Export", {
+  currentPage.drawText("NSS Volunteers Export", {
     x: margin,
     y: pageHeight - 50,
     size: 18,
@@ -117,45 +101,23 @@ export async function generateVolunteerExportPDF(
     page.drawRectangle({
       x: margin - 2,
       y: y - headerHeight + 5,
-      width: pageWidth - margin * 2 + 4,
+      width: usableWidth + 4,
       height: headerHeight,
       color: rgb(0.9, 0.9, 0.9),
     })
 
-    const headers = [
-      { text: "Name", width: colWidths.name },
-      { text: "Father Name", width: colWidths.fatherName },
-      { text: "Email", width: colWidths.email },
-      { text: "Mobile", width: colWidths.mobile },
-      { text: "DOB", width: colWidths.dob },
-      { text: "Gender", width: colWidths.gender },
-      { text: "Category", width: colWidths.category },
-      { text: "School", width: colWidths.school },
-      { text: "Department", width: colWidths.department },
-      { text: "Course", width: colWidths.course },
-      { text: "Year", width: colWidths.year },
-      { text: "Roll No", width: colWidths.roll },
-      { text: "Unit", width: colWidths.unit },
-      { text: "PO Name", width: colWidths.programOfficer },
-      { text: "HS Roll", width: colWidths.hsRoll },
-      { text: "Sem", width: colWidths.sem },
-      { text: "NSS Yr", width: colWidths.nssYear },
-      { text: "Address", width: colWidths.address },
-      { text: "MyBharat", width: colWidths.myBharat },
-      { text: "MB ID", width: colWidths.mbId },
-      { text: "Camp", width: colWidths.camp },
-      { text: "ELP", width: colWidths.elp },
-    ]
-
-    headers.forEach(h => {
-      page.drawText(h.text, {
+    cols.forEach((col, i) => {
+      const truncated = col.label.length > colWidths[i] / 4
+        ? col.label.substring(0, Math.floor(colWidths[i] / 4) - 1) + ".."
+        : col.label
+      page.drawText(truncated, {
         x: x,
         y: y - 10,
         size: headerFontSize,
         font: boldFont,
         color: rgb(0, 0, 0),
       })
-      x += h.width
+      x += colWidths[i]
     })
   }
 
@@ -177,7 +139,7 @@ export async function generateVolunteerExportPDF(
       currentPage.drawRectangle({
         x: margin - 2,
         y: currentY - rowHeight + 2,
-        width: pageWidth - margin * 2 + 4,
+        width: usableWidth + 4,
         height: rowHeight,
         color: rgb(0.98, 0.98, 0.98),
       })
@@ -186,57 +148,32 @@ export async function generateVolunteerExportPDF(
     // Draw row border
     currentPage.drawLine({
       start: { x: margin - 2, y: currentY },
-      end: { x: pageWidth - margin + 2, y: currentY },
+      end: { x: margin + usableWidth + 2, y: currentY },
       thickness: 0.5,
       color: rgb(0.8, 0.8, 0.8),
     })
 
     let x = margin
 
-    const drawCell = (text: string, width: number) => {
-      const truncated = text.length > width / 4 ? text.substring(0, Math.floor(width / 4) - 2) + ".." : text
-      currentPage.drawText(truncated || "—", {
+    cols.forEach((col, i) => {
+      const value = volunteer[col.key] || "—"
+      const maxChars = Math.max(3, Math.floor(colWidths[i] / 4))
+      const truncated = value.length > maxChars ? value.substring(0, maxChars - 2) + ".." : value
+      currentPage.drawText(truncated, {
         x: x,
         y: currentY - 12,
         size: fontSize,
         font: font,
         color: rgb(0, 0, 0),
       })
-      x += width
-    }
-
-    drawCell(volunteer.name, colWidths.name)
-    drawCell(volunteer.fatherName, colWidths.fatherName)
-    drawCell(volunteer.email, colWidths.email)
-    drawCell(volunteer.mobileNo, colWidths.mobile)
-    drawCell(volunteer.dob, colWidths.dob)
-    drawCell(volunteer.gender, colWidths.gender)
-    drawCell(volunteer.category, colWidths.category)
-    drawCell(volunteer.schoolName, colWidths.school)
-    drawCell(volunteer.departmentName, colWidths.department)
-    drawCell(volunteer.courseName, colWidths.course)
-    drawCell(volunteer.year, colWidths.year)
-    drawCell(volunteer.rollNumber, colWidths.roll)
-    drawCell(volunteer.unitNo, colWidths.unit)
-    drawCell(volunteer.programOfficerName, colWidths.programOfficer)
-    drawCell(volunteer.highSchoolRollNo, colWidths.hsRoll)
-    drawCell(volunteer.classSemester, colWidths.sem)
-    drawCell(volunteer.nssEnrollmentYear, colWidths.nssYear)
-    
-    // Address logic
-    const address = volunteer.addressType === "hostler" ? volunteer.hostelAddress : volunteer.homeAddress
-    drawCell(address, colWidths.address)
-    
-    drawCell(volunteer.myBharatRegistered, colWidths.myBharat)
-    drawCell(volunteer.myBharatPortalId, colWidths.mbId)
-    drawCell(volunteer.attendedSpecialCamp, colWidths.camp)
-    drawCell(volunteer.attendedELP, colWidths.elp)
+      x += colWidths[i]
+    })
 
     currentY -= rowHeight
     rowIndex++
   }
 
-  // Footer on last page
+  // Footer on all pages
   const totalPages = pdfDoc.getPageCount()
   for (let i = 0; i < totalPages; i++) {
     const page = pdfDoc.getPage(i)
@@ -258,4 +195,3 @@ export async function generateVolunteerExportPDF(
 
   return await pdfDoc.save()
 }
-

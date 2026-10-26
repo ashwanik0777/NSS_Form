@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import AdminHeader from "@/components/admin/AdminHeader"
 import { schoolDepartmentData } from "@/lib/constants"
@@ -166,6 +166,98 @@ export default function VolunteersPage() {
   const [showExportModal, setShowExportModal] = useState(false)
   const [exportUnit, setExportUnit] = useState<string>("all")
   const [exportFormat, setExportFormat] = useState<"excel" | "pdf">("excel")
+  const [exportFields, setExportFields] = useState<string[]>([])
+
+  // All exportable fields grouped by category
+  const EXPORT_FIELD_GROUPS = useMemo(() => [
+    {
+      label: "Basic Info",
+      fields: [
+        { key: "name", label: "Name" },
+        { key: "fatherName", label: "Father Name" },
+        { key: "motherName", label: "Mother Name" },
+        { key: "email", label: "Email" },
+        { key: "mobileNo", label: "Mobile No" },
+        { key: "dob", label: "Date of Birth" },
+        { key: "gender", label: "Gender" },
+        { key: "category", label: "Category" },
+        { key: "bloodGroup", label: "Blood Group" },
+        { key: "addressType", label: "Address Type" },
+        { key: "hostelAddress", label: "Hostel Address" },
+        { key: "homeAddress", label: "Home Address" },
+      ],
+    },
+    {
+      label: "Education",
+      fields: [
+        { key: "schoolName", label: "School" },
+        { key: "departmentName", label: "Department" },
+        { key: "courseName", label: "Course" },
+        { key: "year", label: "Year (1st/2nd)" },
+        { key: "rollNumber", label: "Form/Roll Number" },
+        { key: "highSchoolRollNo", label: "High School Roll No" },
+        { key: "classSemester", label: "Class/Semester" },
+      ],
+    },
+    {
+      label: "NSS Details",
+      fields: [
+        { key: "unitNo", label: "Unit No" },
+        { key: "programOfficerName", label: "Program Officer" },
+        { key: "nssEnrollmentYear", label: "NSS Enrollment Year" },
+        { key: "myBharatRegistered", label: "My Bharat Registered" },
+        { key: "myBharatPortalId", label: "My Bharat Portal ID" },
+        { key: "attendedSpecialCamp", label: "Attended Special Camp" },
+        { key: "attendedELP", label: "Attended ELP" },
+        { key: "specialNSSAchievements", label: "Special NSS Achievements" },
+        { key: "otherAchievements", label: "Other Achievements" },
+      ],
+    },
+    {
+      label: "Stats & Activity",
+      fields: [
+        { key: "totalHours", label: "Total NSS Hours" },
+        { key: "eventHours", label: "Event Hours" },
+        { key: "meetingHours", label: "Meeting Hours" },
+        { key: "totalEvents", label: "Total Events" },
+        { key: "completedEvents", label: "Completed Events" },
+        { key: "attendanceRate", label: "Attendance %" },
+        { key: "activeProjects", label: "Active Projects" },
+      ],
+    },
+  ], [])
+
+  const ALL_EXPORT_KEYS = useMemo(() =>
+    EXPORT_FIELD_GROUPS.flatMap(g => g.fields.map(f => f.key)),
+    [EXPORT_FIELD_GROUPS]
+  )
+
+  // Initialize export fields with a sensible default set when modal opens
+  const openExportModal = () => {
+    if (exportFields.length === 0) {
+      setExportFields([
+        "name", "fatherName", "email", "mobileNo", "gender", "category",
+        "schoolName", "departmentName", "courseName", "year", "rollNumber",
+        "unitNo", "totalHours", "totalEvents", "attendanceRate",
+      ])
+    }
+    setShowExportModal(true)
+  }
+
+  const toggleExportField = (key: string) => {
+    setExportFields(prev =>
+      prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key]
+    )
+  }
+
+  const toggleGroupFields = (groupFields: { key: string }[], select: boolean) => {
+    const keys = groupFields.map(f => f.key)
+    if (select) {
+      setExportFields(prev => [...new Set([...prev, ...keys])])
+    } else {
+      setExportFields(prev => prev.filter(k => !keys.includes(k)))
+    }
+  }
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalVolunteers, setTotalVolunteers] = useState(0)
@@ -295,11 +387,16 @@ export default function VolunteersPage() {
   }
 
   const handleExport = async () => {
+    if (exportFields.length === 0) {
+      toast({ title: "No fields selected", description: "Please select at least one field to export.", variant: "destructive" })
+      return
+    }
     try {
       setExporting(exportFormat)
       const params = new URLSearchParams()
       params.set("format", exportFormat)
       if (exportUnit !== "all") params.set("unitNo", exportUnit)
+      params.set("fields", exportFields.join(","))
 
       const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
       if (!res.ok) {
@@ -437,7 +534,7 @@ export default function VolunteersPage() {
         {/* Export Controls */}
         <div className="flex justify-end gap-3">
           <button
-            onClick={() => setShowExportModal(true)}
+            onClick={openExportModal}
             disabled={exporting !== null}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
@@ -1391,8 +1488,8 @@ export default function VolunteersPage() {
         {/* Export Modal */}
         {showExportModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-md w-full p-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-card rounded-xl border border-border max-w-2xl w-full p-6 max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-foreground">Export Volunteers</h2>
                 <button
                   onClick={() => {
@@ -1406,28 +1503,32 @@ export default function VolunteersPage() {
                 </button>
               </div>
 
-              <div className="space-y-6">
+              <div className="overflow-y-auto flex-1 space-y-5 pr-1">
                 {/* Unit Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-3">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Select Unit
                   </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex flex-wrap gap-2">
+                    <label className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors text-sm ${
+                      exportUnit === "all" ? "border-primary bg-primary/10 text-primary font-medium" : "border-border hover:bg-muted/50"
+                    }`}>
                       <input
                         type="radio"
                         name="exportUnit"
                         value="all"
                         checked={exportUnit === "all"}
                         onChange={(e) => setExportUnit(e.target.value)}
-                        className="w-4 h-4 text-primary"
+                        className="sr-only"
                       />
-                      <span className="text-foreground">All Units</span>
+                      All Units
                     </label>
                     {[1, 2, 3, 4, 5, 6].map((unit) => (
                       <label
                         key={unit}
-                        className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                        className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors text-sm ${
+                          exportUnit === unit.toString() ? "border-primary bg-primary/10 text-primary font-medium" : "border-border hover:bg-muted/50"
+                        }`}
                       >
                         <input
                           type="radio"
@@ -1435,81 +1536,150 @@ export default function VolunteersPage() {
                           value={unit.toString()}
                           checked={exportUnit === unit.toString()}
                           onChange={(e) => setExportUnit(e.target.value)}
-                          className="w-4 h-4 text-primary"
+                          className="sr-only"
                         />
-                        <span className="text-foreground">Unit {unit}</span>
+                        Unit {unit}
                       </label>
                     ))}
                   </div>
                 </div>
 
+                {/* Field Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-foreground">
+                      Select Fields to Export
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setExportFields([...ALL_EXPORT_KEYS])}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-xs text-muted-foreground">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setExportFields([])}
+                        className="text-xs text-red-500 hover:underline"
+                      >
+                        Deselect All
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">{exportFields.length} of {ALL_EXPORT_KEYS.length} fields selected</p>
+                  <div className="space-y-4">
+                    {EXPORT_FIELD_GROUPS.map((group) => {
+                      const groupKeys = group.fields.map(f => f.key)
+                      const allSelected = groupKeys.every(k => exportFields.includes(k))
+                      const someSelected = groupKeys.some(k => exportFields.includes(k))
+                      return (
+                        <div key={group.label} className="border border-border rounded-lg overflow-hidden">
+                          <div className="flex items-center justify-between px-3 py-2 bg-muted/50">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={allSelected}
+                                ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
+                                onChange={() => toggleGroupFields(group.fields, !allSelected)}
+                                className="w-3.5 h-3.5 rounded text-primary"
+                              />
+                              <span className="text-xs font-semibold text-foreground uppercase tracking-wide">{group.label}</span>
+                            </label>
+                            <span className="text-xs text-muted-foreground">
+                              {groupKeys.filter(k => exportFields.includes(k)).length}/{groupKeys.length}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 p-3">
+                            {group.fields.map((field) => (
+                              <label
+                                key={field.key}
+                                className="flex items-center gap-2 py-1 cursor-pointer hover:bg-muted/30 rounded px-1 transition-colors"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={exportFields.includes(field.key)}
+                                  onChange={() => toggleExportField(field.key)}
+                                  className="w-3.5 h-3.5 rounded text-primary"
+                                />
+                                <span className="text-sm text-foreground">{field.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
                 {/* Format Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-3">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Select Format
                   </label>
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors border-border hover:bg-muted/50">
+                    <label className={`flex items-center justify-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                      exportFormat === "excel" ? "border-green-500 bg-green-50 dark:bg-green-950/30" : "border-border hover:bg-muted/50"
+                    }`}>
                       <input
                         type="radio"
                         name="exportFormat"
                         value="excel"
                         checked={exportFormat === "excel"}
                         onChange={(e) => setExportFormat(e.target.value as "excel" | "pdf")}
-                        className="w-4 h-4 text-primary"
+                        className="sr-only"
                       />
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-green-600" />
-                        <span className="text-foreground font-medium">Excel</span>
-                      </div>
+                      <FileText className="w-5 h-5 text-green-600" />
+                      <span className="text-foreground font-medium">Excel</span>
                     </label>
-                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors border-border hover:bg-muted/50">
+                    <label className={`flex items-center justify-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                      exportFormat === "pdf" ? "border-red-500 bg-red-50 dark:bg-red-950/30" : "border-border hover:bg-muted/50"
+                    }`}>
                       <input
                         type="radio"
                         name="exportFormat"
                         value="pdf"
                         checked={exportFormat === "pdf"}
                         onChange={(e) => setExportFormat(e.target.value as "excel" | "pdf")}
-                        className="w-4 h-4 text-primary"
+                        className="sr-only"
                       />
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-red-600" />
-                        <span className="text-foreground font-medium">PDF</span>
-                      </div>
+                      <FileText className="w-5 h-5 text-red-600" />
+                      <span className="text-foreground font-medium">PDF</span>
                     </label>
                   </div>
                 </div>
+              </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={handleExport}
-                    disabled={exporting !== null}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                  >
-                    {exporting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="w-4 h-4" />
-                        Export
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowExportModal(false)
-                      setExportUnit("all")
-                      setExportFormat("excel")
-                    }}
-                    className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
+              {/* Action Buttons - sticky at bottom */}
+              <div className="flex gap-3 pt-4 mt-4 border-t border-border">
+                <button
+                  onClick={handleExport}
+                  disabled={exporting !== null || exportFields.length === 0}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium"
+                >
+                  {exporting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Export {exportFields.length} Fields
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExportModal(false)
+                    setExportUnit("all")
+                    setExportFormat("excel")
+                  }}
+                  className="px-4 py-2.5 border border-border rounded-lg hover:bg-muted transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

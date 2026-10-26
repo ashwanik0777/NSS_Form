@@ -391,35 +391,72 @@ export async function GET(request: NextRequest) {
     // If export requested, return file instead of JSON
     if (format === "excel" || format === "pdf") {
       const aggregatedData = await NSSApplication.aggregate(pipeline)
-      
-      const rows = aggregatedData.map((v: any) => ({
-        name: v.nameEnglish || v.user?.name || "",
-        fatherName: v.fatherName || "",
-        motherName: v.motherName || "",
-        email: v.user?.email || v.emailId || "",
-        mobileNo: v.mobileNo || "",
-        dob: v.dateOfBirth ? new Date(v.dateOfBirth).toLocaleDateString("en-IN") : "",
-        gender: v.gender || "",
-        category: v.category || "",
-        bloodGroup: v.bloodGroup || "",
-        schoolName: v.schoolName || "",
-        departmentName: v.departmentName || "",
-        courseName: v.courseName || "",
-        year: v.enrollment || "",
-        rollNumber: v.formNo || "",
-        unitNo: v.unitNo || "",
-        programOfficerName: v.programOfficerName || "",
-        highSchoolRollNo: v.highSchoolRollNo || "",
-        classSemester: v.classSemester || "",
-        nssEnrollmentYear: v.nssEnrollmentYear || "",
-        addressType: v.addressType || "",
-        hostelAddress: v.hostelAddress || "",
-        homeAddress: v.homeAddress || "",
-        myBharatRegistered: v.myBharatPortalRegistered ? "Yes" : "No",
-        myBharatPortalId: v.myBharatPortalId || "",
-        attendedSpecialCamp: v.attendedSpecialCamp ? "Yes" : "No",
-        attendedELP: v.attendedELP ? "Yes" : "No",
-      }))
+
+      // Parse requested fields (comma-separated), fallback to all if not provided
+      const fieldsParam = searchParams.get("fields")
+      const requestedFields = fieldsParam ? fieldsParam.split(",").filter(Boolean) : null
+
+      // Master field map: key -> { label, getValue }
+      const FIELD_MAP: Record<string, { label: string; getValue: (v: any) => string }> = {
+        name: { label: "Name", getValue: (v) => v.nameEnglish || v.user?.name || "" },
+        fatherName: { label: "Father Name", getValue: (v) => v.fatherName || "" },
+        motherName: { label: "Mother Name", getValue: (v) => v.motherName || "" },
+        email: { label: "Email", getValue: (v) => v.user?.email || v.emailId || "" },
+        mobileNo: { label: "Mobile No", getValue: (v) => v.mobileNo || "" },
+        dob: { label: "DOB", getValue: (v) => v.dateOfBirth ? new Date(v.dateOfBirth).toLocaleDateString("en-IN") : "" },
+        gender: { label: "Gender", getValue: (v) => v.gender || "" },
+        category: { label: "Category", getValue: (v) => v.category || "" },
+        bloodGroup: { label: "Blood Group", getValue: (v) => v.bloodGroup || "" },
+        addressType: { label: "Address Type", getValue: (v) => v.addressType || "" },
+        hostelAddress: { label: "Hostel Address", getValue: (v) => v.hostelAddress || "" },
+        homeAddress: { label: "Home Address", getValue: (v) => v.homeAddress || "" },
+        schoolName: { label: "School", getValue: (v) => v.schoolName || "" },
+        departmentName: { label: "Department", getValue: (v) => v.departmentName || "" },
+        courseName: { label: "Course", getValue: (v) => v.courseName || "" },
+        year: { label: "Year", getValue: (v) => v.enrollment || "" },
+        rollNumber: { label: "Roll Number", getValue: (v) => v.formNo || "" },
+        highSchoolRollNo: { label: "High School Roll No", getValue: (v) => v.highSchoolRollNo || "" },
+        classSemester: { label: "Class/Semester", getValue: (v) => v.classSemester || "" },
+        unitNo: { label: "Unit", getValue: (v) => v.unitNo || "" },
+        programOfficerName: { label: "Program Officer", getValue: (v) => v.programOfficerName || "" },
+        nssEnrollmentYear: { label: "NSS Enrollment Year", getValue: (v) => v.nssEnrollmentYear || "" },
+        myBharatRegistered: { label: "My Bharat Registered", getValue: (v) => v.myBharatPortalRegistered ? "Yes" : "No" },
+        myBharatPortalId: { label: "My Bharat ID", getValue: (v) => v.myBharatPortalId || "" },
+        attendedSpecialCamp: { label: "Attended Special Camp", getValue: (v) => v.attendedSpecialCamp ? "Yes" : "No" },
+        attendedELP: { label: "Attended ELP", getValue: (v) => v.attendedELP ? "Yes" : "No" },
+        specialNSSAchievements: { label: "Special NSS Achievements", getValue: (v) => v.specialNSSAchievements || "" },
+        otherAchievements: { label: "Other Achievements", getValue: (v) => v.otherAchievements || "" },
+        // Stats fields (computed from aggregation pipeline)
+        totalHours: { label: "Total NSS Hours", getValue: (v) => String(v.totalHours || 0) },
+        eventHours: { label: "Event Hours", getValue: (v) => String(v.eventHours || 0) },
+        meetingHours: { label: "Meeting Hours", getValue: (v) => String(v.meetingHours || 0) },
+        totalEvents: { label: "Total Events", getValue: (v) => String(v.totalEvents || 0) },
+        completedEvents: { label: "Completed Events", getValue: (v) => String(v.completedEvents || 0) },
+        attendanceRate: { label: "Attendance %", getValue: (v) => {
+          const rate = v.totalEvents > 0 ? Math.round((v.completedEvents / v.totalEvents) * 100) : 0
+          return String(rate)
+        }},
+        activeProjects: { label: "Active Projects", getValue: (v) => String(v.activeProjectsCount || 0) },
+      }
+
+      // Default all-fields order (backward compat when no fields param)
+      const DEFAULT_FIELDS = [
+        "name", "fatherName", "motherName", "email", "mobileNo", "dob", "gender", "category", "bloodGroup",
+        "schoolName", "departmentName", "courseName", "year", "rollNumber", "unitNo", "programOfficerName",
+        "highSchoolRollNo", "classSemester", "nssEnrollmentYear", "addressType", "hostelAddress", "homeAddress",
+        "myBharatRegistered", "myBharatPortalId", "attendedSpecialCamp", "attendedELP",
+      ]
+
+      const selectedFields = (requestedFields || DEFAULT_FIELDS).filter(f => FIELD_MAP[f])
+
+      // Build rows with only selected fields
+      const rows = aggregatedData.map((v: any) => {
+        const row: Record<string, string> = {}
+        for (const key of selectedFields) {
+          row[key] = FIELD_MAP[key].getValue(v)
+        }
+        return row
+      })
 
       const fileNameBase =
         (searchParams.get("unitNo") && searchParams.get("unitNo") !== "all")
@@ -427,12 +464,14 @@ export async function GET(request: NextRequest) {
           : "volunteers_all_units"
 
       if (format === "pdf") {
-        // Generate actual PDF
+        // Generate actual PDF with dynamic columns
         const unitInfo =
           searchParams.get("unitNo") && searchParams.get("unitNo") !== "all"
             ? `Unit ${searchParams.get("unitNo")} Volunteers`
             : "All Units Volunteers"
-        const pdfBytes = await generateVolunteerExportPDF(rows, unitInfo)
+        
+        const columns = selectedFields.map(key => ({ key, label: FIELD_MAP[key].label }))
+        const pdfBytes = await generateVolunteerExportPDF(rows, unitInfo, columns)
 
         return new NextResponse(pdfBytes, {
           status: 200,
@@ -442,14 +481,10 @@ export async function GET(request: NextRequest) {
           },
         })
       } else {
-        // Excel format (tab-separated)
-        const header =
-          "Name\tFather Name\tMother Name\tEmail\tMobile No\tDOB\tGender\tCategory\tBlood Group\tSchool\tDepartment\tCourse\tYear\tRoll Number\tUnit\tProgram Officer\tHigh School Roll No\tClass/Semester\tNSS Enrollment Year\tAddress Type\tHostel Address\tHome Address\tMy Bharat Registered\tMy Bharat ID\tAttended Special Camp\tAttended ELP\n"
+        // Excel format (tab-separated) with dynamic columns
+        const header = selectedFields.map(key => FIELD_MAP[key].label).join("\t") + "\n"
         const body = rows
-          .map(
-            (r) =>
-              `${r.name}\t${r.fatherName}\t${r.motherName}\t${r.email}\t${r.mobileNo}\t${r.dob}\t${r.gender}\t${r.category}\t${r.bloodGroup}\t${r.schoolName}\t${r.departmentName}\t${r.courseName}\t${r.year}\t${r.rollNumber}\t${r.unitNo}\t${r.programOfficerName}\t${r.highSchoolRollNo}\t${r.classSemester}\t${r.nssEnrollmentYear}\t${r.addressType}\t${r.hostelAddress}\t${r.homeAddress}\t${r.myBharatRegistered}\t${r.myBharatPortalId}\t${r.attendedSpecialCamp}\t${r.attendedELP}`,
-          )
+          .map(row => selectedFields.map(key => row[key] || "").join("\t"))
           .join("\n")
         const content = header + body + "\n"
 
