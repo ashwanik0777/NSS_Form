@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react"
 import { signOut, useSession } from "next-auth/react"
-import { Bell, User, ChevronDown, Settings, LogOut, Loader2 } from "lucide-react"
+import { Bell, User, ChevronDown, Settings, LogOut, Loader2, Check, Menu } from "lucide-react"
 import Link from "next/link"
+import { useAdminLayout } from "@/components/admin/AdminLayoutContext"
 
 interface AdminHeaderProps {
   title: string
@@ -20,7 +21,9 @@ interface Notification {
 }
 
 export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
+  const { openMobileSidebar } = useAdminLayout()
   const { data: session } = useSession()
+
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -48,13 +51,11 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   useEffect(() => {
     if (session?.user) {
       fetchNotifications()
-      // Refresh notifications every 30 seconds
       const interval = setInterval(fetchNotifications, 30000)
       return () => clearInterval(interval)
     }
   }, [session])
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
@@ -67,9 +68,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
     if (showNotifications || showUserMenu) {
       document.addEventListener("mousedown", handleClickOutside)
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside)
-      }
+      return () => document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [showNotifications, showUserMenu])
 
@@ -82,21 +81,19 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
     const days = Math.floor(diff / 86400000)
 
     if (minutes < 1) return "Just now"
-    if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
-    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`
-    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`
-    return time.toLocaleDateString()
+    if (minutes < 60) return `${minutes}m ago`
+    if (hours < 24) return `${hours}h ago`
+    if (days < 7) return `${days}d ago`
+    return time.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })
   }
 
   const markAsRead = async (notificationId: string) => {
-    // Optimistically update UI
     const updatedNotifications = notifications.map((n) =>
       n.id === notificationId ? { ...n, unread: false } : n
     )
     setNotifications(updatedNotifications)
     setUnreadCount((prev) => Math.max(0, prev - 1))
 
-    // Save to database
     try {
       await fetch("/api/admin/notifications/read", {
         method: "POST",
@@ -105,7 +102,6 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
       })
     } catch (error) {
       console.error("Error marking notification as read:", error)
-      // Revert on error
       setNotifications(notifications)
       setUnreadCount((prev) => prev + 1)
     }
@@ -115,24 +111,19 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
     const unreadNotifications = notifications.filter((n) => n.unread)
     if (unreadNotifications.length === 0) return
 
-    // Optimistically update UI
     const updatedNotifications = notifications.map((n) => ({ ...n, unread: false }))
     setNotifications(updatedNotifications)
     const previousUnreadCount = unreadCount
     setUnreadCount(0)
 
-    // Save to database
     try {
       await fetch("/api/admin/notifications/read", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          notificationIds: unreadNotifications.map((n) => n.id),
-        }),
+        body: JSON.stringify({ notificationIds: unreadNotifications.map((n) => n.id) }),
       })
     } catch (error) {
       console.error("Error marking all notifications as read:", error)
-      // Revert on error
       setNotifications(notifications)
       setUnreadCount(previousUnreadCount)
     }
@@ -142,114 +133,219 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
     await signOut({ callbackUrl: "/login" })
   }
 
+  const userPhoto = (session?.user as any)?.image || (session?.user as any)?.photo
+
   return (
-    <header className="bg-background border-b border-border px-4 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-          {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
+    <header
+      className="bg-white px-3 sm:px-6 py-3.5 sticky top-0 z-40"
+      style={{
+        borderBottom: "1px solid #e8edf5",
+        boxShadow: "0 1px 4px rgba(15,31,61,0.05)",
+      }}
+    >
+      <div className="flex items-center justify-between gap-3">
+        {/* ── Left: Hamburger (mobile) + Title ── */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {/* Hamburger — visible only on mobile (below md), reads openMobileSidebar from context */}
+          <button
+            id="admin-mobile-menu-btn"
+            onClick={openMobileSidebar}
+            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 hover:bg-slate-100 active:scale-95"
+            style={{ color: "#0f1f3d" }}
+            aria-label="Open navigation menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          {/* Page title — always visible */}
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold leading-tight truncate" style={{ color: "#0f1f3d" }}>
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-[11px] sm:text-sm mt-0.5 truncate" style={{ color: "#64748b" }}>
+                {subtitle}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        {/* ── Right Controls ── */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+
+          {/* Notifications */}
           <div className="relative" ref={notificationRef}>
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 hover:bg-muted rounded-lg transition-colors relative"
+              id="admin-notifications-btn"
+              onClick={() => {
+                setShowNotifications(!showNotifications)
+                setShowUserMenu(false)
+              }}
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 hover:bg-slate-100 active:scale-95"
+              style={{ color: "#64748b" }}
+              aria-label="Toggle notifications"
             >
-              <Bell className="w-5 h-5 text-foreground" />
+              <Bell className="w-[18px] h-[18px]" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full text-xs flex items-center justify-center">
-                  {unreadCount}
+                <span
+                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+                  style={{ background: "#dc2626" }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-popover border border-border rounded-lg shadow-lg z-50">
-                <div className="p-4 border-b border-border flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground">Notifications</h3>
-                  {loadingNotifications && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+              <div
+                className="absolute right-0 mt-2 bg-white rounded-2xl overflow-hidden z-50"
+                style={{
+                  width: "min(340px, calc(100vw - 1.5rem))",
+                  border: "1px solid #e8edf5",
+                  boxShadow: "0 8px 32px rgba(15,31,61,0.12), 0 2px 8px rgba(15,31,61,0.06)",
+                }}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid #f0f4f8" }}>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>Notifications</h3>
+                    {unreadCount > 0 && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: "#1e40af" }}>
+                        {unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {loadingNotifications && <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: "#94a3b8" }} />}
+                    {notifications.some(n => n.unread) && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-[11px] font-medium px-2 py-1 rounded-lg transition-colors hover:bg-blue-50"
+                        style={{ color: "#1e40af" }}
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="max-h-64 overflow-y-auto">
+
+                {/* List */}
+                <div className="overflow-y-auto" style={{ maxHeight: "min(320px, 55vh)" }}>
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">No notifications</div>
+                    <div className="flex flex-col items-center justify-center py-10 px-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: "#f0f4f8" }}>
+                        <Bell className="w-5 h-5" style={{ color: "#94a3b8" }} />
+                      </div>
+                      <p className="text-sm font-medium" style={{ color: "#64748b" }}>All caught up!</p>
+                      <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>No new notifications</p>
+                    </div>
                   ) : (
                     notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        onClick={() => {
-                          if (notification.unread) {
-                            markAsRead(notification.id)
-                          }
+                        onClick={() => notification.unread && markAsRead(notification.id)}
+                        className="flex items-start gap-3 px-4 py-3.5 cursor-pointer transition-colors duration-150"
+                        style={{
+                          background: notification.unread ? "#f0f6ff" : "transparent",
+                          borderBottom: "1px solid #f0f4f8",
                         }}
-                        className={`p-4 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors ${
-                          notification.unread ? "bg-blue-50/50 dark:bg-blue-950/20" : ""
-                        }`}
+                        onMouseEnter={(e) => { if (!notification.unread) (e.currentTarget as HTMLElement).style.background = "#f8fafc" }}
+                        onMouseLeave={(e) => { if (!notification.unread) (e.currentTarget as HTMLElement).style.background = "transparent" }}
                       >
-                        <p className="text-sm text-foreground">{notification.message}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{formatTime(notification.time)}</p>
+                        <div
+                          className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                          style={{ background: notification.unread ? "#1e40af" : "#e8edf5" }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm leading-snug" style={{ color: "#1e293b" }}>{notification.message}</p>
+                          <p className="text-[11px] mt-1" style={{ color: "#94a3b8" }}>{formatTime(notification.time)}</p>
+                        </div>
+                        {notification.unread && (
+                          <Check className="w-3.5 h-3.5 flex-shrink-0 mt-1" style={{ color: "#94a3b8" }} />
+                        )}
                       </div>
                     ))
                   )}
                 </div>
-                {notifications.length > 0 && (
-                  <div className="p-3 border-t border-border">
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-sm text-primary hover:text-primary/80 w-full text-center"
-                    >
-                      Mark all as read
-                    </button>
-                  </div>
-                )}
               </div>
             )}
           </div>
 
+          {/* User Menu */}
           <div className="relative" ref={userMenuRef}>
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
+              id="admin-user-menu-btn"
+              onClick={() => {
+                setShowUserMenu(!showUserMenu)
+                setShowNotifications(false)
+              }}
+              className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl transition-all duration-150 hover:bg-slate-100 active:scale-95"
             >
-                {session?.user?.image || (session?.user as any)?.photo ? (
-                  <img
-                    src={(session?.user as any)?.image || (session?.user as any)?.photo}
-                    alt={session?.user?.name || "Profile Photo"}
-                    className="w-8 h-8 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement
-                      target.style.display = "none"
-                    }}
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-primary-foreground" />
-                  </div>
-                )}
-                <span className="text-sm font-medium text-foreground">
-                {session?.user?.name || session?.user?.email || "Admin User"}
-                </span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              {userPhoto ? (
+                <img
+                  src={userPhoto}
+                  alt={session?.user?.name || "Profile"}
+                  className="w-8 h-8 rounded-lg object-cover"
+                  style={{ boxShadow: "0 0 0 2px #dbeafe" }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none" }}
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "linear-gradient(135deg, #1e40af, #3b82f6)" }}
+                >
+                  <User className="w-4 h-4 text-white" />
+                </div>
+              )}
+              <span className="text-sm font-semibold max-w-[120px] truncate hidden sm:block" style={{ color: "#0f1f3d" }}>
+                {session?.user?.name || session?.user?.email || "Admin"}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 hidden sm:block ${showUserMenu ? "rotate-180" : ""}`}
+                style={{ color: "#94a3b8" }}
+              />
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-lg z-50">
-                <div className="py-1">
-                  <Link href="/admin/profile"><button className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </button></Link>
-                  <button className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
-                    <Settings className="w-4 h-4 mr-2" />
+              <div
+                className="absolute right-0 mt-2 bg-white rounded-2xl overflow-hidden z-50"
+                style={{
+                  width: "min(220px, calc(100vw - 1.5rem))",
+                  border: "1px solid #e8edf5",
+                  boxShadow: "0 8px 32px rgba(15,31,61,0.12), 0 2px 8px rgba(15,31,61,0.06)",
+                }}
+              >
+                {/* User info */}
+                <div className="px-4 py-3.5" style={{ borderBottom: "1px solid #f0f4f8" }}>
+                  <p className="text-sm font-semibold truncate" style={{ color: "#0f1f3d" }}>
+                    {session?.user?.name || "Admin User"}
+                  </p>
+                  <p className="text-[11px] truncate mt-0.5" style={{ color: "#94a3b8" }}>
+                    {session?.user?.email || ""}
+                  </p>
+                </div>
+
+                <div className="p-1.5">
+                  <Link href="/admin/profile">
+                    <button className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors hover:bg-slate-50" style={{ color: "#334155" }}>
+                      <User className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
+                      Profile
+                    </button>
+                  </Link>
+                  <button className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors hover:bg-slate-50" style={{ color: "#334155" }}>
+                    <Settings className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
                     Settings
                   </button>
-                  <hr className="my-1 border-border" />
+                </div>
+
+                <div className="p-1.5" style={{ borderTop: "1px solid #f0f4f8" }}>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
+                    className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors hover:bg-red-50"
+                    style={{ color: "#dc2626" }}
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
+                    <LogOut className="w-4 h-4 flex-shrink-0" />
+                    Sign out
                   </button>
                 </div>
               </div>

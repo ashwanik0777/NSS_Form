@@ -4,75 +4,124 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #1e293b;
-  --card: #f8fafc;
-  --card-foreground: #1e293b;
+  /* ── Core Palette ── */
+  --background: #f0f4f8;
+  --foreground: #0f1f3d;
+  --card: #ffffff;
+  --card-foreground: #0f1f3d;
   --popover: #ffffff;
-  --popover-foreground: #1e293b;
-  /* Changed primary colors from green to blue theme */
-  --primary: #2563eb;
+  --popover-foreground: #0f1f3d;
+
+  /* ── Primary: Rich Navy-Blue ── */
+  --primary: #1e40af;
   --primary-foreground: #ffffff;
   --secondary: #3b82f6;
   --secondary-foreground: #ffffff;
-  --muted: #f1f5f9;
+
+  /* ── Neutral tones ── */
+  --muted: #e8edf5;
   --muted-foreground: #64748b;
-  --accent: #1d4ed8;
-  --accent-foreground: #ffffff;
+  --accent: #dbeafe;
+  --accent-foreground: #1e3a8a;
+
+  /* ── Semantic ── */
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+
+  /* ── Surfaces ── */
+  --border: #d1dbe9;
+  --border-subtle: #e8edf5;
   --input: #ffffff;
-  --ring: rgba(37, 99, 235, 0.3);
-  --chart-1: #2563eb;
+  --ring: rgba(30, 64, 175, 0.25);
+
+  /* ── Shadows ── */
+  --shadow-xs: 0 1px 2px rgba(15, 31, 61, 0.04);
+  --shadow-sm: 0 2px 6px rgba(15, 31, 61, 0.06), 0 1px 2px rgba(15, 31, 61, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 31, 61, 0.08), 0 2px 4px rgba(15, 31, 61, 0.04);
+  --shadow-lg: 0 8px 32px rgba(15, 31, 61, 0.1), 0 4px 8px rgba(15, 31, 61, 0.06);
+  --shadow-primary: 0 4px 16px rgba(30, 64, 175, 0.25);
+
+  /* ── Charts ── */
+  --chart-1: #1e40af;
   --chart-2: #3b82f6;
   --chart-3: #f59e0b;
   --chart-4: #dc2626;
   --chart-5: #64748b;
-  --radius: 0.5rem;
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #1e293b;
-  --sidebar-primary: #2563eb;
+
+  /* ── Radius ── */
+  --radius: 0.625rem;
+
+  /* ── Sidebar ── */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f1f3d;
+  --sidebar-primary: #1e40af;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #3b82f6;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: rgba(37, 99, 235, 0.3);
+  --sidebar-border: #d1dbe9;
+  --sidebar-ring: rgba(30, 64, 175, 0.25);
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --popover: #1e293b;
-  --popover-foreground: #f1f5f9;
-  /* Updated dark mode colors to blue theme */
+  --background: #0b1120;
+  --foreground: #e8edf5;
+  --card: #141e30;
+  --card-foreground: #e8edf5;
+  --popover: #141e30;
+  --popover-foreground: #e8edf5;
+
+  /* ── Primary: Brighter blue for dark mode ── */
   --primary: #3b82f6;
   --primary-foreground: #ffffff;
   --secondary: #2563eb;
   --secondary-foreground: #ffffff;
-  --muted: #334155;
+
+  /* ── Neutral tones (dark) ── */
+  --muted: #1e2d45;
   --muted-foreground: #94a3b8;
-  --accent: #1d4ed8;
-  --accent-foreground: #ffffff;
+  --accent: #1e3a5f;
+  --accent-foreground: #93c5fd;
+
+  /* ── Semantic ── */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #334155;
-  --input: #1e293b;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+
+  /* ── Surfaces ── */
+  --border: #1e2d45;
+  --border-subtle: #182234;
+  --input: #141e30;
   --ring: rgba(59, 130, 246, 0.3);
+
+  /* ── Shadows (dark) ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.35), 0 4px 8px rgba(0, 0, 0, 0.25);
+  --shadow-primary: 0 4px 16px rgba(59, 130, 246, 0.35);
+
+  /* ── Charts ── */
   --chart-1: #3b82f6;
   --chart-2: #2563eb;
   --chart-3: #f59e0b;
   --chart-4: #ef4444;
   --chart-5: #94a3b8;
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f1f5f9;
+
+  /* ── Sidebar ── */
+  --sidebar: #0f1a2e;
+  --sidebar-foreground: #e8edf5;
   --sidebar-primary: #3b82f6;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #2563eb;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #334155;
+  --sidebar-border: #1e2d45;
   --sidebar-ring: rgba(59, 130, 246, 0.3);
 }
 
@@ -214,3 +263,81 @@
   animation: scroll-up 20s linear infinite;
   will-change: transform;
 }
+
+/* ═══════════════════════════════════════════════
+   ADMIN PANEL — PREMIUM VISUAL SYSTEM
+   ═══════════════════════════════════════════════ */
+
+/* ── Admin Stat Card ── */
+.admin-stat-card {
+  background: var(--card);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  padding: 0.75rem;          /* compact on mobile */
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: var(--shadow-sm);
+}
+@media (min-width: 640px) {
+  .admin-stat-card {
+    padding: 1.25rem;
+  }
+}
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Admin Card ── */
+.admin-card {
+  background: var(--card);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: var(--shadow-sm);
+}
+.admin-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Sidebar active link ── */
+.sidebar-active-link {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  box-shadow: 0 2px 12px rgba(30, 64, 175, 0.35);
+}
+
+/* ── Smooth page entry ── */
+@keyframes admin-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.admin-fade-in {
+  animation: admin-fade-in 0.3s ease both;
+}
+
+/* ── Pending dot pulse ── */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.admin-pending-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+/* ── Event list rows ── */
+.admin-event-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.15s ease;
+}
+.admin-event-row:hover {
+  background: rgba(30, 64, 175, 0.04);
+}

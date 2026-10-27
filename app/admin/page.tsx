@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Eye,
   Loader2,
+  ArrowRight,
 } from "lucide-react"
 
 interface DashboardStats {
@@ -48,12 +49,78 @@ interface CompletedEvent {
   participation: number
 }
 
+// ── Stat Card Component ──────────────────────────────────────────────────────
+function StatCard({
+  title,
+  value,
+  icon,
+  accent,
+  loading,
+}: {
+  title: string
+  value: number | string
+  icon: React.ReactNode
+  accent: { bg: string; icon: string; text: string }
+  loading: boolean
+}) {
+  return (
+    <div className="admin-stat-card group cursor-default">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "#94a3b8" }}>
+            {title}
+          </p>
+          {loading ? (
+            <div className="h-7 w-12 admin-skeleton rounded-md" />
+          ) : (
+            <p className="text-2xl sm:text-3xl font-bold leading-none" style={{ color: "#0f1f3d" }}>
+              {value}
+            </p>
+          )}
+        </div>
+        <div
+          className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+          style={{ background: accent.bg }}
+        >
+          <span className="scale-90 sm:scale-100" style={{ color: accent.icon }}>{icon}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Section Header ────────────────────────────────────────────────────────────
+function SectionHeader({
+  icon,
+  title,
+  iconBg,
+  iconColor,
+}: {
+  icon: React.ReactNode
+  title: string
+  iconBg: string
+  iconColor: string
+}) {
+  return (
+    <div className="flex items-center gap-3 mb-5">
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: iconBg }}>
+        <span style={{ color: iconColor }}>{icon}</span>
+      </div>
+      <h3 className="text-[15px] font-semibold tracking-tight" style={{ color: "#0f1f3d" }}>
+        {title}
+      </h3>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
   const [completedEvents, setCompletedEvents] = useState<CompletedEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const [social, setSocial] = useState<{facebook?: string; instagram?: string; twitter?: string; linkedin?: string}>({})
+  const [social, setSocial] = useState<{ facebook?: string; instagram?: string; twitter?: string; linkedin?: string }>({})
 
   // Legacy stats for backward compat (applications stats)
   const [legacyStats, setLegacyStats] = useState({
@@ -106,14 +173,12 @@ export default function AdminDashboard() {
         fetch("/api/applications?status=approved"),
         fetch("/api/applications?status=rejected"),
       ])
-
       const [totalData, pendingData, approvedData, rejectedData] = await Promise.all([
         total.json(),
         pending.json(),
         approved.json(),
         rejected.json(),
       ])
-
       setLegacyStats({
         totalApplications: totalData.pagination?.total || 0,
         pendingReview: pendingData.pagination?.total || 0,
@@ -127,14 +192,14 @@ export default function AdminDashboard() {
 
   const fetchSocial = async () => {
     try {
-      const res = await fetch('/api/admin/social-links')
+      const res = await fetch("/api/admin/social-links")
       const data = await res.json()
       if (data.success) {
         setSocial({
-          facebook: data.links?.facebook || '',
-          instagram: data.links?.instagram || '',
-          twitter: data.links?.twitter || '',
-          linkedin: data.links?.linkedin || '',
+          facebook: data.links?.facebook || "",
+          instagram: data.links?.instagram || "",
+          twitter: data.links?.twitter || "",
+          linkedin: data.links?.linkedin || "",
         })
       }
     } catch (e) {}
@@ -162,67 +227,51 @@ export default function AdminDashboard() {
   const overviewCards = [
     {
       title: "Total Volunteers",
-      value: stats?.totalVolunteers ?? "—",
-      icon: <Users className="w-6 h-6" />,
-      color: "text-blue-600",
-      bg: "bg-blue-50 dark:bg-blue-950/30",
-      border: "border-blue-200 dark:border-blue-800",
+      value: stats?.totalVolunteers ?? 0,
+      icon: <Users className="w-5 h-5" />,
+      accent: { bg: "#dbeafe", icon: "#1e40af", text: "#1e40af" },
     },
     {
-      title: "Total Events Till Date",
-      value: stats?.totalEvents ?? "—",
-      icon: <Calendar className="w-6 h-6" />,
-      color: "text-indigo-600",
-      bg: "bg-indigo-50 dark:bg-indigo-950/30",
-      border: "border-indigo-200 dark:border-indigo-800",
+      title: "Total Events",
+      value: stats?.totalEvents ?? 0,
+      icon: <Calendar className="w-5 h-5" />,
+      accent: { bg: "#ede9fe", icon: "#7c3aed", text: "#7c3aed" },
     },
     {
       title: "Upcoming Events",
-      value: stats?.upcomingEvents ?? "—",
-      icon: <CalendarCheck className="w-6 h-6" />,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50 dark:bg-emerald-950/30",
-      border: "border-emerald-200 dark:border-emerald-800",
+      value: stats?.upcomingEvents ?? 0,
+      icon: <CalendarCheck className="w-5 h-5" />,
+      accent: { bg: "#d1fae5", icon: "#059669", text: "#059669" },
     },
     {
       title: "Completed Events",
-      value: stats?.completedEvents ?? "—",
-      icon: <CheckCircle2 className="w-6 h-6" />,
-      color: "text-green-600",
-      bg: "bg-green-50 dark:bg-green-950/30",
-      border: "border-green-200 dark:border-green-800",
+      value: stats?.completedEvents ?? 0,
+      icon: <CheckCircle2 className="w-5 h-5" />,
+      accent: { bg: "#dcfce7", icon: "#16a34a", text: "#16a34a" },
     },
     {
       title: "Total Applications",
-      value: stats?.totalApplications ?? "—",
-      icon: <FileText className="w-6 h-6" />,
-      color: "text-purple-600",
-      bg: "bg-purple-50 dark:bg-purple-950/30",
-      border: "border-purple-200 dark:border-purple-800",
+      value: stats?.totalApplications ?? 0,
+      icon: <FileText className="w-5 h-5" />,
+      accent: { bg: "#f3e8ff", icon: "#9333ea", text: "#9333ea" },
     },
     {
       title: "Pending Approvals",
-      value: stats?.pendingApprovals ?? "—",
-      icon: <Clock className="w-6 h-6" />,
-      color: "text-amber-600",
-      bg: "bg-amber-50 dark:bg-amber-950/30",
-      border: "border-amber-200 dark:border-amber-800",
+      value: stats?.pendingApprovals ?? 0,
+      icon: <Clock className="w-5 h-5" />,
+      accent: { bg: "#fef3c7", icon: "#d97706", text: "#d97706" },
     },
     {
       title: "Total Participation",
-      value: stats?.totalParticipations ?? "—",
-      icon: <UserCheck className="w-6 h-6" />,
-      color: "text-cyan-600",
-      bg: "bg-cyan-50 dark:bg-cyan-950/30",
-      border: "border-cyan-200 dark:border-cyan-800",
+      value: stats?.totalParticipations ?? 0,
+      icon: <UserCheck className="w-5 h-5" />,
+      accent: { bg: "#cffafe", icon: "#0891b2", text: "#0891b2" },
     },
     {
       title: "Pending Attendance",
-      value: stats?.pendingAttendance ?? "—",
-      icon: <ClipboardList className="w-6 h-6" />,
-      color: "text-rose-600",
-      bg: "bg-rose-50 dark:bg-rose-950/30",
-      border: "border-rose-200 dark:border-rose-800",
+      value: stats?.pendingAttendance ?? 0,
+      icon: <ClipboardList className="w-5 h-5" />,
+      accent: { bg: "#ffe4e6", icon: "#e11d48", text: "#e11d48" },
     },
   ]
 
@@ -230,354 +279,493 @@ export default function AdminDashboard() {
     <>
       <AdminHeader title="Dashboard" subtitle="NSS Application & Activity Management" />
 
-      <div className="p-4 space-y-6">
+      <div className="p-3 sm:p-6 space-y-5 sm:space-y-7 admin-fade-in">
 
-        {/* Overview Statistics */}
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            Overview Statistics
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ── Overview Statistics ─────────────────────────────────────────── */}
+        <section>
+          <SectionHeader
+            icon={<BarChart3 className="w-3.5 h-3.5" />}
+            title="Overview Statistics"
+            iconBg="#dbeafe"
+            iconColor="#1e40af"
+          />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {overviewCards.map((card, index) => (
-              <div
+              <StatCard
                 key={index}
-                className={`bg-card rounded-xl border ${card.border} p-5 hover:shadow-md transition-shadow`}
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">{card.title}</p>
-                    <p className="text-3xl font-bold text-foreground">
-                      {loading ? (
-                        <span className="inline-block w-8 h-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></span>
-                      ) : card.value}
-                    </p>
-                  </div>
-                  <div className={`p-2.5 rounded-xl ${card.bg}`}>
-                    <span className={card.color}>{card.icon}</span>
-                  </div>
-                </div>
-              </div>
+                title={card.title}
+                value={card.value}
+                icon={card.icon}
+                accent={card.accent}
+                loading={loading}
+              />
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Pending Actions */}
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-amber-500" />
-            Pending Actions
-          </h3>
+        {/* ── Pending Actions ─────────────────────────────────────────────── */}
+        <section>
+          <SectionHeader
+            icon={<AlertCircle className="w-3.5 h-3.5" />}
+            title="Pending Actions"
+            iconBg="#fef3c7"
+            iconColor="#d97706"
+          />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* Application Reviews */}
             <Link
               href="/admin/applications"
-              className="group flex min-h-24 items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 transition-all hover:border-amber-300 hover:shadow-sm"
+              className="group flex items-center justify-between gap-4 rounded-2xl border p-5 transition-all duration-250 hover:-translate-y-0.5"
+              style={{
+                background: "#ffffff",
+                borderColor: "#e8edf5",
+                boxShadow: "0 2px 6px rgba(15,31,61,0.05)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#fbbf24"
+                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(217,119,6,0.12)"
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#e8edf5"
+                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 2px 6px rgba(15,31,61,0.05)"
+              }}
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/30">
-                  <FileText className="w-5 h-5 text-amber-600" />
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "#fef3c7" }}>
+                  <FileText className="w-5 h-5" style={{ color: "#d97706" }} />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-foreground">Application Reviews</p>
-                  <p className="text-sm text-muted-foreground">
-                    {loading ? "Loading..." : `${stats?.pendingApprovals || 0} pending applications`}
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: "#0f1f3d" }}>Application Reviews</p>
+                  <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>
+                    {loading ? "Loading..." : `${stats?.pendingApprovals || 0} applications awaiting review`}
                   </p>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
-                  {loading ? "—" : stats?.pendingApprovals || 0}
-                </span>
-                <ChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-amber-600" />
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {!loading && (stats?.pendingApprovals || 0) > 0 && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#fef3c7", color: "#b45309" }}>
+                    {stats?.pendingApprovals}
+                  </span>
+                )}
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" style={{ color: "#94a3b8" }} />
               </div>
             </Link>
+
+            {/* Attendance Verification */}
             <Link
               href="/admin/attendance"
-              className="group flex min-h-24 items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 transition-all hover:border-rose-300 hover:shadow-sm"
+              className="group flex items-center justify-between gap-4 rounded-2xl border p-5 transition-all duration-250 hover:-translate-y-0.5"
+              style={{
+                background: "#ffffff",
+                borderColor: "#e8edf5",
+                boxShadow: "0 2px 6px rgba(15,31,61,0.05)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#fda4af"
+                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(225,29,72,0.1)"
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#e8edf5"
+                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 2px 6px rgba(15,31,61,0.05)"
+              }}
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-950/30">
-                  <ClipboardList className="w-5 h-5 text-rose-600" />
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "#ffe4e6" }}>
+                  <ClipboardList className="w-5 h-5" style={{ color: "#e11d48" }} />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-foreground">Attendance Verification</p>
-                  <p className="text-sm text-muted-foreground">
-                    {loading ? "Loading..." : `${stats?.pendingAttendance || 0} pending verifications`}
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: "#0f1f3d" }}>Attendance Verification</p>
+                  <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>
+                    {loading ? "Loading..." : `${stats?.pendingAttendance || 0} verifications pending`}
                   </p>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span className="rounded-full bg-rose-50 px-2.5 py-1 text-sm font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
-                  {loading ? "—" : stats?.pendingAttendance || 0}
-                </span>
-                <ChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-rose-600" />
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {!loading && (stats?.pendingAttendance || 0) > 0 && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#ffe4e6", color: "#be123c" }}>
+                    {stats?.pendingAttendance}
+                  </span>
+                )}
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" style={{ color: "#94a3b8" }} />
               </div>
             </Link>
           </div>
-        </div>
+        </section>
 
-        {/* Events Overview */}
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-pink-500" />
-            Events Overview
-          </h3>
+        {/* ── Events Overview ─────────────────────────────────────────────── */}
+        <section>
+          <SectionHeader
+            icon={<Calendar className="w-3.5 h-3.5" />}
+            title="Events Overview"
+            iconBg="#ede9fe"
+            iconColor="#7c3aed"
+          />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Upcoming Events */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
-                  <CalendarCheck className="w-4 h-4 text-blue-600" />
+            <div className="admin-card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#dbeafe" }}>
+                    <CalendarCheck className="w-4 h-4" style={{ color: "#1e40af" }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>Upcoming Events</p>
+                    <p className="text-[11px]" style={{ color: "#94a3b8" }}>Next scheduled events</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-foreground text-sm">Upcoming Events</p>
-                  <p className="text-xs text-muted-foreground">Event name • Date • Registrations</p>
-                </div>
+                <Link href="/admin/events" className="text-[11px] font-medium px-2 py-1 rounded-lg transition-colors hover:bg-blue-50" style={{ color: "#1e40af" }}>
+                  View all
+                </Link>
               </div>
+
               {loading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-12 admin-skeleton rounded-xl" />
+                  ))}
                 </div>
               ) : upcomingEvents.length > 0 ? (
-                <div className="space-y-2 ml-11">
+                <div className="space-y-1.5">
                   {upcomingEvents.map((event) => (
-                    <div key={event._id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(event.eventDate)}{event.location ? ` • ${event.location}` : ""}</p>
+                    <div key={event._id} className="admin-event-row">
+                      <div className="flex-1 min-w-0 pr-3">
+                        <p className="text-sm font-medium truncate" style={{ color: "#1e293b" }}>{event.title}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: "#94a3b8" }}>
+                          {formatDate(event.eventDate)}{event.location ? ` · ${event.location}` : ""}
+                        </p>
                       </div>
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 font-medium ml-2 whitespace-nowrap">
-                        {event.registrations}{event.maxParticipants ? `/${event.maxParticipants}` : ""} registered
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0" style={{ background: "#dbeafe", color: "#1e40af" }}>
+                        {event.registrations}{event.maxParticipants ? `/${event.maxParticipants}` : ""} reg.
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground ml-11">No upcoming events</p>
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2" style={{ background: "#f0f4f8" }}>
+                    <CalendarCheck className="w-5 h-5" style={{ color: "#94a3b8" }} />
+                  </div>
+                  <p className="text-sm" style={{ color: "#64748b" }}>No upcoming events</p>
+                </div>
               )}
             </div>
 
-            {/* Recent Completed Events */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-950/30 flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+            {/* Completed Events */}
+            <div className="admin-card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#d1fae5" }}>
+                    <CheckCircle2 className="w-4 h-4" style={{ color: "#059669" }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>Recently Completed</p>
+                    <p className="text-[11px]" style={{ color: "#94a3b8" }}>Participation summary</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-foreground text-sm">Recent Completed Events</p>
-                  <p className="text-xs text-muted-foreground">Event name • Participation</p>
-                </div>
+                <Link href="/admin/events" className="text-[11px] font-medium px-2 py-1 rounded-lg transition-colors hover:bg-emerald-50" style={{ color: "#059669" }}>
+                  View all
+                </Link>
               </div>
+
               {loading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-12 admin-skeleton rounded-xl" />
+                  ))}
                 </div>
               ) : completedEvents.length > 0 ? (
-                <div className="space-y-2 ml-11">
+                <div className="space-y-1.5">
                   {completedEvents.map((event) => (
-                    <div key={event._id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(event.eventDate)}</p>
+                    <div key={event._id} className="admin-event-row">
+                      <div className="flex-1 min-w-0 pr-3">
+                        <p className="text-sm font-medium truncate" style={{ color: "#1e293b" }}>{event.title}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: "#94a3b8" }}>{formatDate(event.eventDate)}</p>
                       </div>
-                      <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400 font-medium ml-2 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0" style={{ background: "#d1fae5", color: "#059669" }}>
                         {event.participation} participated
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground ml-11">No completed events yet</p>
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2" style={{ background: "#f0f4f8" }}>
+                    <CheckCircle2 className="w-5 h-5" style={{ color: "#94a3b8" }} />
+                  </div>
+                  <p className="text-sm" style={{ color: "#64748b" }}>No completed events yet</p>
+                </div>
               )}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Meetings Overview + Meeting Attendance (existing) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-card rounded-xl border border-border p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-orange-500" />
-              Meetings Overview
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1">Total</p>
-                <p className="text-xl font-bold">{meetings.total}</p>
-              </div>
-              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1 break-words">Upcoming/Ongoing</p>
-                <p className="text-xl font-bold">{meetings.upcomingOrOngoing}</p>
-              </div>
-              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1">Completed</p>
-                <p className="text-xl font-bold">{meetings.completed}</p>
-              </div>
-              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1">Cancelled</p>
-                <p className="text-xl font-bold">{meetings.cancelled}</p>
-              </div>
+        {/* ── Meetings Overview + Attendance ──────────────────────────────── */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Meetings */}
+          <div className="admin-card">
+            <SectionHeader
+              icon={<Calendar className="w-3.5 h-3.5" />}
+              title="Meetings Overview"
+              iconBg="#fef3c7"
+              iconColor="#d97706"
+            />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: "Total", value: meetings.total, bg: "#f8fafc", text: "#1e293b" },
+                { label: "Upcoming", value: meetings.upcomingOrOngoing, bg: "#dbeafe", text: "#1e40af" },
+                { label: "Completed", value: meetings.completed, bg: "#d1fae5", text: "#059669" },
+                { label: "Cancelled", value: meetings.cancelled, bg: "#ffe4e6", text: "#e11d48" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl p-3 text-center" style={{ background: item.bg }}>
+                  <p className="text-[11px] font-medium mb-1" style={{ color: "#94a3b8" }}>{item.label}</p>
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: item.text }}>{item.value}</p>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="bg-card rounded-xl border border-border p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-teal-500" />
-              Meeting Attendance
-            </h3>
-            <div className="grid grid-cols-3 gap-3 text-sm">
-              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1">Registrations</p>
-                <p className="text-xl font-bold">{meetingAttendance.totalRegistrations}</p>
-              </div>
-              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1">Attended</p>
-                <p className="text-xl font-bold">{meetingAttendance.attended}</p>
-              </div>
-              <div className="bg-muted/40 border border-border/50 rounded-lg p-4">
-                <p className="text-muted-foreground text-xs mb-1">Absent</p>
-                <p className="text-xl font-bold">{meetingAttendance.absent}</p>
-              </div>
+
+          {/* Meeting Attendance */}
+          <div className="admin-card">
+            <SectionHeader
+              icon={<UserCheck className="w-3.5 h-3.5" />}
+              title="Meeting Attendance"
+              iconBg="#cffafe"
+              iconColor="#0891b2"
+            />
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Registrations", value: meetingAttendance.totalRegistrations, bg: "#f8fafc", text: "#1e293b" },
+                { label: "Attended", value: meetingAttendance.attended, bg: "#d1fae5", text: "#059669" },
+                { label: "Absent", value: meetingAttendance.absent, bg: "#ffe4e6", text: "#e11d48" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl p-3 text-center" style={{ background: item.bg }}>
+                  <p className="text-[11px] font-medium mb-1" style={{ color: "#94a3b8" }}>{item.label}</p>
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: item.text }}>{item.value}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Reports & Analytics + Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* ── Reports & Recent Activity ───────────────────────────────────── */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Reports link */}
           <Link
             href="/admin/reports"
-            className="bg-card rounded-xl border border-border p-6 hover:shadow-md hover:border-primary/30 transition-all group"
+            className="admin-card admin-card-hover group block"
+            style={{ textDecoration: "none" }}
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-6 h-6 text-indigo-600" />
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)", boxShadow: "0 4px 12px rgba(30,64,175,0.25)" }}
+              >
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">Reports & Analytics</h3>
-                <p className="text-sm text-muted-foreground mt-1">Monthly events, attendance trends</p>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold transition-colors duration-150 group-hover:text-blue-700" style={{ color: "#0f1f3d" }}>
+                  Reports & Analytics
+                </h3>
+                <p className="text-sm mt-1" style={{ color: "#64748b" }}>Monthly events, attendance trends & volunteer stats</p>
+                <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#1e40af" }}>
+                  View reports
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </div>
               </div>
             </div>
           </Link>
 
-          <div className="bg-card rounded-xl border border-border p-6">
+          {/* Recent Activity */}
+          <div className="admin-card">
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
-                <Activity className="w-6 h-6 text-sky-600" />
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "#cffafe" }}>
+                <Activity className="w-6 h-6" style={{ color: "#0891b2" }} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Recent Activity</h3>
-                <p className="text-sm text-muted-foreground mt-1">Admin actions and updates</p>
+                <h3 className="text-base font-semibold" style={{ color: "#0f1f3d" }}>System Summary</h3>
+                <p className="text-sm mt-0.5" style={{ color: "#64748b" }}>Live application & event metrics</p>
               </div>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center p-3 bg-muted/25 rounded-lg">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">System Active</p>
-                  <p className="text-xs text-muted-foreground">
-                    {legacyStats.approved} approved • {legacyStats.pendingReview} pending • {legacyStats.rejected} rejected
-                  </p>
+            <div className="space-y-2">
+              {[
+                {
+                  dot: "#16a34a",
+                  label: "Applications",
+                  value: `${legacyStats.approved} approved · ${legacyStats.pendingReview} pending · ${legacyStats.rejected} rejected`,
+                },
+                {
+                  dot: "#1e40af",
+                  label: "Events",
+                  value: `${stats?.upcomingEvents || 0} upcoming · ${stats?.completedEvents || 0} completed`,
+                },
+                {
+                  dot: "#d97706",
+                  label: "Meetings",
+                  value: `${meetings.total} total · ${meetings.upcomingOrOngoing} upcoming`,
+                },
+              ].map((item) => (
+                <div key={item.label} className="flex items-start gap-3 px-3 py-2.5 rounded-xl" style={{ background: "#f8fafc" }}>
+                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: item.dot }} />
+                  <div>
+                    <p className="text-xs font-semibold" style={{ color: "#334155" }}>{item.label}</p>
+                    <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>{item.value}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center p-3 bg-muted/25 rounded-lg">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">Events Summary</p>
-                  <p className="text-xs text-muted-foreground">
-                    {stats?.upcomingEvents || 0} upcoming • {stats?.completedEvents || 0} completed
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center p-3 bg-muted/25 rounded-lg">
-                <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">Meetings</p>
-                  <p className="text-xs text-muted-foreground">
-                    {meetings.total} total • {meetings.upcomingOrOngoing} upcoming
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Quick Actions (kept from original) */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Eye className="w-5 h-5 text-purple-500" />
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Link
-              href="/admin/applications"
-              className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl hover:bg-muted/60 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <FileText className="w-5 h-5 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Review Applications</p>
-                <p className="text-xs text-muted-foreground">{legacyStats.pendingReview} pending</p>
-              </div>
-            </Link>
-            <Link
-              href="/admin/users"
-              className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl hover:bg-muted/60 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="w-5 h-5 text-sky-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Manage Users</p>
-                <p className="text-xs text-muted-foreground">Admin & sub-admin accounts</p>
-              </div>
-            </Link>
-            <Link
-              href="/admin/volunteers"
-              className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl hover:bg-muted/60 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <UserCheck className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Manage Volunteers</p>
-                <p className="text-xs text-muted-foreground">{stats?.totalVolunteers || 0} active volunteers</p>
-              </div>
-            </Link>
+        {/* ── Quick Actions ────────────────────────────────────────────────── */}
+        <section>
+          <SectionHeader
+            icon={<Eye className="w-3.5 h-3.5" />}
+            title="Quick Actions"
+            iconBg="#f3e8ff"
+            iconColor="#9333ea"
+          />
+          <div className="admin-card">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                {
+                  href: "/admin/applications",
+                  bg: "#dbeafe",
+                  icon: <FileText className="w-5 h-5" style={{ color: "#1e40af" }} />,
+                  label: "Review Applications",
+                  sub: `${legacyStats.pendingReview} pending`,
+                },
+                {
+                  href: "/admin/users",
+                  bg: "#cffafe",
+                  icon: <Users className="w-5 h-5" style={{ color: "#0891b2" }} />,
+                  label: "Manage Users",
+                  sub: "Admin & sub-admin accounts",
+                },
+                {
+                  href: "/admin/volunteers",
+                  bg: "#d1fae5",
+                  icon: <UserCheck className="w-5 h-5" style={{ color: "#059669" }} />,
+                  label: "Manage Volunteers",
+                  sub: `${stats?.totalVolunteers || 0} active volunteers`,
+                },
+              ].map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className="group flex items-center gap-3.5 p-4 rounded-xl border border-transparent transition-all duration-200"
+                  style={{ background: "#f8fafc" }}
+                  onMouseEnter={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.background = action.bg
+                    ;(e.currentTarget as HTMLElement).style.borderColor = action.bg
+                  }}
+                  onMouseLeave={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.background = "#f8fafc"
+                    ;(e.currentTarget as HTMLElement).style.borderColor = "transparent"
+                  }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105" style={{ background: action.bg }}>
+                    {action.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>{action.label}</p>
+                    <p className="text-xs mt-0.5 truncate" style={{ color: "#64748b" }}>{action.sub}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* NSS Social Media (kept from original) */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">NSS Social Media</h3>
-            <Link href="/admin/social-links" className="text-sm text-primary hover:underline">Edit Links</Link>
-          </div>
-          <div className="flex items-center gap-4">
-            {[
-              { key: 'facebook', url: social.facebook, bg: 'bg-blue-600', svg: (
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.7V12h2.7V9.7c0-2.7 1.6-4.2 4-4.2 1.2 0 2.5.2 2.5.2v2.7h-1.4c-1.4 0-1.9.9-1.9 1.8V12h3.2l-.5 2.9h-2.7v7A10 10 0 0022 12z"/></svg>
-              )},
-              { key: 'instagram', url: social.instagram, bg: 'bg-gradient-to-tr from-yellow-500 via-pink-600 to-purple-700', svg: (
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18 6.5a1 1 0 110 2 1 1 0 010-2z"/></svg>
-              )},
-              { key: 'twitter', url: social.twitter, bg: 'bg-black', svg: (
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M3 3l8.2 10.2L3.6 21h2.2l6.1-6.7 4.9 6.7H21l-8.7-11.9L20.3 3h-2.2l-5.5 6.1L8.1 3H3z"/></svg>
-              )},
-              { key: 'linkedin', url: social.linkedin, bg: 'bg-sky-700', svg: (
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8.98h5V24H0V8.98zM8.98 8.98h4.78v2.05h.07c.67-1.27 2.3-2.6 4.73-2.6 5.06 0 6 3.33 6 7.66V24h-5v-6.8c0-1.62-.03-3.7-2.25-3.7-2.25 0-2.6 1.76-2.6 3.58V24h-5V8.98z"/></svg>
-              )},
-            ].map((i) => (
-              <a key={i.key}
-                 href={i.url || '#'}
-                 target={i.url ? '_blank' : undefined}
-                 className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-border ${i.bg} ${i.url ? 'opacity-100 hover:scale-105 transition-transform' : 'opacity-40 cursor-not-allowed'}`}
-                 aria-label={i.key}
+        {/* ── NSS Social Media ─────────────────────────────────────────────── */}
+        <section>
+          <div className="admin-card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[15px] font-semibold" style={{ color: "#0f1f3d" }}>NSS Social Media</h3>
+              <Link
+                href="/admin/social-links"
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all duration-150 hover:bg-blue-50"
+                style={{ color: "#1e40af", borderColor: "#bfdbfe" }}
               >
-                {i.svg}
-              </a>
-            ))}
+                Edit Links
+              </Link>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              {[
+                {
+                  key: "facebook",
+                  url: social.facebook,
+                  bg: "#1877f2",
+                  label: "Facebook",
+                  svg: (
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
+                      <path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.7V12h2.7V9.7c0-2.7 1.6-4.2 4-4.2 1.2 0 2.5.2 2.5.2v2.7h-1.4c-1.4 0-1.9.9-1.9 1.8V12h3.2l-.5 2.9h-2.7v7A10 10 0 0022 12z" />
+                    </svg>
+                  ),
+                },
+                {
+                  key: "instagram",
+                  url: social.instagram,
+                  bg: "linear-gradient(135deg, #f9a825, #e91e8c, #9c27b0)",
+                  label: "Instagram",
+                  svg: (
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
+                      <path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18 6.5a1 1 0 110 2 1 1 0 010-2z" />
+                    </svg>
+                  ),
+                },
+                {
+                  key: "twitter",
+                  url: social.twitter,
+                  bg: "#000000",
+                  label: "X (Twitter)",
+                  svg: (
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
+                      <path d="M3 3l8.2 10.2L3.6 21h2.2l6.1-6.7 4.9 6.7H21l-8.7-11.9L20.3 3h-2.2l-5.5 6.1L8.1 3H3z" />
+                    </svg>
+                  ),
+                },
+                {
+                  key: "linkedin",
+                  url: social.linkedin,
+                  bg: "#0077b5",
+                  label: "LinkedIn",
+                  svg: (
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
+                      <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8.98h5V24H0V8.98zM8.98 8.98h4.78v2.05h.07c.67-1.27 2.3-2.6 4.73-2.6 5.06 0 6 3.33 6 7.66V24h-5v-6.8c0-1.62-.03-3.7-2.25-3.7-2.25 0-2.6 1.76-2.6 3.58V24h-5V8.98z" />
+                    </svg>
+                  ),
+                },
+              ].map((item) => (
+                <a
+                  key={item.key}
+                  href={item.url || "#"}
+                  target={item.url ? "_blank" : undefined}
+                  rel={item.url ? "noopener noreferrer" : undefined}
+                  title={item.label}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200"
+                  style={{
+                    background: item.bg,
+                    opacity: item.url ? 1 : 0.35,
+                    cursor: item.url ? "pointer" : "not-allowed",
+                    boxShadow: item.url ? "0 2px 8px rgba(0,0,0,0.15)" : "none",
+                  }}
+                  onClick={!item.url ? (e) => e.preventDefault() : undefined}
+                  onMouseEnter={(e) => { if (item.url) (e.currentTarget as HTMLElement).style.transform = "translateY(-2px) scale(1.05)" }}
+                  onMouseLeave={(e) => { if (item.url) (e.currentTarget as HTMLElement).style.transform = "none" }}
+                >
+                  {item.svg}
+                </a>
+              ))}
+              {!social.facebook && !social.instagram && !social.twitter && !social.linkedin && (
+                <p className="text-sm ml-1" style={{ color: "#94a3b8" }}>
+                  No social links configured yet.{" "}
+                  <Link href="/admin/social-links" style={{ color: "#1e40af" }} className="hover:underline">Add links →</Link>
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
+
       </div>
     </>
   )
