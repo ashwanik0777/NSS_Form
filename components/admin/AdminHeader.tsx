@@ -143,7 +143,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   }
 
   return (
-    <header className="bg-background border-b border-border px-6 py-4">
+    <header className="bg-background border-b border-border px-4 py-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>

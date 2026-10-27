@@ -230,7 +230,7 @@ export default function AdminDashboard() {
     <>
       <AdminHeader title="Dashboard" subtitle="NSS Application & Activity Management" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-6">
 
         {/* Overview Statistics */}
         <div>
@@ -268,40 +268,50 @@ export default function AdminDashboard() {
             <AlertCircle className="w-5 h-5 text-amber-500" />
             Pending Actions
           </h3>
-          <div className="bg-card rounded-xl border border-border divide-y divide-border">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Link
               href="/admin/applications"
-              className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors group first:rounded-t-xl"
+              className="group flex min-h-24 items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 transition-all hover:border-amber-300 hover:shadow-sm"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/30">
                   <FileText className="w-5 h-5 text-amber-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="font-semibold text-foreground">Application Reviews</p>
                   <p className="text-sm text-muted-foreground">
                     {loading ? "Loading..." : `${stats?.pendingApprovals || 0} pending applications`}
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                  {loading ? "—" : stats?.pendingApprovals || 0}
+                </span>
+                <ChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-amber-600" />
+              </div>
             </Link>
             <Link
               href="/admin/attendance"
-              className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors group last:rounded-b-xl"
+              className="group flex min-h-24 items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 transition-all hover:border-rose-300 hover:shadow-sm"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-950/30">
                   <ClipboardList className="w-5 h-5 text-rose-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="font-semibold text-foreground">Attendance Verification</p>
                   <p className="text-sm text-muted-foreground">
                     {loading ? "Loading..." : `${stats?.pendingAttendance || 0} pending verifications`}
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="rounded-full bg-rose-50 px-2.5 py-1 text-sm font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
+                  {loading ? "—" : stats?.pendingAttendance || 0}
+                </span>
+                <ChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-rose-600" />
+              </div>
             </Link>
           </div>
         </div>
@@ -312,9 +322,9 @@ export default function AdminDashboard() {
             <Calendar className="w-5 h-5 text-pink-500" />
             Events Overview
           </h3>
-          <div className="bg-card rounded-xl border border-border divide-y divide-border">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Upcoming Events */}
-            <div className="p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
                   <CalendarCheck className="w-4 h-4 text-blue-600" />
@@ -348,7 +358,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Completed Events */}
-            <div className="p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-950/30 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
