@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import AdminHeader from "@/components/admin/AdminHeader"
 import { schoolDepartmentData } from "@/lib/constants"
@@ -34,6 +34,11 @@ import {
   Ban,
   AlertTriangle,
   RotateCcw,
+  Search,
+  CheckCircle2,
+  CalendarCheck,
+  Image as ImageIcon,
+  ExternalLink,
 } from "lucide-react"
 
 const formatDate = (value?: string | Date) => {
@@ -62,6 +67,9 @@ interface Volunteer {
     institutionName: string
     status: string
     nameEnglish: string
+    nameHindi?: string
+    fatherName?: string
+    emailId?: string
     mobileNo: string
     enrollment: string
     departmentName: string
@@ -69,6 +77,9 @@ interface Volunteer {
     schoolName: string
     unitNo: string
     submittedAt: string
+    reviewedAt?: string | Date
+    photo?: string
+    institutionalIdCard?: string
   }
   stats: {
     projects: number
@@ -83,6 +94,7 @@ interface VolunteerDetail {
   _id: string
   name: string
   email: string
+  photo?: string
   application?: any
   project?: any
   stats: {
@@ -153,12 +165,17 @@ export default function VolunteersPage() {
   const [submittingTask, setSubmittingTask] = useState(false)
   const [activeTab, setActiveTab] = useState<"profile" | "tasks" | "events">("profile")
   
-  // Filters
+  // Filters & Search
   const [unitNo, setUnitNo] = useState<string>("all")
   const [enrollment, setEnrollment] = useState<string>("all")
   const [schoolName, setSchoolName] = useState<string>("")
   const [sortBy, setSortBy] = useState<string>("hours-desc")
-  const [nameSearch, setNameSearch] = useState<string>("")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("")
+  const [isSearching, setIsSearching] = useState(false)
+  const [isTableLoading, setIsTableLoading] = useState(false)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const [stats, setStats] = useState<any | null>(null)
   const [schools, setSchools] = useState<string[]>([])
   const [loadingSchools, setLoadingSchools] = useState(false)
@@ -268,32 +285,136 @@ export default function VolunteersPage() {
   const [removeReason, setRemoveReason] = useState("")
   const [removing, setRemoving] = useState(false)
 
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    // If user cleared the input or deleted all characters, update immediately with zero lag
+    if (!value.trim()) {
+      setDebouncedSearch("")
+      setIsSearching(false)
+      return
+    }
+
+    setIsSearching(true)
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(value.trim())
+      setIsSearching(false)
+    }, 250)
+  }
+
+  const handleClearSearch = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    setSearchQuery("")
+    setDebouncedSearch("")
+    setIsSearching(false)
+  }
+
   useEffect(() => {
-    setCurrentPage(1) // Reset to first page when filters change
-  }, [unitNo, enrollment, schoolName, sortBy, nameSearch])
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
+  const displayVolunteers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) {
+      return volunteers
+    }
+
+    const digitsOnly = query.replace(/\D/g, "")
+
+    // Fast client-side filter over loaded volunteers
+    const filtered = volunteers.filter((volunteer) => {
+      const name = (volunteer.application?.nameEnglish || volunteer.name || "").toLowerCase()
+      const hindiName = (volunteer.application?.nameHindi || "").toLowerCase()
+      const email = (volunteer.email || volunteer.application?.emailId || "").toLowerCase()
+      const mobile = (volunteer.application?.mobileNo || "").toLowerCase()
+      const mobileDigits = mobile.replace(/\D/g, "")
+      const rollNo = (volunteer.application?.institutionalIdCard || volunteer.application?.formNo || "").toLowerCase()
+      const unit = (volunteer.application?.unitNo || "").toLowerCase()
+      const school = (volunteer.application?.schoolName || "").toLowerCase()
+      const dept = (volunteer.application?.departmentName || "").toLowerCase()
+
+      return (
+        name.includes(query) ||
+        hindiName.includes(query) ||
+        email.includes(query) ||
+        mobile.includes(query) ||
+        (digitsOnly.length >= 3 && mobileDigits.includes(digitsOnly)) ||
+        rollNo.includes(query) ||
+        unit.includes(query) ||
+        school.includes(query) ||
+        dept.includes(query)
+      )
+    })
+
+    // If server results have already arrived for this search query, use server results
+    if (debouncedSearch.toLowerCase() === query) {
+      return volunteers
+    }
+
+    // While waiting for server fetch, show local instant matches for 0ms feedback
+    if (filtered.length > 0) {
+      return filtered
+    }
+
+    return volunteers
+  }, [volunteers, searchQuery, debouncedSearch])
+
+  useEffect(() => {
+    setCurrentPage(1) // Reset to first page when filters or search change
+  }, [unitNo, enrollment, schoolName, sortBy, debouncedSearch])
 
   useEffect(() => {
     fetchData()
     fetchStats()
-  }, [unitNo, enrollment, schoolName, sortBy, nameSearch, currentPage])
+  }, [unitNo, enrollment, schoolName, sortBy, debouncedSearch, currentPage])
 
   useEffect(() => {
     fetchSchools()
   }, [])
 
   const fetchData = async () => {
+    // Abort previous in-flight request to eliminate race conditions
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
     try {
-      setLoading(true)
+      if (volunteers.length === 0) {
+        setLoading(true)
+      } else {
+        setIsTableLoading(true)
+      }
+
       const params = new URLSearchParams()
       if (unitNo !== 'all') params.set('unitNo', unitNo)
       if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
       if (schoolName) params.set('schoolName', schoolName)
       params.set('sortBy', sortBy)
-      if (nameSearch) params.set('nameSearch', nameSearch)
+      if (debouncedSearch) {
+        params.set('search', debouncedSearch)
+        params.set('nameSearch', debouncedSearch)
+      }
       params.set('page', currentPage.toString())
       params.set('limit', itemsPerPage.toString())
 
-      const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
+      const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`, {
+        signal: controller.signal
+      })
       const data = await res.json()
       if (data.success) {
         setVolunteers(data.volunteers || [])
@@ -301,10 +422,15 @@ export default function VolunteersPage() {
         setTotalPages(data.totalPages || 1)
         setTotalVolunteers(data.totalVolunteers || 0)
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        return // Request was aborted by newer keystroke, ignore safely
+      }
       console.error("Error fetching data:", error)
     } finally {
       setLoading(false)
+      setIsTableLoading(false)
+      setIsSearching(false)
     }
   }
 
@@ -314,7 +440,7 @@ export default function VolunteersPage() {
     if (unitNo !== 'all') params.set('unitNo', unitNo)
     if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
     if (schoolName) params.set('schoolName', schoolName)
-    if (nameSearch) params.set('nameSearch', nameSearch)
+    if (debouncedSearch) params.set('search', debouncedSearch)
     try {
       const res = await fetch(`/api/admin/applications-stats?${params.toString()}`)
       const data = await res.json()
@@ -676,21 +802,44 @@ export default function VolunteersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
-              <input 
-                value={nameSearch} 
-                onChange={(e) => setNameSearch(e.target.value)} 
-                placeholder="Search by Name" 
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" 
-              />
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input 
+                  type="text"
+                  value={searchQuery} 
+                  onChange={(e) => handleSearchChange(e.target.value)} 
+                  placeholder="Name, email, or number..." 
+                  className="w-full pl-9 pr-8 py-2 border border-border rounded-lg bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/60" 
+                />
+                {isSearching || isTableLoading ? (
+                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                  </div>
+                ) : searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Volunteers Table */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden relative">
+          {isTableLoading && (
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 overflow-hidden z-10">
+              <div className="h-full bg-primary animate-pulse w-full" />
+            </div>
+          )}
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className={`w-full transition-opacity duration-150 ${isTableLoading ? "opacity-75" : "opacity-100"}`}>
               <thead className="bg-muted/50">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Volunteer</th>
@@ -704,7 +853,7 @@ export default function VolunteersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {loading ? (
+                {loading && volunteers.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex items-center justify-center">
@@ -712,26 +861,65 @@ export default function VolunteersPage() {
                       </div>
                     </td>
                   </tr>
-                ) : volunteers.length === 0 ? (
+                ) : displayVolunteers.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="mt-2 text-sm font-medium text-foreground">No volunteers found</h3>
+                      <h3 className="mt-2 text-sm font-medium text-foreground">
+                        {searchQuery ? "No volunteers match your search" : "No volunteers found"}
+                      </h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        No volunteers match the selected filters.
+                        {searchQuery
+                          ? `No results found for "${searchQuery}". Try searching by name, email, or phone number.`
+                          : "No volunteers match the selected filters."}
                       </p>
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={handleClearSearch}
+                          className="mt-3 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors border border-primary/20"
+                        >
+                          Clear search
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ) : (
-                  volunteers.map((volunteer) => (
+                  displayVolunteers.map((volunteer) => (
                     <tr key={volunteer._id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div>
-                          <p className="font-medium text-foreground">{volunteer.application?.nameEnglish || volunteer.name}</p>
-                          <p className="text-sm text-muted-foreground">{volunteer.email}</p>
-                          {volunteer.application?.mobileNo && (
-                            <p className="text-xs text-muted-foreground">{volunteer.application.mobileNo}</p>
-                          )}
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-muted flex-shrink-0 border border-border/80 shadow-xs">
+                            {volunteer.application?.photo ? (
+                              <img
+                                src={volunteer.application.photo}
+                                alt={volunteer.application?.nameEnglish || volunteer.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLElement).style.display = 'none';
+                                  (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm ${volunteer.application?.photo ? 'hidden' : ''}`}>
+                              {(volunteer.application?.nameEnglish || volunteer.name || "V").charAt(0).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">{volunteer.application?.nameEnglish || volunteer.name}</p>
+                            <p className="text-sm text-muted-foreground truncate">{volunteer.email}</p>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
+                              {volunteer.application?.mobileNo && (
+                                <span>{volunteer.application.mobileNo}</span>
+                              )}
+                              {volunteer.application?.reviewedAt && (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  Approved {formatDate(volunteer.application.reviewedAt)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm">
@@ -821,12 +1009,14 @@ export default function VolunteersPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between bg-card rounded-xl border border-border px-6 py-4">
             <div className="text-sm text-muted-foreground">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVolunteers)} of {totalVolunteers} volunteers
+              {totalVolunteers > 0
+                ? `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, totalVolunteers)} of ${totalVolunteers} volunteers`
+                : "0 volunteers found"}
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
+                disabled={currentPage === 1 || loading || isTableLoading}
                 className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -862,7 +1052,7 @@ export default function VolunteersPage() {
               </div>
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
+                disabled={currentPage === totalPages || loading || isTableLoading}
                 className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
@@ -877,15 +1067,49 @@ export default function VolunteersPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-card rounded-xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{selectedVolunteer.name}</h2>
-                  <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                    <Mail className="w-4 h-4" />
-                    {selectedVolunteer.email}
-                  </p>
+              <div className="flex items-center justify-between p-6 border-b border-border gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  {/* Volunteer Photo Upload on Side */}
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-muted border-2 border-border flex-shrink-0 shadow-sm">
+                    {selectedVolunteer.application?.photo || selectedVolunteer.photo ? (
+                      <img
+                        src={selectedVolunteer.application?.photo || selectedVolunteer.photo}
+                        alt={selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLElement).style.display = 'none';
+                          (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-2xl ${selectedVolunteer.application?.photo || selectedVolunteer.photo ? 'hidden' : ''}`}>
+                      {(selectedVolunteer.application?.nameEnglish || selectedVolunteer.name || "V").charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground truncate">
+                      {selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                    </h2>
+                    <p className="text-muted-foreground flex items-center gap-2 mt-0.5 text-sm truncate">
+                      <Mail className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{selectedVolunteer.email}</span>
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
+                      </span>
+                      {selectedVolunteer.application?.unitNo && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                          Unit {selectedVolunteer.application.unitNo}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => {
                       setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
@@ -980,6 +1204,24 @@ export default function VolunteersPage() {
                         </h3>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Application Approved Date
+                            </p>
+                            <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                              {formatDate(selectedVolunteer.application.reviewedAt || selectedVolunteer.application.submittedAt)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5" />
+                              Application Submitted Date
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {formatDate(selectedVolunteer.application.submittedAt)}
+                            </p>
+                          </div>
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Form Number</p>
                             <p className="text-foreground font-medium">{selectedVolunteer.application.formNo || "N/A"}</p>
@@ -1179,6 +1421,94 @@ export default function VolunteersPage() {
                             </div>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Volunteer Uploaded Photo & Verification Documents */}
+                    {selectedVolunteer.application && (
+                      <div className="bg-muted/50 rounded-lg p-6 space-y-4">
+                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                          <ImageIcon className="w-5 h-5 text-primary" />
+                          Volunteer Uploaded Photo & Documents
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                          {/* Volunteer Photo Card */}
+                          <div className="bg-card border border-border rounded-xl p-4 flex flex-col items-center shadow-xs">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Volunteer Photo</span>
+                            {selectedVolunteer.application.photo || selectedVolunteer.photo ? (
+                              <a
+                                href={selectedVolunteer.application.photo || selectedVolunteer.photo}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative w-36 h-44 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all shadow-sm"
+                                title="Click to view full photo"
+                              >
+                                <img
+                                  src={selectedVolunteer.application.photo || selectedVolunteer.photo}
+                                  alt="Volunteer Uploaded Photo"
+                                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1.5">
+                                  <ExternalLink className="w-4 h-4" /> View Full
+                                </div>
+                              </a>
+                            ) : (
+                              <div className="w-36 h-44 rounded-xl bg-muted border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground text-xs text-center p-3">
+                                <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                                No photo uploaded
+                              </div>
+                            )}
+                            <p className="text-[11px] text-muted-foreground mt-2">Passport-size uploaded photograph</p>
+                          </div>
+
+                          {/* Signature Card */}
+                          {selectedVolunteer.application.signature && (
+                            <div className="bg-card border border-border rounded-xl p-4 flex flex-col items-center shadow-xs">
+                              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Signature</span>
+                              <a
+                                href={selectedVolunteer.application.signature}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative w-44 h-24 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all bg-white shadow-sm flex items-center justify-center p-2"
+                                title="Click to view signature"
+                              >
+                                <img
+                                  src={selectedVolunteer.application.signature}
+                                  alt="Signature"
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1.5">
+                                  <ExternalLink className="w-4 h-4" /> View Full
+                                </div>
+                              </a>
+                              <p className="text-[11px] text-muted-foreground mt-2">Volunteer digital signature</p>
+                            </div>
+                          )}
+
+                          {/* Institutional ID Proof Card */}
+                          {selectedVolunteer.application.institutionalIdProof && (
+                            <div className="bg-card border border-border rounded-xl p-4 flex flex-col items-center shadow-xs">
+                              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">ID Card Proof</span>
+                              <a
+                                href={selectedVolunteer.application.institutionalIdProof}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative w-44 h-28 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all bg-white shadow-sm flex items-center justify-center p-2"
+                                title="Click to view ID card"
+                              >
+                                <img
+                                  src={selectedVolunteer.application.institutionalIdProof}
+                                  alt="ID Card Proof"
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1.5">
+                                  <ExternalLink className="w-4 h-4" /> View Full
+                                </div>
+                              </a>
+                              <p className="text-[11px] text-muted-foreground mt-2">Institutional ID proof</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 

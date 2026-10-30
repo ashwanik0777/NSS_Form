@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import AdminHeader from "@/components/admin/AdminHeader"
 import {
@@ -9,35 +9,143 @@ import {
   UserX,
   AlertTriangle,
   Search,
+  X,
 } from "lucide-react"
 
 export default function PastVolunteersPage() {
   const [pastVolunteers, setPastVolunteers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [unitNo, setUnitNo] = useState("all")
-  const [nameSearch, setNameSearch] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [isSearching, setIsSearching] = useState(false)
+  const [isTableLoading, setIsTableLoading] = useState(false)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    if (!value.trim()) {
+      setDebouncedSearch("")
+      setIsSearching(false)
+      return
+    }
+
+    setIsSearching(true)
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(value.trim())
+      setIsSearching(false)
+    }, 250)
+  }
+
+  const handleClearSearch = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    setSearchQuery("")
+    setDebouncedSearch("")
+    setIsSearching(false)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
+  const displayPastVolunteers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) {
+      return pastVolunteers
+    }
+
+    const digitsOnly = query.replace(/\D/g, "")
+
+    const filtered = pastVolunteers.filter((vol) => {
+      const name = (vol.name || "").toLowerCase()
+      const email = (vol.email || "").toLowerCase()
+      const mobile = (vol.mobileNo || "").toLowerCase()
+      const mobileDigits = mobile.replace(/\D/g, "")
+      const unit = (vol.unitNo || "").toLowerCase()
+      const dept = (vol.departmentName || "").toLowerCase()
+      const school = (vol.schoolName || "").toLowerCase()
+      const reason = (vol.removalReason || "").toLowerCase()
+
+      return (
+        name.includes(query) ||
+        email.includes(query) ||
+        mobile.includes(query) ||
+        (digitsOnly.length >= 3 && mobileDigits.includes(digitsOnly)) ||
+        unit.includes(query) ||
+        dept.includes(query) ||
+        school.includes(query) ||
+        reason.includes(query)
+      )
+    })
+
+    if (debouncedSearch.toLowerCase() === query) {
+      return pastVolunteers
+    }
+
+    if (filtered.length > 0) {
+      return filtered
+    }
+
+    return pastVolunteers
+  }, [pastVolunteers, searchQuery, debouncedSearch])
 
   useEffect(() => {
     fetchPastVolunteers()
-  }, [unitNo, nameSearch])
+  }, [unitNo, debouncedSearch])
 
   const fetchPastVolunteers = async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
     try {
-      setLoading(true)
+      if (pastVolunteers.length === 0) {
+        setLoading(true)
+      } else {
+        setIsTableLoading(true)
+      }
+
       const params = new URLSearchParams()
       params.set('type', 'past')
       if (unitNo !== 'all') params.set('unitNo', unitNo)
-      if (nameSearch) params.set('nameSearch', nameSearch)
+      if (debouncedSearch) {
+        params.set('search', debouncedSearch)
+        params.set('nameSearch', debouncedSearch)
+      }
       
-      const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
+      const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`, {
+        signal: controller.signal
+      })
       const data = await res.json()
       if (data.success) {
         setPastVolunteers(data.volunteers || [])
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        return
+      }
       console.error("Error fetching past volunteers:", error)
     } finally {
       setLoading(false)
+      setIsTableLoading(false)
+      setIsSearching(false)
     }
   }
 
@@ -50,14 +158,28 @@ export default function PastVolunteersPage() {
         <div className="bg-card rounded-xl border border-border p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search by name..."
-                value={nameSearch}
-                onChange={(e) => setNameSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Search by name, email, or number..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 border border-border rounded-lg bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/60"
               />
+              {isSearching || isTableLoading ? (
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                </div>
+              ) : searchQuery ? (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : null}
             </div>
             <select
               value={unitNo}
@@ -73,7 +195,12 @@ export default function PastVolunteersPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden relative">
+          {isTableLoading && (
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 overflow-hidden z-10">
+              <div className="h-full bg-primary animate-pulse w-full" />
+            </div>
+          )}
           <div className="p-4 border-b border-border bg-red-50 dark:bg-red-950/20">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600" />
@@ -82,7 +209,7 @@ export default function PastVolunteersPage() {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className={`w-full transition-opacity duration-150 ${isTableLoading ? "opacity-75" : "opacity-100"}`}>
               <thead className="bg-muted/50">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Volunteer</th>
@@ -93,22 +220,37 @@ export default function PastVolunteersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {loading ? (
+                {loading && pastVolunteers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center">
                       <Loader2 className="animate-spin w-8 h-8 text-primary mx-auto" />
                     </td>
                   </tr>
-                ) : pastVolunteers.length === 0 ? (
+                ) : displayPastVolunteers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center">
                       <UserX className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="mt-2 text-sm font-medium text-foreground">No removed volunteers</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">No volunteers have been removed yet.</p>
+                      <h3 className="mt-2 text-sm font-medium text-foreground">
+                        {searchQuery ? "No removed volunteers match your search" : "No removed volunteers"}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {searchQuery
+                          ? `No records found for "${searchQuery}". Try searching by name, email, or number.`
+                          : "No volunteers have been removed yet."}
+                      </p>
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={handleClearSearch}
+                          className="mt-3 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors border border-primary/20"
+                        >
+                          Clear search
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ) : (
-                  pastVolunteers.map((vol: any) => (
+                  displayPastVolunteers.map((vol: any) => (
                     <tr key={vol._id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
                         <div>
