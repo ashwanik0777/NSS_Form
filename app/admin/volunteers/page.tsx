@@ -1303,8 +1303,8 @@ export default function VolunteersPage() {
 
         {/* Volunteer Detail Modal */}
         {showDetailModal && selectedVolunteer && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col shadow-2xl smooth-modal">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-border gap-4">
                 <div className="flex items-center gap-4 min-w-0">
@@ -1410,7 +1410,7 @@ export default function VolunteersPage() {
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-6">
                 {/* Profile Tab */}
                 {activeTab === "profile" && (
                   <div className="space-y-6">
@@ -1990,8 +1990,8 @@ export default function VolunteersPage() {
 
         {/* Remove Volunteer Confirmation Modal */}
         {showRemoveModal && removeTarget && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-            <div className="bg-card rounded-xl border border-border max-w-md w-full p-6">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-[60] p-4 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-md w-full p-6 shadow-2xl smooth-modal">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-red-100 dark:bg-red-950/50 rounded-full flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-red-600" />
@@ -2056,8 +2056,8 @@ export default function VolunteersPage() {
 
         {/* Export Modal */}
         {showExportModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-2xl w-full p-6 max-h-[90vh] flex flex-col">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-2xl w-full p-6 max-h-[90vh] flex flex-col shadow-2xl smooth-modal">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-foreground">Export Volunteers</h2>
                 <button
@@ -2072,7 +2072,7 @@ export default function VolunteersPage() {
                 </button>
               </div>
 
-              <div className="overflow-y-auto flex-1 space-y-5 pr-1">
+              <div className="overflow-y-auto scroll-smooth overscroll-contain flex-1 space-y-5 pr-1">
                 {/* Unit Selection */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">

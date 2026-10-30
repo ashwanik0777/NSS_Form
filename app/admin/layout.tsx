@@ -49,7 +49,7 @@ export default function AdminLayout({
     <ProtectedRoute requiredRole="sub-admin">
       {/* Provide openMobileSidebar to all child AdminHeaders via context */}
       <AdminLayoutContext.Provider value={{ openMobileSidebar: () => setMobileOpen(true) }}>
-        <div className="flex h-screen" style={{ background: "#f0f4f8" }}>
+        <div className="flex h-screen bg-[#f0f4f8] dark:bg-background text-foreground transition-colors duration-200">
           {/* Sidebar */}
           <AdminSidebar
             mobileOpen={mobileOpen}
@@ -58,7 +58,7 @@ export default function AdminLayout({
 
           {/* Main content — pages render their own AdminHeader which reads context */}
           <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-            <main className="flex-1 overflow-y-auto">{children}</main>
+            <main className="flex-1 overflow-y-auto scroll-smooth overscroll-contain transition-colors duration-200">{children}</main>
           </div>
         </div>
       </AdminLayoutContext.Provider>

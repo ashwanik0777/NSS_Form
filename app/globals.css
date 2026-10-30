@@ -168,12 +168,94 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+  }
+
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
   }
+
+  .dark * {
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  }
+
   body {
     @apply bg-background text-foreground font-sans;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
   }
+}
+
+/* ── Universal Sleek Smooth Scrollbars ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+
+/* ── Smooth Scrolling for All Containers ── */
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto,
+main,
+nav,
+aside {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ── Smooth Tactile Click Engine ── */
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.975);
+  transition-duration: 60ms !important;
+}
+
+/* Smooth transition defaults on interactive controls */
+button,
+a,
+[role="button"],
+input,
+select,
+textarea {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Custom styles for NSS forms */
@@ -274,8 +356,10 @@
   border-radius: 1rem;
   border: 1px solid var(--border);
   padding: 0.75rem;          /* compact on mobile */
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease;
   box-shadow: var(--shadow-sm);
+  will-change: transform;
+  transform: translateZ(0);
 }
 @media (min-width: 640px) {
   .admin-stat-card {
@@ -293,8 +377,10 @@
   border-radius: 1rem;
   border: 1px solid var(--border);
   padding: 1.5rem;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease;
   box-shadow: var(--shadow-sm);
+  will-change: transform;
+  transform: translateZ(0);
 }
 .admin-card-hover:hover {
   transform: translateY(-2px);
@@ -305,15 +391,49 @@
 .sidebar-active-link {
   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   box-shadow: 0 2px 12px rgba(30, 64, 175, 0.35);
+  transform: translateZ(0);
 }
 
 /* ── Smooth page entry ── */
 @keyframes admin-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .admin-fade-in {
-  animation: admin-fade-in 0.3s ease both;
+  animation: admin-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Dropdown / popover smooth entrance ── */
+@keyframes smooth-popover {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.smooth-popover {
+  animation: smooth-popover 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top right;
+  will-change: transform, opacity;
+}
+
+/* ── Modal smooth entrance ── */
+@keyframes smooth-modal {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.smooth-modal {
+  animation: smooth-modal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
 /* ── Pending dot pulse ── */
@@ -336,8 +456,16 @@
   justify-content: space-between;
   padding: 0.625rem 0.875rem;
   border-radius: 0.75rem;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .admin-event-row:hover {
   background: rgba(30, 64, 175, 0.04);
+}
+.admin-event-row:active {
+  transform: scale(0.99);
+}
+
+/* ── Smooth table rows ── */
+tbody tr {
+  transition: background-color 0.12s ease;
 }

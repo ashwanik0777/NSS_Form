@@ -198,7 +198,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
             {showNotifications && (
               <div
-                className="absolute right-0 mt-2 bg-white rounded-2xl overflow-hidden z-50"
+                className="absolute right-0 mt-2 bg-white rounded-2xl overflow-hidden z-50 smooth-popover"
                 style={{
                   width: "min(340px, calc(100vw - 1.5rem))",
                   border: "1px solid #e8edf5",
@@ -230,7 +230,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
                 </div>
 
                 {/* List */}
-                <div className="overflow-y-auto" style={{ maxHeight: "min(320px, 55vh)" }}>
+                <div className="overflow-y-auto scroll-smooth overscroll-contain" style={{ maxHeight: "min(320px, 55vh)" }}>
                   {notifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 px-4">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: "#f0f4f8" }}>
@@ -308,7 +308,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
             {showUserMenu && (
               <div
-                className="absolute right-0 mt-2 bg-white rounded-2xl overflow-hidden z-50"
+                className="absolute right-0 mt-2 bg-white rounded-2xl overflow-hidden z-50 smooth-popover"
                 style={{
                   width: "min(220px, calc(100vw - 1.5rem))",
                   border: "1px solid #e8edf5",
@@ -327,12 +327,12 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
                 <div className="p-1.5">
                   <Link href="/admin/profile">
-                    <button className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors hover:bg-slate-50" style={{ color: "#334155" }}>
+                    <button className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-all duration-150 hover:bg-slate-50 active:scale-[0.98]" style={{ color: "#334155" }}>
                       <User className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
                       Profile
                     </button>
                   </Link>
-                  <button className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors hover:bg-slate-50" style={{ color: "#334155" }}>
+                  <button className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-all duration-150 hover:bg-slate-50 active:scale-[0.98]" style={{ color: "#334155" }}>
                     <Settings className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
                     Settings
                   </button>
@@ -341,7 +341,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
                 <div className="p-1.5" style={{ borderTop: "1px solid #f0f4f8" }}>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors hover:bg-red-50"
+                    className="flex items-center w-full gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-all duration-150 hover:bg-red-50 active:scale-[0.98]"
                     style={{ color: "#dc2626" }}
                   >
                     <LogOut className="w-4 h-4 flex-shrink-0" />
