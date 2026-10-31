@@ -1303,83 +1303,90 @@ export default function VolunteersPage() {
 
         {/* Volunteer Detail Modal */}
         {showDetailModal && selectedVolunteer && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 transition-all duration-200">
-            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col shadow-2xl smooth-modal">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4 md:p-6 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full h-[96vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl smooth-modal overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border gap-4">
-                <div className="flex items-center gap-4 min-w-0">
-                  {/* Volunteer Photo Upload on Side */}
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-muted border-2 border-border flex-shrink-0 shadow-sm">
-                    {selectedVolunteer.application?.photo || selectedVolunteer.photo ? (
-                      <img
-                        src={selectedVolunteer.application?.photo || selectedVolunteer.photo}
-                        alt={selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLElement).style.display = 'none';
-                          (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-2xl ${selectedVolunteer.application?.photo || selectedVolunteer.photo ? 'hidden' : ''}`}>
-                      {(selectedVolunteer.application?.nameEnglish || selectedVolunteer.name || "V").charAt(0).toUpperCase()}
+              <div className="p-3.5 sm:p-5 md:p-6 border-b border-border bg-card">
+                {/* Top row: Photo + Name/Email + Action buttons */}
+                <div className="flex items-start justify-between gap-2.5 sm:gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    {/* Volunteer Photo Upload on Side */}
+                    <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden bg-muted border-2 border-border shrink-0 shadow-xs">
+                      {selectedVolunteer.application?.photo || selectedVolunteer.photo ? (
+                        <img
+                          src={selectedVolunteer.application?.photo || selectedVolunteer.photo}
+                          alt={selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                            (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-xl sm:text-2xl ${selectedVolunteer.application?.photo || selectedVolunteer.photo ? 'hidden' : ''}`}>
+                        {(selectedVolunteer.application?.nameEnglish || selectedVolunteer.name || "V").charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base sm:text-2xl font-bold text-foreground leading-snug break-words sm:truncate">
+                        {selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                      </h2>
+                      <p className="text-muted-foreground flex items-center gap-1 sm:gap-1.5 mt-0.5 text-xs sm:text-sm truncate">
+                        <Mail className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{selectedVolunteer.email}</span>
+                      </p>
                     </div>
                   </div>
 
-                  <div className="min-w-0">
-                    <h2 className="text-xl sm:text-2xl font-bold text-foreground truncate">
-                      {selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
-                    </h2>
-                    <p className="text-muted-foreground flex items-center gap-2 mt-0.5 text-sm truncate">
-                      <Mail className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{selectedVolunteer.email}</span>
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
-                      </span>
-                      {selectedVolunteer.application?.unitNo && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                          Unit {selectedVolunteer.application.unitNo}
-                        </span>
-                      )}
-                    </div>
+                  {/* Actions: Remove & Close buttons */}
+                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                    <button
+                      onClick={() => {
+                        setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
+                        setRemoveReason("")
+                        setShowRemoveModal(true)
+                      }}
+                      className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-1.5"
+                      title="Remove Volunteer"
+                    >
+                      <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden xs:inline sm:inline">Remove</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowDetailModal(false)
+                        setSelectedVolunteer(null)
+                        setTasks([])
+                        setShowTaskForm(false)
+                      }}
+                      className="p-1.5 sm:p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                      title="Close"
+                    >
+                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => {
-                      setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
-                      setRemoveReason("")
-                      setShowRemoveModal(true)
-                    }}
-                    className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
-                    title="Remove Volunteer"
-                  >
-                    <Ban className="w-4 h-4" />
-                    Remove
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowDetailModal(false)
-                      setSelectedVolunteer(null)
-                      setTasks([])
-                      setShowTaskForm(false)
-                    }}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                {/* Sub-row: Approval date and Unit badges - Full width, clean wrap on mobile, aligns under name on desktop */}
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2.5 sm:mt-3 sm:ml-24">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
+                  </span>
+                  {selectedVolunteer.application?.unitNo && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                      Unit {selectedVolunteer.application.unitNo}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Tabs */}
-              <div className="flex border-b border-border px-6">
+              <div className="flex border-b border-border px-3 sm:px-6 overflow-x-auto no-scrollbar gap-1 sm:gap-2">
                 <button
                   onClick={() => setActiveTab("profile")}
-                  className={`px-4 py-3 font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     activeTab === "profile"
                       ? "text-primary border-b-2 border-primary"
                       : "text-muted-foreground hover:text-foreground"
@@ -1389,7 +1396,7 @@ export default function VolunteersPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("tasks")}
-                  className={`px-4 py-3 font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     activeTab === "tasks"
                       ? "text-primary border-b-2 border-primary"
                       : "text-muted-foreground hover:text-foreground"
@@ -1399,7 +1406,7 @@ export default function VolunteersPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("events")}
-                  className={`px-4 py-3 font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     activeTab === "events"
                       ? "text-primary border-b-2 border-primary"
                       : "text-muted-foreground hover:text-foreground"
@@ -1410,33 +1417,33 @@ export default function VolunteersPage() {
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-6">
+              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-3.5 sm:p-6">
                 {/* Profile Tab */}
                 {activeTab === "profile" && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Stats */}
-                    <div className="grid grid-cols-4 gap-4">
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Total Events</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalEvents}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Events</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Completed</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.completedEvents}</p>
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Completed</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.completedEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Total Hours</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalHours}h</p>
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Hours</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalHours}h</p>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Attendance</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Attendance</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
                       </div>
                     </div>
 
                     {/* Complete Profile Information */}
                     {selectedVolunteer.application && (
-                      <div className="bg-muted/50 rounded-lg p-6 space-y-6">
+                      <div className="bg-muted/50 rounded-xl p-3.5 sm:p-6 space-y-4 sm:space-y-6">
                         <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
                           <User className="w-5 h-5" />
                           Complete Profile Information
@@ -1665,8 +1672,8 @@ export default function VolunteersPage() {
 
                     {/* Volunteer Uploaded Photo & Verification Documents */}
                     {selectedVolunteer.application && (
-                      <div className="bg-muted/50 rounded-lg p-6 space-y-4">
-                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                      <div className="bg-muted/50 rounded-xl p-3.5 sm:p-6 space-y-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                           <ImageIcon className="w-5 h-5 text-primary" />
                           Volunteer Uploaded Photo & Documents
                         </h3>
