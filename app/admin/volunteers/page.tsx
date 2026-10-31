@@ -1019,14 +1019,9 @@ export default function VolunteersPage() {
                 {/* Actions & Status footer */}
                 <div className="flex items-center justify-between pt-2 border-t border-border/60">
                   <div className="text-[11px] text-muted-foreground">
-                    {volunteer.application?.reviewedAt ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Approved {formatDate(volunteer.application.reviewedAt)}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Active</span>
-                    )}
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                      Active
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -1143,17 +1138,9 @@ export default function VolunteersPage() {
                           <div className="min-w-0">
                             <p className="font-medium text-foreground truncate">{volunteer.application?.nameEnglish || volunteer.name}</p>
                             <p className="text-sm text-muted-foreground truncate">{volunteer.email}</p>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
-                              {volunteer.application?.mobileNo && (
-                                <span>{volunteer.application.mobileNo}</span>
-                              )}
-                              {volunteer.application?.reviewedAt && (
-                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                                  Approved {formatDate(volunteer.application.reviewedAt)}
-                                </span>
-                              )}
-                            </div>
+                            {volunteer.application?.mobileNo && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{volunteer.application.mobileNo}</p>
+                            )}
                           </div>
                         </div>
                       </td>
