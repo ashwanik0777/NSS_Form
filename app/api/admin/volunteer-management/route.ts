@@ -111,12 +111,12 @@ export async function GET(request: NextRequest) {
 
     if (volunteerId && !format) {
       // Get detailed info for a specific volunteer
-      const volunteer = await User.findById(volunteerId).lean()
+      const volunteer = (await User.findById(volunteerId).lean()) as any
       if (!volunteer || (volunteer.role !== "volunteer" && volunteer.role !== "user")) {
         return NextResponse.json({ success: false, message: "Volunteer not found" }, { status: 404 })
       }
 
-      const application = await NSSApplication.findOne({ userId: volunteerId }).lean()
+      const application = (await NSSApplication.findOne({ userId: volunteerId }).lean()) as any
       
       // Check unit access for sub-admin
       if (session.user.role === "sub-admin" && application) {
@@ -127,12 +127,12 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const projectAssignment = await VolunteerProject.findOne({
+      const projectAssignment = (await VolunteerProject.findOne({
         volunteerId,
         status: "active",
       })
         .populate("projectId")
-        .lean()
+        .lean()) as any
 
       const events = await VolunteerEvent.find({ volunteerId })
         .populate("eventId")
