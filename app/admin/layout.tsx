@@ -131,18 +131,6 @@ export default function AdminLayout({
             <main className="flex-1 overflow-y-auto scroll-smooth overscroll-contain transition-colors duration-200">
               {children}
             </main>
-
-            {/* Persistent Floating Mobile Menu Pill (below md) */}
-            <div className="md:hidden fixed bottom-5 right-5 z-40">
-              <button
-                onClick={() => setMobileOpen(true)}
-                className="flex items-center gap-2 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-medium text-xs rounded-full shadow-lg shadow-blue-600/30 transition-all duration-200"
-                aria-label="Open menu"
-              >
-                <Menu className="w-4 h-4" />
-                <span>Menu</span>
-              </button>
-            </div>
           </div>
         </div>
       </AdminLayoutContext.Provider>
