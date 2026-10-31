@@ -511,6 +511,26 @@ export async function GET(request: NextRequest) {
         highSchoolRollNo: { label: "High School Roll No", getValue: (v) => v.highSchoolRollNo || "" },
         classSemester: { label: "Class/Semester", getValue: (v) => v.classSemester || "" },
         unitNo: { label: "Unit", getValue: (v) => v.unitNo || "" },
+        approvedDate: {
+          label: "Approved Date",
+          getValue: (v) => {
+            const d = v.reviewedAt || v.submittedAt
+            return d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : ""
+          }
+        },
+        reviewedAt: {
+          label: "Approved Date",
+          getValue: (v) => {
+            const d = v.reviewedAt || v.submittedAt
+            return d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : ""
+          }
+        },
+        submittedDate: {
+          label: "Submitted Date",
+          getValue: (v) => {
+            return v.submittedAt ? new Date(v.submittedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : ""
+          }
+        },
         programOfficerName: { label: "Program Officer", getValue: (v) => v.programOfficerName || "" },
         nssEnrollmentYear: { label: "NSS Enrollment Year", getValue: (v) => v.nssEnrollmentYear || "" },
         myBharatRegistered: { label: "My Bharat Registered", getValue: (v) => v.myBharatPortalRegistered ? "Yes" : "No" },
@@ -566,7 +586,7 @@ export async function GET(request: NextRequest) {
         const columns = selectedFields.map(key => ({ key, label: FIELD_MAP[key].label }))
         const pdfBytes = await generateVolunteerExportPDF(rows, unitInfo, columns)
 
-        return new NextResponse(pdfBytes, {
+        return new NextResponse(pdfBytes as any, {
           status: 200,
           headers: {
             "Content-Type": "application/pdf",

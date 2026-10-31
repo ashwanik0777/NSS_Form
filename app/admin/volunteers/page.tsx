@@ -228,6 +228,8 @@ export default function VolunteersPage() {
       label: "NSS Details",
       fields: [
         { key: "unitNo", label: "Unit No" },
+        { key: "approvedDate", label: "Approved Date" },
+        { key: "submittedDate", label: "Submitted Date" },
         { key: "programOfficerName", label: "Program Officer" },
         { key: "nssEnrollmentYear", label: "NSS Enrollment Year" },
         { key: "myBharatRegistered", label: "My Bharat Registered" },
