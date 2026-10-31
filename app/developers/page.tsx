@@ -9,11 +9,8 @@ import {
   Instagram,
   Facebook,
   Code,
-  Users,
-  Globe2,
   CheckCircle2,
   Layers,
-  Sparkles,
 } from "lucide-react"
 import PublicNavbar from "@/components/public-navbar"
 
@@ -128,37 +125,16 @@ export default function DevelopersPage() {
       <PublicNavbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-6 shadow-lg">
-            <Code className="w-10 h-10 text-white" />
+        <div className="text-center mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-3">
+            GBU NSS • Technical Cell
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Development Team
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-2">
-            Meet the creative minds behind the NSS Management System
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium max-w-xl mx-auto mt-2">
+            The student engineers behind the official National Service Scheme portal at Gautam Buddha University.
           </p>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            NSS Cell, Gautam Buddha University
-          </p>
-        </div>
-
-        {/* Team Stats */}
-        <div className="max-w-5xl mx-auto bg-white dark:bg-card rounded-2xl border border-slate-200/80 dark:border-border p-6 mb-12 shadow-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-            <div>
-              <div className="text-3xl font-extrabold text-primary mb-1">{developers.length}</div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Team Members</p>
-            </div>
-            <div>
-              <div className="text-3xl font-extrabold text-foreground mb-1">100%</div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Open Source</p>
-            </div>
-            <div>
-              <div className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mb-1">24/7</div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Support</p>
-            </div>
-          </div>
         </div>
 
         {/* Developers Grid */}
@@ -207,8 +183,7 @@ export default function DevelopersPage() {
                   {dev.role}
                 </p>
                 <div className="mt-2 mb-4">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-                    <Sparkles className="w-3 h-3 text-blue-500" />
+                  <span className="inline-flex items-center px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
                     {dev.roleType} Developer
                   </span>
                 </div>
