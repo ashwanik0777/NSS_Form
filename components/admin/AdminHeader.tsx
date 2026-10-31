@@ -9,6 +9,7 @@ import { useAdminLayout } from "@/components/admin/AdminLayoutContext"
 interface AdminHeaderProps {
   title: string
   subtitle?: string
+  action?: React.ReactNode
 }
 
 interface Notification {
@@ -20,7 +21,7 @@ interface Notification {
   data?: any
 }
 
-export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
+export default function AdminHeader({ title, subtitle, action }: AdminHeaderProps) {
   const { openMobileSidebar } = useAdminLayout()
   const { data: session } = useSession()
 
@@ -172,6 +173,11 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
         {/* ── Right Controls ── */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {action && (
+            <div className="flex items-center mr-0.5 sm:mr-1">
+              {action}
+            </div>
+          )}
 
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>

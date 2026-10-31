@@ -228,6 +228,8 @@ export default function VolunteersPage() {
       label: "NSS Details",
       fields: [
         { key: "unitNo", label: "Unit No" },
+        { key: "approvedDate", label: "Approved Date" },
+        { key: "submittedDate", label: "Submitted Date" },
         { key: "programOfficerName", label: "Program Officer" },
         { key: "nssEnrollmentYear", label: "NSS Enrollment Year" },
         { key: "myBharatRegistered", label: "My Bharat Registered" },
@@ -641,85 +643,79 @@ export default function VolunteersPage() {
 
   return (
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="volunteers.view">
-      <AdminHeader title="Volunteers" subtitle="Manage registered NSS volunteers" />
+      <AdminHeader 
+        title="Volunteers" 
+        subtitle="Manage registered NSS volunteers" 
+        action={
+          <button
+            onClick={openExportModal}
+            disabled={exporting !== null}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-primary text-primary-foreground rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-all shadow-xs active:scale-95"
+            title="Export Volunteers"
+          >
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline sm:inline">Export</span>
+          </button>
+        }
+      />
       
-      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-        {/* Top Header Row with Export Button */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="md:hidden">
-            <h2 className="text-base font-bold text-foreground">Volunteers List</h2>
-            <p className="text-xs text-muted-foreground">
-              {totalVolunteers > 0 ? (searchQuery ? `${totalVolunteers} found` : `${totalVolunteers} registered`) : "0 volunteers"}
-            </p>
-          </div>
-          <div className="flex justify-end gap-3 ml-auto">
-            <button
-              onClick={openExportModal}
-              disabled={exporting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-primary-foreground rounded-lg text-xs sm:text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-xs"
-            >
-              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Export
-            </button>
-          </div>
-        </div>
-
+      <div className="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-3.5 md:space-y-4">
         {/* Analytics Cards (2x2 on mobile, 4-column on desktop) */}
         {analytics && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 md:gap-4">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Total Volunteers</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalVolunteers}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Total Volunteers</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.totalVolunteers}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 dark:bg-blue-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Project Vol.</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalActiveProjects}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Project Vol.</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.totalActiveProjects}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-green-100 dark:bg-green-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 dark:bg-green-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Total Events</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalEvents}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Total Events</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.totalEvents}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-purple-100 dark:bg-purple-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 dark:bg-purple-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Avg. Attendance</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.avgAttendanceRate}%</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Avg. Attendance</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.avgAttendanceRate}%</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-yellow-100 dark:bg-yellow-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <Award className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-yellow-600 dark:text-yellow-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 dark:bg-yellow-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" />
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Unit-wise Stat Cards (Horizontal Swipe Strip on Mobile, Grid on Desktop) */}
+        {/* Unit-wise Stat Cards (Single-row 6-column on Desktop, Horizontal Swipe on Mobile) */}
         {stats && Object.keys(stats.units || {}).length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Unit Distribution</h3>
@@ -732,25 +728,25 @@ export default function VolunteersPage() {
               </span>
             </div>
 
-            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 overflow-x-auto pb-2 pt-0.5 scrollbar-none snap-x md:overflow-visible">
+            <div className="flex md:grid md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5 lg:gap-3 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none snap-x md:overflow-visible">
               {Object.keys(stats.units || {}).sort().map((unit) => {
                 const u = stats.units[unit]
                 return (
-                  <div key={unit} className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs shrink-0 w-[150px] sm:w-[170px] md:w-auto snap-start hover:border-primary/40 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xs sm:text-sm font-semibold text-foreground">Unit {unit}</h3>
-                      <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium">
+                  <div key={unit} className="bg-card rounded-xl border border-border p-2.5 sm:p-3 shadow-xs shrink-0 w-[135px] sm:w-[150px] md:w-auto snap-start hover:border-primary/40 hover:shadow-xs transition-all">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <h4 className="text-xs sm:text-sm font-bold text-foreground">Unit {unit}</h4>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-semibold">
                         {u.approved} Vol.
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5 text-xs">
-                      <div className="p-1.5 sm:p-2 rounded-lg bg-green-50/80 dark:bg-green-950/20 border border-green-200/80 dark:border-green-900/40 text-center">
-                        <div className="text-green-900 dark:text-green-300 font-bold text-xs sm:text-sm">{u.approved}</div>
-                        <div className="text-[10px] text-green-700 dark:text-green-400">Approved</div>
+                    <div className="grid grid-cols-2 gap-1 text-[11px]">
+                      <div className="px-1.5 py-1 rounded-md bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 text-center">
+                        <div className="text-emerald-900 dark:text-emerald-300 font-bold text-xs">{u.approved}</div>
+                        <div className="text-[9px] text-emerald-700/90 dark:text-emerald-400/90 leading-tight">Approved</div>
                       </div>
-                      <div className="p-1.5 sm:p-2 rounded-lg bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 text-center">
-                        <div className="text-blue-900 dark:text-blue-300 font-bold text-xs sm:text-sm">{u.total}</div>
-                        <div className="text-[10px] text-blue-700 dark:text-blue-400">Total</div>
+                      <div className="px-1.5 py-1 rounded-md bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 text-center">
+                        <div className="text-blue-900 dark:text-blue-300 font-bold text-xs">{u.total}</div>
+                        <div className="text-[9px] text-blue-700/90 dark:text-blue-400/90 leading-tight">Total</div>
                       </div>
                     </div>
                   </div>
@@ -761,7 +757,7 @@ export default function VolunteersPage() {
         )}
 
         {/* Advanced Filters */}
-        <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs space-y-3">
+        <div className="bg-card rounded-xl border border-border p-2.5 sm:p-3.5 shadow-xs space-y-2.5">
           {/* Main search row with mobile filter toggle button */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -1019,14 +1015,9 @@ export default function VolunteersPage() {
                 {/* Actions & Status footer */}
                 <div className="flex items-center justify-between pt-2 border-t border-border/60">
                   <div className="text-[11px] text-muted-foreground">
-                    {volunteer.application?.reviewedAt ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Approved {formatDate(volunteer.application.reviewedAt)}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Active</span>
-                    )}
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                      Active
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -1143,17 +1134,9 @@ export default function VolunteersPage() {
                           <div className="min-w-0">
                             <p className="font-medium text-foreground truncate">{volunteer.application?.nameEnglish || volunteer.name}</p>
                             <p className="text-sm text-muted-foreground truncate">{volunteer.email}</p>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
-                              {volunteer.application?.mobileNo && (
-                                <span>{volunteer.application.mobileNo}</span>
-                              )}
-                              {volunteer.application?.reviewedAt && (
-                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                                  Approved {formatDate(volunteer.application.reviewedAt)}
-                                </span>
-                              )}
-                            </div>
+                            {volunteer.application?.mobileNo && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{volunteer.application.mobileNo}</p>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -1303,83 +1286,90 @@ export default function VolunteersPage() {
 
         {/* Volunteer Detail Modal */}
         {showDetailModal && selectedVolunteer && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 transition-all duration-200">
-            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col shadow-2xl smooth-modal">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4 md:p-6 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full h-[96vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl smooth-modal overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border gap-4">
-                <div className="flex items-center gap-4 min-w-0">
-                  {/* Volunteer Photo Upload on Side */}
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-muted border-2 border-border flex-shrink-0 shadow-sm">
-                    {selectedVolunteer.application?.photo || selectedVolunteer.photo ? (
-                      <img
-                        src={selectedVolunteer.application?.photo || selectedVolunteer.photo}
-                        alt={selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLElement).style.display = 'none';
-                          (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-2xl ${selectedVolunteer.application?.photo || selectedVolunteer.photo ? 'hidden' : ''}`}>
-                      {(selectedVolunteer.application?.nameEnglish || selectedVolunteer.name || "V").charAt(0).toUpperCase()}
+              <div className="p-3.5 sm:p-5 md:p-6 border-b border-border bg-card">
+                {/* Top row: Photo + Name/Email + Action buttons */}
+                <div className="flex items-start justify-between gap-2.5 sm:gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    {/* Volunteer Photo Upload on Side */}
+                    <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden bg-muted border-2 border-border shrink-0 shadow-xs">
+                      {selectedVolunteer.application?.photo || selectedVolunteer.photo ? (
+                        <img
+                          src={selectedVolunteer.application?.photo || selectedVolunteer.photo}
+                          alt={selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                            (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-xl sm:text-2xl ${selectedVolunteer.application?.photo || selectedVolunteer.photo ? 'hidden' : ''}`}>
+                        {(selectedVolunteer.application?.nameEnglish || selectedVolunteer.name || "V").charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base sm:text-2xl font-bold text-foreground leading-snug break-words sm:truncate">
+                        {selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                      </h2>
+                      <p className="text-muted-foreground flex items-center gap-1 sm:gap-1.5 mt-0.5 text-xs sm:text-sm truncate">
+                        <Mail className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{selectedVolunteer.email}</span>
+                      </p>
                     </div>
                   </div>
 
-                  <div className="min-w-0">
-                    <h2 className="text-xl sm:text-2xl font-bold text-foreground truncate">
-                      {selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
-                    </h2>
-                    <p className="text-muted-foreground flex items-center gap-2 mt-0.5 text-sm truncate">
-                      <Mail className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{selectedVolunteer.email}</span>
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
-                      </span>
-                      {selectedVolunteer.application?.unitNo && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                          Unit {selectedVolunteer.application.unitNo}
-                        </span>
-                      )}
-                    </div>
+                  {/* Actions: Remove & Close buttons */}
+                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                    <button
+                      onClick={() => {
+                        setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
+                        setRemoveReason("")
+                        setShowRemoveModal(true)
+                      }}
+                      className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-1.5"
+                      title="Remove Volunteer"
+                    >
+                      <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden xs:inline sm:inline">Remove</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowDetailModal(false)
+                        setSelectedVolunteer(null)
+                        setTasks([])
+                        setShowTaskForm(false)
+                      }}
+                      className="p-1.5 sm:p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                      title="Close"
+                    >
+                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => {
-                      setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
-                      setRemoveReason("")
-                      setShowRemoveModal(true)
-                    }}
-                    className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
-                    title="Remove Volunteer"
-                  >
-                    <Ban className="w-4 h-4" />
-                    Remove
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowDetailModal(false)
-                      setSelectedVolunteer(null)
-                      setTasks([])
-                      setShowTaskForm(false)
-                    }}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                {/* Sub-row: Approval date and Unit badges - Full width, clean wrap on mobile, aligns under name on desktop */}
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2.5 sm:mt-3 sm:ml-24">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
+                  </span>
+                  {selectedVolunteer.application?.unitNo && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                      Unit {selectedVolunteer.application.unitNo}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Tabs */}
-              <div className="flex border-b border-border px-6">
+              <div className="flex border-b border-border px-3 sm:px-6 overflow-x-auto no-scrollbar gap-1 sm:gap-2">
                 <button
                   onClick={() => setActiveTab("profile")}
-                  className={`px-4 py-3 font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     activeTab === "profile"
                       ? "text-primary border-b-2 border-primary"
                       : "text-muted-foreground hover:text-foreground"
@@ -1389,7 +1379,7 @@ export default function VolunteersPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("tasks")}
-                  className={`px-4 py-3 font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     activeTab === "tasks"
                       ? "text-primary border-b-2 border-primary"
                       : "text-muted-foreground hover:text-foreground"
@@ -1399,7 +1389,7 @@ export default function VolunteersPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("events")}
-                  className={`px-4 py-3 font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     activeTab === "events"
                       ? "text-primary border-b-2 border-primary"
                       : "text-muted-foreground hover:text-foreground"
@@ -1410,33 +1400,33 @@ export default function VolunteersPage() {
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-6">
+              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-3.5 sm:p-6">
                 {/* Profile Tab */}
                 {activeTab === "profile" && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Stats */}
-                    <div className="grid grid-cols-4 gap-4">
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Total Events</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalEvents}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Events</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Completed</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.completedEvents}</p>
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Completed</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.completedEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Total Hours</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.totalHours}h</p>
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Hours</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalHours}h</p>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground">Attendance</p>
-                        <p className="text-2xl font-bold text-foreground mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
+                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Attendance</p>
+                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
                       </div>
                     </div>
 
                     {/* Complete Profile Information */}
                     {selectedVolunteer.application && (
-                      <div className="bg-muted/50 rounded-lg p-6 space-y-6">
+                      <div className="bg-muted/50 rounded-xl p-3.5 sm:p-6 space-y-4 sm:space-y-6">
                         <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
                           <User className="w-5 h-5" />
                           Complete Profile Information
@@ -1665,8 +1655,8 @@ export default function VolunteersPage() {
 
                     {/* Volunteer Uploaded Photo & Verification Documents */}
                     {selectedVolunteer.application && (
-                      <div className="bg-muted/50 rounded-lg p-6 space-y-4">
-                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                      <div className="bg-muted/50 rounded-xl p-3.5 sm:p-6 space-y-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                           <ImageIcon className="w-5 h-5 text-primary" />
                           Volunteer Uploaded Photo & Documents
                         </h3>
