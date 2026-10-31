@@ -210,7 +210,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 scroll-smooth overscroll-contain">
         {groupedSidebar.map(({ id, group, icon, accentColor, items }) => {
           const isExpanded = activeGroup === id
 
@@ -223,7 +223,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
                 title={collapsed && !isMobile ? group : undefined}
                 className={`w-full flex items-center ${
                   collapsed && !isMobile ? "justify-center px-2 py-2.5" : "justify-between px-3 py-2"
-                } rounded-lg transition-all duration-150 hover:bg-slate-50`}
+                } rounded-lg transition-all duration-150 hover:bg-slate-50 active:scale-[0.99]`}
               >
                 <span className="flex items-center gap-2.5">
                   <span
@@ -268,7 +268,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
                         <Link
                           href={item.href}
                           onClick={isMobile ? onClose : undefined}
-                          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 active:scale-[0.98] ${
                             isActive
                               ? "sidebar-active-link text-white"
                               : "text-slate-600 hover:bg-blue-50/70 hover:text-blue-700"
@@ -297,7 +297,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
               {/* Desktop-only: collapsed flyout */}
               {isExpanded && collapsed && !isMobile && (
                 <div
-                  className="absolute left-full top-0 ml-2 z-50 bg-white border border-slate-200 rounded-xl min-w-[220px] p-2"
+                  className="absolute left-full top-0 ml-2 z-50 bg-white border border-slate-200 rounded-xl min-w-[220px] p-2 smooth-popover"
                   style={{ boxShadow: "0 8px 32px rgba(15,31,61,0.14)" }}
                 >
                   <p
@@ -320,7 +320,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
                         <li key={item.id}>
                           <Link
                             href={item.href}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-[0.98] ${
                               isActive
                                 ? "sidebar-active-link text-white"
                                 : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
@@ -349,7 +349,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
         <Link
           href="/admin/profile"
           onClick={isMobile ? onClose : undefined}
-          className="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 hover:bg-blue-50/60 group"
+          className="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-150 hover:bg-blue-50/60 active:scale-[0.98] group"
           title={collapsed && !isMobile ? user?.name || "Admin User" : undefined}
         >
           <div
@@ -394,7 +394,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
           DESKTOP SIDEBAR (md and above)
           ════════════════════════════════════ */}
       <aside
-        className={`hidden md:flex flex-col flex-shrink-0 bg-white border-r border-slate-200/80 transition-all duration-300 ease-in-out h-screen ${
+        className={`hidden md:flex flex-col flex-shrink-0 bg-white border-r border-slate-200/80 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] h-screen ${
           collapsed ? "w-[72px]" : "w-[272px]"
         }`}
         style={{ boxShadow: "2px 0 16px rgba(15,31,61,0.06)" }}
@@ -418,7 +418,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
 
       {/* Drawer panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[288px] flex flex-col bg-white md:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-[288px] flex flex-col bg-white md:hidden transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ boxShadow: "4px 0 32px rgba(15,31,61,0.15)" }}

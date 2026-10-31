@@ -13,6 +13,10 @@ import { generateVolunteerExportPDF } from "@/lib/generateVolunteerExportPDF"
 import { hasPermission } from "@/lib/permissions"
 import { getUnitNoQuery, normalizeUnitNo } from "@/lib/unit"
 
+function escapeRegex(text: string): string {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+}
+
 export async function PATCH(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any
@@ -187,7 +191,7 @@ export async function GET(request: NextRequest) {
     const enrollment = searchParams.get("enrollment")
     const schoolName = searchParams.get("schoolName")
     const departmentName = searchParams.get("departmentName")
-    const nameSearch = searchParams.get("nameSearch")
+    const search = (searchParams.get("search") || searchParams.get("nameSearch") || "").trim()
     const type = searchParams.get("type") // "past" for removed volunteers
     const sortBy = searchParams.get("sortBy") || "hours-desc" // default to hours-desc for backwards compatibility
     const page = parseInt(searchParams.get("page") || "1")
@@ -208,8 +212,52 @@ export async function GET(request: NextRequest) {
         pastFilter.unitNo = getUnitNoQuery(unitNo)
       }
 
-      if (nameSearch && nameSearch.trim()) {
-        pastFilter.nameEnglish = { $regex: new RegExp(`${nameSearch.trim()}`, 'i') }
+      if (search) {
+        const escapedSearch = escapeRegex(search)
+        const digitsOnly = search.replace(/\D/g, "")
+
+        // Find users matching search by name, email, or phone
+        const matchingUsers = await User.find({
+          $or: [
+            { name: { $regex: escapedSearch, $options: "i" } },
+            { email: { $regex: escapedSearch, $options: "i" } },
+            { phone: { $regex: escapedSearch, $options: "i" } },
+          ],
+        }).select("_id").lean()
+        const matchingUserIds = matchingUsers.map((u: any) => u._id)
+
+        const searchOrConditions: any[] = [
+          { nameEnglish: { $regex: escapedSearch, $options: "i" } },
+          { nameHindi: { $regex: escapedSearch, $options: "i" } },
+          { emailId: { $regex: escapedSearch, $options: "i" } },
+          { mobileNo: { $regex: escapedSearch, $options: "i" } },
+          { institutionalIdCard: { $regex: escapedSearch, $options: "i" } },
+          { formNo: { $regex: escapedSearch, $options: "i" } },
+          { removalReason: { $regex: escapedSearch, $options: "i" } },
+        ]
+
+        if (digitsOnly.length >= 3) {
+          searchOrConditions.push({ mobileNo: { $regex: digitsOnly, $options: "i" } })
+          if (digitsOnly.length === 12 && digitsOnly.startsWith("91")) {
+            searchOrConditions.push({ mobileNo: { $regex: digitsOnly.slice(2), $options: "i" } })
+          } else if (digitsOnly.length === 11 && digitsOnly.startsWith("0")) {
+            searchOrConditions.push({ mobileNo: { $regex: digitsOnly.slice(1), $options: "i" } })
+          }
+        }
+
+        if (matchingUserIds.length > 0) {
+          searchOrConditions.push({ userId: { $in: matchingUserIds } })
+        }
+
+        if (pastFilter.$or) {
+          pastFilter.$and = [
+            { $or: pastFilter.$or },
+            { $or: searchOrConditions },
+          ]
+          delete pastFilter.$or
+        } else {
+          pastFilter.$or = searchOrConditions
+        }
       }
 
       const pastApps = await NSSApplication.find(pastFilter)
@@ -274,8 +322,53 @@ export async function GET(request: NextRequest) {
     if (departmentName && departmentName.trim()) {
       applicationFilter.departmentName = { $regex: new RegExp(`${departmentName.trim()}`, 'i') }
     }
-    if (nameSearch && nameSearch.trim()) {
-      applicationFilter.nameEnglish = { $regex: new RegExp(`${nameSearch.trim()}`, 'i') }
+    if (search) {
+      const escapedSearch = escapeRegex(search)
+      const digitsOnly = search.replace(/\D/g, "")
+
+      // Search matching users by name, email, or phone
+      const matchingUsers = await User.find({
+        $or: [
+          { name: { $regex: escapedSearch, $options: "i" } },
+          { email: { $regex: escapedSearch, $options: "i" } },
+          { phone: { $regex: escapedSearch, $options: "i" } },
+        ],
+      }).select("_id").lean()
+      const matchingUserIds = matchingUsers.map((u: any) => u._id)
+
+      const searchOrConditions: any[] = [
+        { nameEnglish: { $regex: escapedSearch, $options: "i" } },
+        { nameHindi: { $regex: escapedSearch, $options: "i" } },
+        { emailId: { $regex: escapedSearch, $options: "i" } },
+        { mobileNo: { $regex: escapedSearch, $options: "i" } },
+        { institutionalIdCard: { $regex: escapedSearch, $options: "i" } },
+        { formNo: { $regex: escapedSearch, $options: "i" } },
+        { highSchoolRollNo: { $regex: escapedSearch, $options: "i" } },
+        { fatherName: { $regex: escapedSearch, $options: "i" } },
+      ]
+
+      if (digitsOnly.length >= 3) {
+        searchOrConditions.push({ mobileNo: { $regex: digitsOnly, $options: "i" } })
+        if (digitsOnly.length === 12 && digitsOnly.startsWith("91")) {
+          searchOrConditions.push({ mobileNo: { $regex: digitsOnly.slice(2), $options: "i" } })
+        } else if (digitsOnly.length === 11 && digitsOnly.startsWith("0")) {
+          searchOrConditions.push({ mobileNo: { $regex: digitsOnly.slice(1), $options: "i" } })
+        }
+      }
+
+      if (matchingUserIds.length > 0) {
+        searchOrConditions.push({ userId: { $in: matchingUserIds } })
+      }
+
+      if (applicationFilter.$or) {
+        applicationFilter.$and = [
+          { $or: applicationFilter.$or },
+          { $or: searchOrConditions },
+        ]
+        delete applicationFilter.$or
+      } else {
+        applicationFilter.$or = searchOrConditions
+      }
     }
 
     // Aggregation Pipeline
@@ -521,13 +614,18 @@ export async function GET(request: NextRequest) {
         institutionName: v.institutionName,
         status: v.status,
         nameEnglish: v.nameEnglish,
-        mobileNo: v.mobileNo,
+        nameHindi: v.nameHindi,
+        fatherName: v.fatherName,
+        mobileNo: v.mobileNo || v.user?.phone || "",
+        institutionalIdCard: v.institutionalIdCard,
         enrollment: v.enrollment,
         departmentName: v.departmentName,
         courseName: v.courseName,
         schoolName: v.schoolName,
         unitNo: v.unitNo,
         submittedAt: v.submittedAt,
+        reviewedAt: v.reviewedAt || null,
+        photo: v.photo || v.user?.photo || "",
       },
       stats: {
         projects: v.activeProjectsCount,

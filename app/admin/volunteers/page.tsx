@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import AdminHeader from "@/components/admin/AdminHeader"
 import { schoolDepartmentData } from "@/lib/constants"
@@ -31,9 +31,16 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  SlidersHorizontal,
   Ban,
   AlertTriangle,
   RotateCcw,
+  Search,
+  CheckCircle2,
+  CalendarCheck,
+  Image as ImageIcon,
+  ExternalLink,
 } from "lucide-react"
 
 const formatDate = (value?: string | Date) => {
@@ -62,6 +69,9 @@ interface Volunteer {
     institutionName: string
     status: string
     nameEnglish: string
+    nameHindi?: string
+    fatherName?: string
+    emailId?: string
     mobileNo: string
     enrollment: string
     departmentName: string
@@ -69,6 +79,9 @@ interface Volunteer {
     schoolName: string
     unitNo: string
     submittedAt: string
+    reviewedAt?: string | Date
+    photo?: string
+    institutionalIdCard?: string
   }
   stats: {
     projects: number
@@ -83,6 +96,7 @@ interface VolunteerDetail {
   _id: string
   name: string
   email: string
+  photo?: string
   application?: any
   project?: any
   stats: {
@@ -153,12 +167,23 @@ export default function VolunteersPage() {
   const [submittingTask, setSubmittingTask] = useState(false)
   const [activeTab, setActiveTab] = useState<"profile" | "tasks" | "events">("profile")
   
-  // Filters
+  // Filters & Search
   const [unitNo, setUnitNo] = useState<string>("all")
   const [enrollment, setEnrollment] = useState<string>("all")
   const [schoolName, setSchoolName] = useState<string>("")
   const [sortBy, setSortBy] = useState<string>("hours-desc")
-  const [nameSearch, setNameSearch] = useState<string>("")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  const activeFiltersCount = useMemo(() => {
+    return (
+      (unitNo !== "all" ? 1 : 0) +
+      (enrollment !== "all" ? 1 : 0) +
+      (schoolName ? 1 : 0) +
+      (sortBy !== "hours-desc" ? 1 : 0)
+    )
+  }, [unitNo, enrollment, schoolName, sortBy])
+  const [isTableLoading, setIsTableLoading] = useState(false)
   const [stats, setStats] = useState<any | null>(null)
   const [schools, setSchools] = useState<string[]>([])
   const [loadingSchools, setLoadingSchools] = useState(false)
@@ -259,8 +284,6 @@ export default function VolunteersPage() {
     }
   }
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalVolunteers, setTotalVolunteers] = useState(0)
   const itemsPerPage = 20
 
   const [showRemoveModal, setShowRemoveModal] = useState(false)
@@ -268,14 +291,103 @@ export default function VolunteersPage() {
   const [removeReason, setRemoveReason] = useState("")
   const [removing, setRemoving] = useState(false)
 
+  // 1. Instant keystroke handler (0ms latency, no debounce)
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    setCurrentPage(1)
+  }
+
+  const handleClearSearch = () => {
+    setSearchQuery("")
+    setCurrentPage(1)
+  }
+
+  // 2. Instant in-memory search across ALL volunteer fields (name, email, phone, roll, unit, dept, school)
+  const filteredVolunteers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) {
+      return volunteers
+    }
+
+    const digitsOnly = query.replace(/\D/g, "")
+
+    return volunteers.filter((volunteer) => {
+      const name = (volunteer.application?.nameEnglish || volunteer.name || "").toLowerCase()
+      const hindiName = (volunteer.application?.nameHindi || "").toLowerCase()
+      const email = (volunteer.email || volunteer.application?.emailId || "").toLowerCase()
+      const mobile = (volunteer.application?.mobileNo || "").toLowerCase()
+      const mobileDigits = mobile.replace(/\D/g, "")
+      const rollNo = (volunteer.application?.institutionalIdCard || volunteer.application?.formNo || "").toLowerCase()
+      const unit = (volunteer.application?.unitNo || "").toLowerCase()
+      const school = (volunteer.application?.schoolName || "").toLowerCase()
+      const dept = (volunteer.application?.departmentName || "").toLowerCase()
+
+      return (
+        name.includes(query) ||
+        hindiName.includes(query) ||
+        email.includes(query) ||
+        mobile.includes(query) ||
+        (digitsOnly.length >= 3 && mobileDigits.includes(digitsOnly)) ||
+        rollNo.includes(query) ||
+        unit.includes(query) ||
+        school.includes(query) ||
+        dept.includes(query)
+      )
+    })
+  }, [volunteers, searchQuery])
+
+  // 3. Instant in-memory sorting
+  const sortedVolunteers = useMemo(() => {
+    const list = [...filteredVolunteers]
+    if (sortBy === "hours-desc") {
+      return list.sort((a, b) => {
+        const diff = (b.stats?.totalHours || 0) - (a.stats?.totalHours || 0)
+        if (diff !== 0) return diff
+        return (b.stats?.attendanceRate || 0) - (a.stats?.attendanceRate || 0)
+      })
+    }
+    if (sortBy === "hours-asc") {
+      return list.sort((a, b) => {
+        const diff = (a.stats?.totalHours || 0) - (b.stats?.totalHours || 0)
+        if (diff !== 0) return diff
+        return (a.stats?.attendanceRate || 0) - (b.stats?.attendanceRate || 0)
+      })
+    }
+    if (sortBy === "name-asc") {
+      return list.sort((a, b) => {
+        const nameA = (a.application?.nameEnglish || a.name || "").toLowerCase()
+        const nameB = (b.application?.nameEnglish || b.name || "").toLowerCase()
+        return nameA.localeCompare(nameB)
+      })
+    }
+    if (sortBy === "name-desc") {
+      return list.sort((a, b) => {
+        const nameA = (a.application?.nameEnglish || a.name || "").toLowerCase()
+        const nameB = (b.application?.nameEnglish || b.name || "").toLowerCase()
+        return nameB.localeCompare(nameA)
+      })
+    }
+    return list
+  }, [filteredVolunteers, sortBy])
+
+  // 4. Instant in-memory pagination
+  const totalVolunteersCount = sortedVolunteers.length
+  const totalVolunteers = totalVolunteersCount
+  const totalPages = Math.max(1, Math.ceil(totalVolunteersCount / itemsPerPage))
+
+  const displayVolunteers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return sortedVolunteers.slice(startIndex, startIndex + itemsPerPage)
+  }, [sortedVolunteers, currentPage, itemsPerPage])
+
   useEffect(() => {
-    setCurrentPage(1) // Reset to first page when filters change
-  }, [unitNo, enrollment, schoolName, sortBy, nameSearch])
+    setCurrentPage(1)
+  }, [unitNo, enrollment, schoolName, sortBy])
 
   useEffect(() => {
     fetchData()
     fetchStats()
-  }, [unitNo, enrollment, schoolName, sortBy, nameSearch, currentPage])
+  }, [unitNo, enrollment, schoolName])
 
   useEffect(() => {
     fetchSchools()
@@ -283,28 +395,30 @@ export default function VolunteersPage() {
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      if (volunteers.length === 0) {
+        setLoading(true)
+      } else {
+        setIsTableLoading(true)
+      }
+
       const params = new URLSearchParams()
       if (unitNo !== 'all') params.set('unitNo', unitNo)
       if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
       if (schoolName) params.set('schoolName', schoolName)
-      params.set('sortBy', sortBy)
-      if (nameSearch) params.set('nameSearch', nameSearch)
-      params.set('page', currentPage.toString())
-      params.set('limit', itemsPerPage.toString())
+      params.set('page', '1')
+      params.set('limit', '2000')
 
       const res = await fetch(`/api/admin/volunteer-management?${params.toString()}`)
       const data = await res.json()
       if (data.success) {
         setVolunteers(data.volunteers || [])
         setAnalytics(data.analytics || null)
-        setTotalPages(data.totalPages || 1)
-        setTotalVolunteers(data.totalVolunteers || 0)
       }
     } catch (error) {
       console.error("Error fetching data:", error)
     } finally {
       setLoading(false)
+      setIsTableLoading(false)
     }
   }
 
@@ -314,7 +428,6 @@ export default function VolunteersPage() {
     if (unitNo !== 'all') params.set('unitNo', unitNo)
     if (enrollment === 'first-year' || enrollment === 'second-year') params.set('enrollment', enrollment)
     if (schoolName) params.set('schoolName', schoolName)
-    if (nameSearch) params.set('nameSearch', nameSearch)
     try {
       const res = await fetch(`/api/admin/applications-stats?${params.toString()}`)
       const data = await res.json()
@@ -530,105 +643,179 @@ export default function VolunteersPage() {
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="volunteers.view">
       <AdminHeader title="Volunteers" subtitle="Manage registered NSS volunteers" />
       
-      <div className="p-6 space-y-6">
-        {/* Export Controls */}
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={openExportModal}
-            disabled={exporting !== null}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Export
-          </button>
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+        {/* Top Header Row with Export Button */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="md:hidden">
+            <h2 className="text-base font-bold text-foreground">Volunteers List</h2>
+            <p className="text-xs text-muted-foreground">
+              {totalVolunteers > 0 ? (searchQuery ? `${totalVolunteers} found` : `${totalVolunteers} registered`) : "0 volunteers"}
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 ml-auto">
+            <button
+              onClick={openExportModal}
+              disabled={exporting !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-primary-foreground rounded-lg text-xs sm:text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-xs"
+            >
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Export
+            </button>
+          </div>
         </div>
 
-        {/* Unit-wise Stat Cards */}
-        {stats && Object.keys(stats.units || {}).length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.keys(stats.units || {}).sort().map((unit) => {
-              const u = stats.units[unit]
-              return (
-                <div key={unit} className="bg-card rounded-xl border border-border p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-foreground">Unit {unit}</h3>
-                    <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{u.approved} Volunteers</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 rounded-lg bg-green-50 border border-green-200">
-                      <div className="text-green-900 font-semibold">{u.approved}</div>
-                      <div className="text-green-700">Approved</div>
-                    </div>
-                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                      <div className="text-blue-900 font-semibold">{u.total}</div>
-                      <div className="text-blue-700">Total</div>
-                    </div>
-                  </div>
+        {/* Analytics Cards (2x2 on mobile, 4-column on desktop) */}
+        {analytics && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="min-w-0">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Total Volunteers</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalVolunteers}</p>
                 </div>
-              )
-            })}
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-950/50 rounded-lg flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="min-w-0">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Project Vol.</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalActiveProjects}</p>
+                </div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-green-100 dark:bg-green-950/50 rounded-lg flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="min-w-0">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Total Events</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalEvents}</p>
+                </div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-purple-100 dark:bg-purple-950/50 rounded-lg flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="min-w-0">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Avg. Attendance</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.avgAttendanceRate}%</p>
+                </div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-yellow-100 dark:bg-yellow-950/50 rounded-lg flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Analytics Cards */}
-        {analytics && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Volunteers</p>
-                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.totalVolunteers}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-blue-600" />
-                </div>
+        {/* Unit-wise Stat Cards (Horizontal Swipe Strip on Mobile, Grid on Desktop) */}
+        {stats && Object.keys(stats.units || {}).length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Unit Distribution</h3>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                  {Object.keys(stats.units || {}).length} Units
+                </span>
               </div>
+              <span className="text-[11px] text-muted-foreground md:hidden flex items-center gap-1">
+                Swipe for more →
+              </span>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Project Volunteers</p>
-                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.totalActiveProjects}</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Events</p>
-                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.totalEvents}</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg. Attendance</p>
-                  <p className="text-3xl font-bold text-foreground mt-2">{analytics.avgAttendanceRate}%</p>
-                </div>
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Award className="w-6 h-6 text-yellow-600" />
-                </div>
-              </div>
+            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 overflow-x-auto pb-2 pt-0.5 scrollbar-none snap-x md:overflow-visible">
+              {Object.keys(stats.units || {}).sort().map((unit) => {
+                const u = stats.units[unit]
+                return (
+                  <div key={unit} className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs shrink-0 w-[150px] sm:w-[170px] md:w-auto snap-start hover:border-primary/40 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xs sm:text-sm font-semibold text-foreground">Unit {unit}</h3>
+                      <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium">
+                        {u.approved} Vol.
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5 text-xs">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-green-50/80 dark:bg-green-950/20 border border-green-200/80 dark:border-green-900/40 text-center">
+                        <div className="text-green-900 dark:text-green-300 font-bold text-xs sm:text-sm">{u.approved}</div>
+                        <div className="text-[10px] text-green-700 dark:text-green-400">Approved</div>
+                      </div>
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 text-center">
+                        <div className="text-blue-900 dark:text-blue-300 font-bold text-xs sm:text-sm">{u.total}</div>
+                        <div className="text-[10px] text-blue-700 dark:text-blue-400">Total</div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
 
         {/* Advanced Filters */}
-        <div className="bg-card rounded-xl border border-border p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs space-y-3">
+          {/* Main search row with mobile filter toggle button */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input 
+                type="text"
+                value={searchQuery} 
+                onChange={(e) => handleSearchChange(e.target.value)} 
+                placeholder="Search by name, email, or number..." 
+                className="w-full pl-9 pr-8 py-2 border border-border rounded-lg bg-input text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/60" 
+              />
+              {isTableLoading ? (
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                </div>
+              ) : searchQuery ? (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : null}
+            </div>
+
+            {/* Mobile Filter Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className={`md:hidden inline-flex items-center gap-1.5 px-3 py-2 border rounded-lg text-xs font-medium transition-colors shrink-0 ${
+                showMobileFilters || activeFiltersCount > 0
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-foreground hover:bg-muted"
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Filters</span>
+              {activeFiltersCount > 0 && (
+                <span className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold ${
+                  showMobileFilters ? "bg-white text-primary" : "bg-primary text-white"
+                }`}>
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Filter Dropdowns (Collapsible on Mobile, always grid on Desktop) */}
+          <div className={`${showMobileFilters ? "grid" : "hidden md:grid"} grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 pt-2 md:pt-0 border-t md:border-t-0 border-border/60`}>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Unit</label>
-              <select value={unitNo} onChange={(e) => setUnitNo(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground">
+              <label className="block text-[11px] sm:text-xs font-medium text-muted-foreground mb-1">Unit</label>
+              <select value={unitNo} onChange={(e) => setUnitNo(e.target.value)} className="w-full px-2.5 py-1.5 sm:py-2 border border-border rounded-lg bg-input text-foreground text-xs sm:text-sm">
                 <option value="all">All Units</option>
                 <option value="1">Unit 1</option>
                 <option value="2">Unit 2</option>
@@ -639,19 +826,19 @@ export default function VolunteersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Year</label>
-              <select value={enrollment} onChange={(e) => setEnrollment(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground">
+              <label className="block text-[11px] sm:text-xs font-medium text-muted-foreground mb-1">Year</label>
+              <select value={enrollment} onChange={(e) => setEnrollment(e.target.value)} className="w-full px-2.5 py-1.5 sm:py-2 border border-border rounded-lg bg-input text-foreground text-xs sm:text-sm">
                 <option value="all">All Years</option>
                 <option value="first-year">1st Year</option>
                 <option value="second-year">2nd Year</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">School</label>
+              <label className="block text-[11px] sm:text-xs font-medium text-muted-foreground mb-1">School</label>
               <select 
                 value={schoolName} 
                 onChange={(e) => setSchoolName(e.target.value)} 
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                className="w-full px-2.5 py-1.5 sm:py-2 border border-border rounded-lg bg-input text-foreground text-xs sm:text-sm"
                 disabled={loadingSchools}
               >
                 <option value="">All Schools</option>
@@ -663,34 +850,231 @@ export default function VolunteersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Sort By</label>
+              <label className="block text-[11px] sm:text-xs font-medium text-muted-foreground mb-1">Sort By</label>
               <select 
                 value={sortBy} 
                 onChange={(e) => setSortBy(e.target.value)} 
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground"
+                className="w-full px-2.5 py-1.5 sm:py-2 border border-border rounded-lg bg-input text-foreground text-xs sm:text-sm"
               >
-                <option value="hours-desc">Most Hours (High to Low)</option>
-                <option value="hours-asc">Least Hours (Low to High)</option>
+                <option value="hours-desc">Most Hours</option>
+                <option value="hours-asc">Least Hours</option>
                 <option value="name-asc">Name (A-Z)</option>
                 <option value="name-desc">Name (Z-A)</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
-              <input 
-                value={nameSearch} 
-                onChange={(e) => setNameSearch(e.target.value)} 
-                placeholder="Search by Name" 
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground" 
-              />
-            </div>
           </div>
+
+          {/* Active Filter Chips */}
+          {activeFiltersCount > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-border/50 text-xs">
+              <span className="text-[11px] text-muted-foreground mr-1">Active:</span>
+              {unitNo !== "all" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium border border-primary/20">
+                  Unit {unitNo}
+                  <button type="button" onClick={() => setUnitNo("all")} className="hover:opacity-75">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {enrollment !== "all" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium border border-primary/20">
+                  {enrollment === "first-year" ? "1st Year" : "2nd Year"}
+                  <button type="button" onClick={() => setEnrollment("all")} className="hover:opacity-75">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {schoolName && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium border border-primary/20">
+                  {schoolName.length > 15 ? schoolName.slice(0, 15) + "..." : schoolName}
+                  <button type="button" onClick={() => setSchoolName("")} className="hover:opacity-75">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setUnitNo("all")
+                  setEnrollment("all")
+                  setSchoolName("")
+                  setSortBy("hours-desc")
+                }}
+                className="text-[11px] text-primary hover:underline ml-auto font-medium"
+              >
+                Reset all
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Volunteers Table */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        {/* Mobile View: Clean, Compact Cards (block md:hidden) */}
+        <div className="block md:hidden space-y-3">
+          {loading && volunteers.length === 0 ? (
+            <div className="bg-card rounded-xl border border-border p-8 text-center shadow-xs">
+              <Loader2 className="animate-spin w-6 h-6 text-primary mx-auto" />
+              <p className="text-xs text-muted-foreground mt-2">Loading volunteers...</p>
+            </div>
+          ) : displayVolunteers.length === 0 ? (
+            <div className="bg-card rounded-xl border border-border p-8 text-center shadow-xs">
+              <Users className="mx-auto h-10 w-10 text-muted-foreground/60" />
+              <h3 className="mt-2 text-sm font-semibold text-foreground">
+                {searchQuery ? "No volunteers match search" : "No volunteers found"}
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {searchQuery
+                  ? `No results for "${searchQuery}".`
+                  : "Try clearing your filters."}
+              </p>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="mt-3 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors border border-primary/20"
+                >
+                  Clear search
+                </button>
+              )}
+            </div>
+          ) : (
+            displayVolunteers.map((volunteer) => (
+              <div
+                key={volunteer._id}
+                className="bg-card rounded-xl border border-border p-3.5 shadow-xs hover:border-primary/40 transition-colors space-y-2.5"
+              >
+                {/* Header: Photo + Name/Email/Mobile + Unit Badge */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-muted flex-shrink-0 border border-border/80 shadow-xs">
+                      {volunteer.application?.photo ? (
+                        <img
+                          src={volunteer.application.photo}
+                          alt={volunteer.application?.nameEnglish || volunteer.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                            (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm ${volunteer.application?.photo ? 'hidden' : ''}`}>
+                        {(volunteer.application?.nameEnglish || volunteer.name || "V").charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-foreground truncate">
+                        {volunteer.application?.nameEnglish || volunteer.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{volunteer.email}</p>
+                      {volunteer.application?.mobileNo && (
+                        <p className="text-[11px] text-muted-foreground font-mono">{volunteer.application.mobileNo}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0">
+                    {volunteer.application?.unitNo ? `Unit ${volunteer.application.unitNo}` : "No Unit"}
+                  </span>
+                </div>
+
+                {/* School & Department */}
+                {(volunteer.application?.schoolName || volunteer.application?.departmentName) && (
+                  <div className="text-[11px] bg-muted/40 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-muted-foreground">
+                    <span className="font-medium text-foreground truncate max-w-[55%]">
+                      {volunteer.application?.schoolName || "—"}
+                    </span>
+                    <span className="truncate max-w-[42%] text-right text-muted-foreground">
+                      {volunteer.application?.departmentName || "—"}
+                    </span>
+                  </div>
+                )}
+
+                {/* Mini Metrics Row: Hours | Attendance | Projects | Events */}
+                <div className="grid grid-cols-4 gap-1.5 text-center text-xs">
+                  <div className="bg-muted/30 rounded-lg p-1.5 border border-border/40">
+                    <div className="font-bold text-foreground text-xs">{volunteer.stats.totalHours}h</div>
+                    <div className="text-[10px] text-muted-foreground">Hours</div>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-1.5 border border-border/40">
+                    <div className={`font-bold text-xs ${
+                      volunteer.stats.attendanceRate >= 80
+                        ? "text-green-600 dark:text-green-400"
+                        : volunteer.stats.attendanceRate >= 50
+                          ? "text-yellow-600 dark:text-yellow-400"
+                          : "text-red-600 dark:text-red-400"
+                    }`}>
+                      {volunteer.stats.attendanceRate}%
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">Attd.</div>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-1.5 border border-border/40">
+                    <div className="font-bold text-foreground text-xs">{volunteer.stats.projects}</div>
+                    <div className="text-[10px] text-muted-foreground">Projects</div>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-1.5 border border-border/40">
+                    <div className="font-bold text-foreground text-xs">{volunteer.stats.events}</div>
+                    <div className="text-[10px] text-muted-foreground">Events</div>
+                  </div>
+                </div>
+
+                {/* Actions & Status footer */}
+                <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                  <div className="text-[11px] text-muted-foreground">
+                    {volunteer.application?.reviewedAt ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Approved {formatDate(volunteer.application.reviewedAt)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Active</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => fetchVolunteerDetail(volunteer._id)}
+                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg font-medium transition-colors"
+                      title="View Details"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      View
+                    </button>
+                    {volunteer.application?._id && (
+                      <a
+                        href={`/api/generate-pdf?id=${volunteer.application._id}`}
+                        target="_blank"
+                        className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors border border-border/60"
+                        title="Download Application PDF"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setRemoveTarget({ id: volunteer._id, name: volunteer.application?.nameEnglish || volunteer.name })
+                        setRemoveReason("")
+                        setShowRemoveModal(true)
+                      }}
+                      className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors border border-border/60"
+                      title="Remove Volunteer"
+                    >
+                      <Ban className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Volunteers Table (hidden on mobile) */}
+        <div className="hidden md:block bg-card rounded-xl border border-border overflow-hidden relative">
+          {isTableLoading && (
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 overflow-hidden z-10">
+              <div className="h-full bg-primary animate-pulse w-full" />
+            </div>
+          )}
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className={`w-full transition-opacity duration-150 ${isTableLoading ? "opacity-75" : "opacity-100"}`}>
               <thead className="bg-muted/50">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Volunteer</th>
@@ -704,7 +1088,7 @@ export default function VolunteersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {loading ? (
+                {loading && volunteers.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex items-center justify-center">
@@ -712,26 +1096,65 @@ export default function VolunteersPage() {
                       </div>
                     </td>
                   </tr>
-                ) : volunteers.length === 0 ? (
+                ) : displayVolunteers.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="mt-2 text-sm font-medium text-foreground">No volunteers found</h3>
+                      <h3 className="mt-2 text-sm font-medium text-foreground">
+                        {searchQuery ? "No volunteers match your search" : "No volunteers found"}
+                      </h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        No volunteers match the selected filters.
+                        {searchQuery
+                          ? `No results found for "${searchQuery}". Try searching by name, email, or phone number.`
+                          : "No volunteers match the selected filters."}
                       </p>
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={handleClearSearch}
+                          className="mt-3 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors border border-primary/20"
+                        >
+                          Clear search
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ) : (
-                  volunteers.map((volunteer) => (
+                  displayVolunteers.map((volunteer) => (
                     <tr key={volunteer._id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div>
-                          <p className="font-medium text-foreground">{volunteer.application?.nameEnglish || volunteer.name}</p>
-                          <p className="text-sm text-muted-foreground">{volunteer.email}</p>
-                          {volunteer.application?.mobileNo && (
-                            <p className="text-xs text-muted-foreground">{volunteer.application.mobileNo}</p>
-                          )}
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-muted flex-shrink-0 border border-border/80 shadow-xs">
+                            {volunteer.application?.photo ? (
+                              <img
+                                src={volunteer.application.photo}
+                                alt={volunteer.application?.nameEnglish || volunteer.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLElement).style.display = 'none';
+                                  (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-sm ${volunteer.application?.photo ? 'hidden' : ''}`}>
+                              {(volunteer.application?.nameEnglish || volunteer.name || "V").charAt(0).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">{volunteer.application?.nameEnglish || volunteer.name}</p>
+                            <p className="text-sm text-muted-foreground truncate">{volunteer.email}</p>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
+                              {volunteer.application?.mobileNo && (
+                                <span>{volunteer.application.mobileNo}</span>
+                              )}
+                              {volunteer.application?.reviewedAt && (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  Approved {formatDate(volunteer.application.reviewedAt)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm">
@@ -819,18 +1242,24 @@ export default function VolunteersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between bg-card rounded-xl border border-border px-6 py-4">
-            <div className="text-sm text-muted-foreground">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalVolunteers)} of {totalVolunteers} volunteers
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card rounded-xl border border-border px-4 py-3 sm:px-6 sm:py-4 shadow-xs">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+              {totalVolunteers > 0
+                ? searchQuery
+                  ? `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, totalVolunteers)} of ${totalVolunteers} found (${volunteers.length} total)`
+                  : `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, totalVolunteers)} of ${totalVolunteers} volunteers`
+                : searchQuery
+                  ? `0 volunteers found for "${searchQuery}"`
+                  : "0 volunteers found"}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={currentPage === 1 || loading || isTableLoading}
+                className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 border border-border rounded-lg text-xs sm:text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
+                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Previous</span>
               </button>
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -849,9 +1278,9 @@ export default function VolunteersPage() {
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
                       disabled={loading}
-                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                         currentPage === pageNum
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-primary text-primary-foreground font-semibold"
                           : "border border-border hover:bg-muted"
                       } disabled:opacity-50`}
                     >
@@ -862,11 +1291,11 @@ export default function VolunteersPage() {
               </div>
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={currentPage === totalPages || loading || isTableLoading}
+                className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 border border-border rounded-lg text-xs sm:text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Next
-                <ChevronRight className="w-4 h-4" />
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
@@ -874,18 +1303,52 @@ export default function VolunteersPage() {
 
         {/* Volunteer Detail Modal */}
         {showDetailModal && selectedVolunteer && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full max-h-[90vh] flex flex-col shadow-2xl smooth-modal">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{selectedVolunteer.name}</h2>
-                  <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                    <Mail className="w-4 h-4" />
-                    {selectedVolunteer.email}
-                  </p>
+              <div className="flex items-center justify-between p-6 border-b border-border gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  {/* Volunteer Photo Upload on Side */}
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-muted border-2 border-border flex-shrink-0 shadow-sm">
+                    {selectedVolunteer.application?.photo || selectedVolunteer.photo ? (
+                      <img
+                        src={selectedVolunteer.application?.photo || selectedVolunteer.photo}
+                        alt={selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLElement).style.display = 'none';
+                          (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-2xl ${selectedVolunteer.application?.photo || selectedVolunteer.photo ? 'hidden' : ''}`}>
+                      {(selectedVolunteer.application?.nameEnglish || selectedVolunteer.name || "V").charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground truncate">
+                      {selectedVolunteer.application?.nameEnglish || selectedVolunteer.name}
+                    </h2>
+                    <p className="text-muted-foreground flex items-center gap-2 mt-0.5 text-sm truncate">
+                      <Mail className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{selectedVolunteer.email}</span>
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
+                      </span>
+                      {selectedVolunteer.application?.unitNo && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                          Unit {selectedVolunteer.application.unitNo}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => {
                       setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
@@ -947,7 +1410,7 @@ export default function VolunteersPage() {
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-6">
                 {/* Profile Tab */}
                 {activeTab === "profile" && (
                   <div className="space-y-6">
@@ -980,6 +1443,24 @@ export default function VolunteersPage() {
                         </h3>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Application Approved Date
+                            </p>
+                            <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                              {formatDate(selectedVolunteer.application.reviewedAt || selectedVolunteer.application.submittedAt)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5" />
+                              Application Submitted Date
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {formatDate(selectedVolunteer.application.submittedAt)}
+                            </p>
+                          </div>
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">Form Number</p>
                             <p className="text-foreground font-medium">{selectedVolunteer.application.formNo || "N/A"}</p>
@@ -1179,6 +1660,94 @@ export default function VolunteersPage() {
                             </div>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Volunteer Uploaded Photo & Verification Documents */}
+                    {selectedVolunteer.application && (
+                      <div className="bg-muted/50 rounded-lg p-6 space-y-4">
+                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                          <ImageIcon className="w-5 h-5 text-primary" />
+                          Volunteer Uploaded Photo & Documents
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                          {/* Volunteer Photo Card */}
+                          <div className="bg-card border border-border rounded-xl p-4 flex flex-col items-center shadow-xs">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Volunteer Photo</span>
+                            {selectedVolunteer.application.photo || selectedVolunteer.photo ? (
+                              <a
+                                href={selectedVolunteer.application.photo || selectedVolunteer.photo}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative w-36 h-44 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all shadow-sm"
+                                title="Click to view full photo"
+                              >
+                                <img
+                                  src={selectedVolunteer.application.photo || selectedVolunteer.photo}
+                                  alt="Volunteer Uploaded Photo"
+                                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1.5">
+                                  <ExternalLink className="w-4 h-4" /> View Full
+                                </div>
+                              </a>
+                            ) : (
+                              <div className="w-36 h-44 rounded-xl bg-muted border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground text-xs text-center p-3">
+                                <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                                No photo uploaded
+                              </div>
+                            )}
+                            <p className="text-[11px] text-muted-foreground mt-2">Passport-size uploaded photograph</p>
+                          </div>
+
+                          {/* Signature Card */}
+                          {selectedVolunteer.application.signature && (
+                            <div className="bg-card border border-border rounded-xl p-4 flex flex-col items-center shadow-xs">
+                              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Signature</span>
+                              <a
+                                href={selectedVolunteer.application.signature}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative w-44 h-24 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all bg-white shadow-sm flex items-center justify-center p-2"
+                                title="Click to view signature"
+                              >
+                                <img
+                                  src={selectedVolunteer.application.signature}
+                                  alt="Signature"
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1.5">
+                                  <ExternalLink className="w-4 h-4" /> View Full
+                                </div>
+                              </a>
+                              <p className="text-[11px] text-muted-foreground mt-2">Volunteer digital signature</p>
+                            </div>
+                          )}
+
+                          {/* Institutional ID Proof Card */}
+                          {selectedVolunteer.application.institutionalIdProof && (
+                            <div className="bg-card border border-border rounded-xl p-4 flex flex-col items-center shadow-xs">
+                              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">ID Card Proof</span>
+                              <a
+                                href={selectedVolunteer.application.institutionalIdProof}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative w-44 h-28 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all bg-white shadow-sm flex items-center justify-center p-2"
+                                title="Click to view ID card"
+                              >
+                                <img
+                                  src={selectedVolunteer.application.institutionalIdProof}
+                                  alt="ID Card Proof"
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1.5">
+                                  <ExternalLink className="w-4 h-4" /> View Full
+                                </div>
+                              </a>
+                              <p className="text-[11px] text-muted-foreground mt-2">Institutional ID proof</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -1421,8 +1990,8 @@ export default function VolunteersPage() {
 
         {/* Remove Volunteer Confirmation Modal */}
         {showRemoveModal && removeTarget && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-            <div className="bg-card rounded-xl border border-border max-w-md w-full p-6">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-[60] p-4 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-md w-full p-6 shadow-2xl smooth-modal">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-red-100 dark:bg-red-950/50 rounded-full flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-red-600" />
@@ -1487,8 +2056,8 @@ export default function VolunteersPage() {
 
         {/* Export Modal */}
         {showExportModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-2xl w-full p-6 max-h-[90vh] flex flex-col">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 transition-all duration-200">
+            <div className="bg-card rounded-2xl border border-border max-w-2xl w-full p-6 max-h-[90vh] flex flex-col shadow-2xl smooth-modal">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-foreground">Export Volunteers</h2>
                 <button
@@ -1503,7 +2072,7 @@ export default function VolunteersPage() {
                 </button>
               </div>
 
-              <div className="overflow-y-auto flex-1 space-y-5 pr-1">
+              <div className="overflow-y-auto scroll-smooth overscroll-contain flex-1 space-y-5 pr-1">
                 {/* Unit Selection */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
