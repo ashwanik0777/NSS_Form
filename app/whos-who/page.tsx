@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { Users, Mail, Phone, Shield, ArrowRight, UserCheck } from "lucide-react"
+import { Users, Mail, Shield, Award } from "lucide-react"
 import Footer from "@/components/footer"
 
 interface Member {
@@ -59,7 +59,7 @@ export default function WhosWhoPage() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-foreground flex flex-col">
       {/* Header */}
       <header className="bg-white/95 dark:bg-card/90 backdrop-blur-md border-b border-slate-200/80 dark:border-border/60 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -128,21 +128,21 @@ export default function WhosWhoPage() {
         </div>
       </header>
 
-      {/* Hero Header */}
-      <section className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white py-12 sm:py-16 px-4 text-center">
-        <div className="max-w-4xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm text-blue-200">
-            <Shield className="w-3.5 h-3.5 text-blue-400" />
-            Gautam Buddha University
+      {/* Hero Header - Clean, Light & Airy (No dark heavy strips) */}
+      <section className="bg-gradient-to-b from-blue-50/60 via-slate-50 to-slate-50 dark:from-muted/20 dark:via-background dark:to-background border-b border-slate-200/60 py-10 sm:py-14 px-4 text-center">
+        <div className="max-w-3xl mx-auto space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/70 text-blue-800 dark:bg-blue-950 dark:text-blue-300 text-xs font-semibold">
+            <Shield className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            Gautam Buddha University • NSS Leadership
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-            Who's Who - NSS Leadership
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Who's Who in NSS
           </h1>
-          <p className="text-base sm:text-lg text-blue-200 font-medium">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
             राष्ट्रीय सेवा योजना - संगठनात्मक ढाँचा
           </p>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto">
-            NSS Program Coordinator and the Program Officers (POs) for the 6 Units of Gautam Buddha University.
+          <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
+            Program Coordinator and the Program Officers (POs) for the 6 Units of Gautam Buddha University.
           </p>
         </div>
       </section>
@@ -156,7 +156,7 @@ export default function WhosWhoPage() {
           </div>
         ) : (
           <>
-            {/* 1. NSS Program Coordinator (Prominent Card) */}
+            {/* 1. NSS Program Coordinator (Clean, Elegant Profile Card) */}
             {coordinator && (
               <section className="space-y-4">
                 <div className="text-center">
@@ -164,11 +164,11 @@ export default function WhosWhoPage() {
                   <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-0.5">
                     NSS Program Coordinator
                   </h2>
-                  <div className="w-14 h-1 bg-primary rounded-full mx-auto mt-2"></div>
+                  <div className="w-12 h-1 bg-primary rounded-full mx-auto mt-2"></div>
                 </div>
 
-                <div className="max-w-lg mx-auto bg-white dark:bg-card rounded-2xl shadow-md border border-slate-200/80 dark:border-border/60 p-6 sm:p-8 text-center flex flex-col items-center hover:shadow-xl transition-all duration-300">
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-primary/20 p-1 shadow-md bg-gradient-to-tr from-primary to-blue-400 mb-4">
+                <div className="max-w-md mx-auto bg-white dark:bg-card rounded-2xl shadow-xs border border-slate-200/80 dark:border-border/60 p-6 sm:p-8 text-center flex flex-col items-center hover:shadow-md transition-shadow">
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-slate-200 dark:border-border p-1 shadow-sm bg-white dark:bg-muted mb-4">
                     {coordinator.photo ? (
                       <img
                         src={coordinator.photo}
@@ -185,7 +185,7 @@ export default function WhosWhoPage() {
                   <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
                     {coordinator.name}
                   </h3>
-                  <span className="mt-1 px-3.5 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                  <span className="mt-1 px-3.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900">
                     {coordinator.designation}
                   </span>
                   <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">
@@ -195,9 +195,9 @@ export default function WhosWhoPage() {
                   {coordinator.email && (
                     <a
                       href={`mailto:${coordinator.email}`}
-                      className="mt-4 inline-flex items-center gap-1.5 text-xs sm:text-sm text-primary hover:underline font-medium px-3.5 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors"
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors"
                     >
-                      <Mail className="w-4 h-4" />
+                      <Mail className="w-3.5 h-3.5" />
                       {coordinator.email}
                     </a>
                   )}
@@ -205,14 +205,14 @@ export default function WhosWhoPage() {
               </section>
             )}
 
-            {/* 2. Program Officers for the 6 Units */}
+            {/* 2. Program Officers for the 6 Units (Clean 6-Card Grid without any blue strips) */}
             <section className="space-y-6 pt-4">
               <div className="text-center">
                 <span className="text-xs font-bold uppercase tracking-wider text-primary">Unit Officers</span>
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-0.5">
                   Program Officers (6 NSS Units)
                 </h2>
-                <div className="w-14 h-1 bg-primary rounded-full mx-auto mt-2"></div>
+                <div className="w-12 h-1 bg-primary rounded-full mx-auto mt-2"></div>
               </div>
 
               {/* Clean 6-Unit Grid */}
@@ -220,16 +220,15 @@ export default function WhosWhoPage() {
                 {unitOfficers.map(({ unitNumber, unitLabel, member }) => (
                   <div
                     key={unitLabel}
-                    className="bg-white dark:bg-card rounded-2xl shadow-xs border border-slate-200/80 dark:border-border/60 p-6 flex flex-col items-center text-center hover:shadow-lg transition-all duration-300 group"
+                    className="bg-white dark:bg-card rounded-2xl shadow-xs border border-slate-200/80 dark:border-border/60 p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow group"
                   >
-                    {/* Unit Badge */}
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold mb-4">
-                      <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                    {/* Unit Pill Badge */}
+                    <span className="inline-block px-3 py-1 rounded-full bg-slate-100 dark:bg-muted text-slate-700 dark:text-slate-300 text-xs font-bold mb-4 border border-slate-200/80 dark:border-border">
                       NSS {unitLabel}
-                    </div>
+                    </span>
 
                     {/* Member Photo */}
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-border p-1 bg-white dark:bg-muted shadow-sm mb-4">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 dark:border-border p-1 bg-white dark:bg-muted shadow-xs mb-4">
                       {member?.photo ? (
                         <img
                           src={member.photo}
