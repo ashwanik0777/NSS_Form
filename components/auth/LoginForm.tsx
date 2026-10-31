@@ -209,16 +209,18 @@ export default function LoginForm() {
 
       <div className="max-w-md w-full space-y-4 sm:space-y-6 md:space-y-8 relative z-10 my-auto">
         <div className="text-center">
-          <div className="flex items-center justify-center gap-2.5 sm:gap-6 mb-3 sm:mb-5">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white shadow-sm border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0">
+          <div className="flex items-center justify-center gap-3 sm:gap-6 mb-4 sm:mb-6">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white shadow-md border border-slate-200/70 p-1 flex items-center justify-center shrink-0">
               <img src="/1.png" alt="GBU Logo" className="w-full h-full object-contain rounded-full" />
             </div>
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white shadow-sm border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white shadow-md border border-slate-200/70 p-1 flex items-center justify-center shrink-0">
               <img src="/nssLogo.png" alt="NSS Logo" className="w-full h-full object-contain rounded-full" />
             </div>
-            <div className="h-10 sm:h-12 w-auto max-w-[100px] sm:max-w-[130px] rounded-lg bg-white shadow-sm border border-slate-200/80 p-1 flex items-center justify-center shrink-0">
-              <img src="/myBharatLogo.png" alt="My Bharat Logo" className="h-full w-auto object-contain" />
-            </div>
+            <img
+              src="/myBharatLogo.png"
+              alt="My Bharat Logo"
+              className="h-14 sm:h-18 w-auto max-w-[125px] sm:max-w-[160px] object-contain drop-shadow-sm shrink-0"
+            />
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-1 tracking-tight">NSS Digital Login</h2>
