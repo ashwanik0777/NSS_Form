@@ -113,7 +113,8 @@ const developers: Developer[] = [
     contributions: [
       "Engineered responsive navigation and public leadership modules",
       "Optimized mobile viewport experiences and layout hierarchy",
-      "Integrated secure Cloudinary media management and APIs"
+      "Redesigned the whole website with modern official UI/UX",
+      "Upgraded features and interactive dashboards for Admin and Volunteers"
     ],
   }
 ]
