@@ -279,22 +279,166 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10"></div>
-        <div className="max-w-5xl mx-auto text-center px-4 relative z-10">
-          <h2 className="text-4xl font-bold text-foreground mb-6">Ready to Serve the Nation?</h2>
-          <p className="text-muted-foreground mb-10 text-lg max-w-2xl mx-auto leading-relaxed">
-            Join thousands of students who are making a difference through the National Service Scheme. Start your
-            journey today.
+      {/* 6 NSS Units Overview */}
+      <section className="py-20 sm:py-24 bg-white dark:bg-card border-t border-slate-200/60 dark:border-border/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-2">
+                Operational Structure • GBU
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                6 Official NSS Units
+              </h2>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium mt-1">
+                Guided by NSS Program Coordinator Dr. Nagendra Singh and 6 Unit Program Officers.
+              </p>
+            </div>
+            <Link
+              href="/whos-who"
+              className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline group shrink-0"
+            >
+              <span>View Hierarchy & Contact Details</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { unit: "Unit 1", po: "Dr. Gaurav Kumar", color: "from-blue-600 to-indigo-600" },
+              { unit: "Unit 2", po: "Dr. Bhaswati Banerjee", color: "from-indigo-600 to-purple-600" },
+              { unit: "Unit 3", po: "Dr. Rahul Kapoor", color: "from-purple-600 to-blue-600" },
+              { unit: "Unit 4", po: "Dr. Rakesh Kumar", color: "from-emerald-600 to-teal-600" },
+              { unit: "Unit 5", po: "Dr. Shrutee Kanwar", color: "from-teal-600 to-emerald-600" },
+              { unit: "Unit 6", po: "Dr. Samar Raqshin", color: "from-blue-600 to-cyan-600" },
+            ].map((item) => (
+              <div
+                key={item.unit}
+                className="relative bg-slate-50/70 dark:bg-muted/40 rounded-2xl p-5 border border-slate-200/80 dark:border-border/60 hover:border-primary/50 transition-all hover:-translate-y-0.5 group overflow-hidden"
+              >
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${item.color}`}></div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {item.unit}
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active Unit"></span>
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                  {item.po}
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Program Officer (PO)
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Program Curriculum / Structure */}
+      <section className="py-20 sm:py-24 bg-gradient-to-b from-slate-50/50 via-white to-slate-50/50 dark:from-muted/20 dark:via-background dark:to-muted/20 border-t border-slate-200/60 dark:border-border/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-3">
+              Official Scheme Guidelines
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              2-Year NSS Service Framework
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium mt-2">
+              Volunteers complete 240 hours of hands-on community engagement over two years to qualify for the National Certificate.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-border shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-xl mb-4 border border-blue-200/60 dark:border-blue-900">
+                  120
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                  Regular Activities / Year
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Weekly community service sessions, campus cleanliness, literacy classes, tree plantation, and blood donation assistance across the university.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-slate-100 dark:border-border/60 text-xs font-semibold text-slate-500">
+                120 hrs × 2 Years = 240 Total Hours
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-border shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-xl mb-4 border border-emerald-200/60 dark:border-emerald-900">
+                  7
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                  Special Annual Camping Days
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  A mandatory 7-day residential village immersion camp focusing on rural health, sanitation, socio-economic surveys, and community infrastructure.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-slate-100 dark:border-border/60 text-xs font-semibold text-slate-500">
+                Adopted Villages in Greater Noida
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-border shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-xl mb-4 border border-amber-200/60 dark:border-amber-900">
+                  A/B
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                  Government NSS Certificate
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Official certificates issued by Ministry of Youth Affairs & Sports, awarding academic weightage and special preference in competitive recruitment.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-slate-100 dark:border-border/60 text-xs font-semibold text-slate-500">
+                Signed by Vice Chancellor & Coordinator
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Official Enrollment CTA Section */}
+      <section className="py-20 sm:py-24 relative overflow-hidden bg-slate-900 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px] opacity-30 pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-blue-600/15 blur-[120px] pointer-events-none rounded-full"></div>
+
+        <div className="max-w-4xl mx-auto text-center px-4 relative z-10 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-blue-200">
+            <Shield className="w-4 h-4 text-amber-400" />
+            Enrollment Open • Academic Year 2026-27
+          </div>
+
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+            Ready to Serve the Nation?
+          </h2>
+
+          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            Open to all enrolled undergraduate and postgraduate students across all 8 Schools of Gautam Buddha University. Fulfill your 240 hours of community service and earn national recognition.
           </p>
-          <Link
-            href="/register"
-            className="group inline-flex items-center px-12 py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:from-primary/90 hover:to-secondary/90 transition-all duration-300 font-semibold text-lg shadow-2xl hover:shadow-3xl hover:scale-105 active:scale-95"
-          >
-            Register Now
-            <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
-          </Link>
+
+          <div className="pt-4 flex flex-col sm:flex-row gap-3.5 justify-center items-center">
+            <Link
+              href="/register"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 font-bold text-sm sm:text-base shadow-xl hover:scale-105 active:scale-95 transition-all"
+            >
+              Enroll as Volunteer
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/about-nss"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white/10 border border-white/20 hover:bg-white/20 text-white rounded-xl font-bold text-sm sm:text-base transition-all"
+            >
+              Read Full NSS Overview
+            </Link>
+          </div>
         </div>
       </section>
 
