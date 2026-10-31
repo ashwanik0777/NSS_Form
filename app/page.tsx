@@ -23,45 +23,93 @@ export default function HomePage() {
       <PublicNavbar />
 
       {/* Hero Section */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5"></div>
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+      <section className="relative overflow-hidden py-16 sm:py-24 px-4 bg-gradient-to-b from-blue-50/40 via-background to-background dark:from-blue-950/20 dark:via-background dark:to-background">
+        {/* Subtle Background Pattern & Glow */}
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[350px] bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-amber-500/10 blur-[120px] pointer-events-none rounded-full"></div>
 
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="w-28 h-28  rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl hover-lift">
-            {/* <Shield className="w-16 h-16 text-white" /> */}
-            <img
-              src="/nssLogo.png"
-              alt="NSS Logo"
-              className="h-22 w-auto"
-            />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          {/* Government & University Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-card border border-slate-200/90 dark:border-border shadow-xs text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-6">
+            <Shield className="w-4 h-4 text-primary" />
+            <span>Ministry of Youth Affairs & Sports • Gautam Buddha University</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
-            National Service <span className="gradient-text">Scheme</span>
+          {/* NSS Emblem Badge */}
+          <div className="relative inline-flex items-center justify-center mb-6">
+            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 rounded-full blur-md opacity-25"></div>
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white dark:bg-card p-2 border-2 border-slate-200/80 dark:border-border shadow-xl flex items-center justify-center hover:scale-105 transition-transform duration-300">
+              <img
+                src="/nssLogo.png"
+                alt="NSS Emblem"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+
+          {/* Main Title */}
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-3">
+            National Service <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-primary dark:from-blue-400 dark:to-indigo-300">Scheme</span>
           </h1>
-          <p className="text-2xl md:text-3xl text-muted-foreground mb-4 font-medium">राष्ट्रीय सेवा योजना -गौतम बुद्ध विश्वविद्यालय
-</p>
-          <p className="text-lg text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
-            Join the National Service Scheme and contribute to nation-building through community service. Register as a
-            volunteer and make a difference in society with thousands of like-minded students.
+
+          {/* Hindi Title & University */}
+          <div className="flex items-center justify-center gap-2 flex-wrap text-base sm:text-xl font-bold text-slate-700 dark:text-slate-300 mb-3">
+            <span>राष्ट्रीय सेवा योजना</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+            <span>गौतम बुद्ध विश्वविद्यालय</span>
+          </div>
+
+          {/* Official Motto Ribbon */}
+          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 text-xs sm:text-sm font-bold tracking-wide uppercase mb-6 shadow-xs">
+            <span>Motto:</span>
+            <span className="font-extrabold">"NOT ME BUT YOU"</span>
+            <span>•</span>
+            <span>स्वयं से पहले आप</span>
+          </div>
+
+          {/* Subtitle Description */}
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-400 font-normal max-w-2xl mx-auto leading-relaxed mb-8">
+            Dedicated to youth empowerment, community development, and nation-building through selfless voluntary service. Join over 600 active student volunteers across 6 specialized units at GBU.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          {/* Action CTAs */}
+          <div className="flex flex-col sm:flex-row gap-3.5 sm:gap-4 justify-center items-center mb-10">
             <Link
               href="/register"
-              className="group inline-flex items-center px-10 py-4 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-300 font-semibold text-lg shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm sm:text-base shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
             >
               Start Registration
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+              <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="#about"
-              className="inline-flex items-center px-10 py-4 border-2 border-border text-foreground rounded-xl hover:bg-muted hover:border-primary transition-all duration-300 font-semibold text-lg hover:scale-105 active:scale-95"
+              href="/whos-who"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white dark:bg-card border-2 border-slate-200 dark:border-border text-slate-800 dark:text-slate-200 font-bold text-sm sm:text-base hover:bg-slate-50 dark:hover:bg-muted hover:border-primary transition-all shadow-xs"
             >
-              Learn More
+              <Users className="w-4 h-4 text-primary" />
+              Meet 6 NSS Units & POs
             </Link>
+            <Link
+              href="/about-nss"
+              className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-primary transition-colors underline-offset-4 hover:underline sm:ml-2"
+            >
+              Learn More →
+            </Link>
+          </div>
+
+          {/* Quick Highlight Micro Pills */}
+          <div className="pt-6 border-t border-slate-200/60 dark:border-border/60 flex items-center justify-center gap-3 sm:gap-6 flex-wrap text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <div className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>240 Hours Community Service</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>Government 'B' & 'C' Certificates</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>6 Official Units at GBU</span>
+            </div>
           </div>
         </div>
       </section>
