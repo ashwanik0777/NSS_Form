@@ -90,18 +90,18 @@ export default function ProjectsPage() {
 
   if (selectedProject) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-green-800 mb-2">Project Already Selected</h2>
-          <p className="text-green-700 mb-4">You have already selected a project</p>
-          <div className="bg-white rounded-lg p-6 mt-4">
-            <h3 className="text-xl font-semibold text-foreground mb-2">{selectedProject.title}</h3>
-            <p className="text-muted-foreground">{selectedProject.description}</p>
+      <div className="p-3 sm:p-6 max-w-4xl mx-auto">
+        <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-xl p-4 sm:p-6 text-center">
+          <CheckCircle className="w-12 h-12 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 sm:mb-4" />
+          <h2 className="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-300 mb-2">Project Already Selected</h2>
+          <p className="text-xs sm:text-sm text-green-700 dark:text-green-400 mb-4">You have already selected a project</p>
+          <div className="bg-card rounded-lg p-4 sm:p-6 mt-4 border border-border text-left">
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">{selectedProject.title}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">{selectedProject.description}</p>
           </div>
           <button
             onClick={() => router.push("/dashboard")}
-            className="mt-6 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            className="w-full sm:w-auto mt-4 sm:mt-6 px-6 py-2.5 sm:py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
           >
             Go to Dashboard
           </button>
@@ -111,31 +111,31 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 max-w-6xl mx-auto space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground flex items-center">
-          <FolderKanban className="w-8 h-8 mr-3 text-primary" />
-          Select NSS Project
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2.5 sm:gap-3">
+          <FolderKanban className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
+          <span>Select NSS Project</span>
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
           Choose a project to participate in. You can only select one project.
         </p>
       </div>
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
-        <div className="bg-card rounded-lg border border-border p-12 text-center">
-          <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">No Projects Available</h3>
-          <p className="text-muted-foreground">There are no active projects at the moment.</p>
+        <div className="bg-card rounded-lg border border-border p-8 sm:p-12 text-center">
+          <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-3 sm:mb-4 opacity-50" />
+          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1 sm:mb-2">No Projects Available</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">There are no active projects at the moment.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {projects.map((project) => (
             <div
               key={project._id}
-              className="bg-card rounded-lg border border-border p-6 hover:shadow-lg transition-shadow"
+              className="bg-card rounded-xl border border-border p-4 sm:p-6 hover:shadow-lg transition-shadow flex flex-col justify-between"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">

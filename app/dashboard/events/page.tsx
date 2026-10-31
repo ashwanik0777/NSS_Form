@@ -275,7 +275,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <Link
         href="/dashboard"
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
@@ -285,26 +285,26 @@ export default function EventsPage() {
       </Link>
 
       <div>
-        <h1 className="text-3xl font-bold text-foreground flex items-center">
-          <Calendar className="w-8 h-8 mr-3 text-primary" />
-          Events
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+          <Calendar className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
+          <span>Events</span>
         </h1>
-        <p className="text-muted-foreground mt-2">Participate in NSS events and track your attendance</p>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">Participate in NSS events and track your attendance</p>
       </div>
 
       {/* My Events */}
       {myEvents.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold text-foreground mb-4">My Events</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3 sm:mb-4">My Events</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {myEvents.map((event) => (
-              <div key={event._id} className="bg-card rounded-xl border border-border p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{event.eventTitle}</h3>
-                    <p className="text-sm text-muted-foreground">{event.projectTitle}</p>
+              <div key={event._id} className="bg-card rounded-xl border border-border p-4 sm:p-6">
+                <div className="flex items-start justify-between gap-3 mb-3 sm:mb-4">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-base sm:text-lg text-foreground truncate">{event.eventTitle}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{event.projectTitle}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
                         event.status === "completed"
@@ -403,23 +403,23 @@ export default function EventsPage() {
 
       {/* Available Events */}
       <div>
-        <h2 className="text-xl font-semibold text-foreground mb-4">Available Events</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3 sm:mb-4">Available Events</h2>
         {events.length === 0 ? (
-          <div className="bg-card rounded-xl border border-border p-12 text-center">
-            <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Events Available</h3>
-            <p className="text-muted-foreground">There are no events available at the moment.</p>
+          <div className="bg-card rounded-xl border border-border p-8 sm:p-12 text-center">
+            <Calendar className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1 sm:mb-2">No Events Available</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">There are no events available at the moment.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {events.map((event) => {
               const myEvent = myEvents.find((e) => e.eventId === event._id)
               return (
-                <div key={event._id} className="bg-card rounded-xl border border-border p-6">
-                  <div className="flex items-start justify-between mb-4">
+                <div key={event._id} className="bg-card rounded-xl border border-border p-4 sm:p-6">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div>
-                      <h3 className="font-semibold text-foreground">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
+                      <h3 className="font-semibold text-base sm:text-lg text-foreground">{event.title}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{event.description}</p>
                     </div>
                   </div>
 
@@ -563,9 +563,9 @@ export default function EventsPage() {
 
       {/* Event Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl border border-border p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-foreground mb-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 max-w-md w-full max-h-[92vh] overflow-y-auto shadow-2xl">
+            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
               Mark Attendance
             </h2>
 
@@ -700,9 +700,9 @@ export default function EventsPage() {
 
       {/* Registration Modal */}
       {showRegistrationModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl border border-border p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold text-foreground mb-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 max-w-md w-full shadow-2xl">
+            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
               {registrationAction === "register" ? "Register for Event" : "Decline Event"}
             </h2>
 

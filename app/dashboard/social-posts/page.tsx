@@ -83,31 +83,31 @@ export default function SocialPostsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <Link
         href="/dashboard"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-3 sm:mb-4"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Dashboard
       </Link>
 
       <div>
-        <h1 className="text-3xl font-bold text-foreground flex items-center">
-          <Share2 className="w-8 h-8 mr-3 text-primary" />
-          Social Media Posts
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2.5 sm:gap-3">
+          <Share2 className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
+          <span>Social Media Posts</span>
         </h1>
-        <p className="text-muted-foreground mt-2">Engage with NSS posts and earn points</p>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">Engage with NSS posts and earn points</p>
       </div>
 
       {socialPosts.length === 0 ? (
-        <div className="bg-card rounded-xl border border-border p-12 text-center">
-          <Share2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">No Posts Available</h3>
-          <p className="text-muted-foreground">There are no social media posts at the moment.</p>
+        <div className="bg-card rounded-xl border border-border p-8 sm:p-12 text-center">
+          <Share2 className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-3 sm:mb-4 opacity-50" />
+          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1 sm:mb-2">No Posts Available</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">There are no social media posts at the moment.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
           {socialPosts.map((post) => {
             const platformLinks = post.platformLinks || {}
             const mainPlatforms = ["facebook", "instagram", "twitter", "linkedin"]

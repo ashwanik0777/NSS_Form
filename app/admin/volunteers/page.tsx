@@ -1322,7 +1322,7 @@ export default function VolunteersPage() {
                     </div>
                   </div>
 
-                  {/* Actions: Remove & Close buttons */}
+                  {/* Actions: Close button always top right, Remove button desktop right / mobile in badge row */}
                   <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                     <button
                       onClick={() => {
@@ -1330,11 +1330,11 @@ export default function VolunteersPage() {
                         setRemoveReason("")
                         setShowRemoveModal(true)
                       }}
-                      className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-1.5"
+                      className="hidden sm:inline-flex px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-sm font-medium transition-colors items-center gap-1.5"
                       title="Remove Volunteer"
                     >
-                      <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden xs:inline sm:inline">Remove</span>
+                      <Ban className="w-4 h-4" />
+                      <span>Remove</span>
                     </button>
                     <button
                       onClick={() => {
@@ -1346,22 +1346,37 @@ export default function VolunteersPage() {
                       className="p-1.5 sm:p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
                       title="Close"
                     >
-                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Sub-row: Approval date and Unit badges - Full width, clean wrap on mobile, aligns under name on desktop */}
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2.5 sm:mt-3 sm:ml-24">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
-                  </span>
-                  {selectedVolunteer.application?.unitNo && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                      Unit {selectedVolunteer.application.unitNo}
+                {/* Sub-row: Approval date, Unit badges, and Mobile Remove Button */}
+                <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mt-2.5 sm:mt-3 sm:ml-24">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
                     </span>
-                  )}
+                    {selectedVolunteer.application?.unitNo && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                        Unit {selectedVolunteer.application.unitNo}
+                      </span>
+                    )}
+                  </div>
+                  {/* Mobile-only Remove Button */}
+                  <button
+                    onClick={() => {
+                      setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
+                      setRemoveReason("")
+                      setShowRemoveModal(true)
+                    }}
+                    className="sm:hidden inline-flex px-2.5 py-1 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 rounded-lg text-xs font-medium transition-colors items-center gap-1"
+                    title="Remove Volunteer"
+                  >
+                    <Ban className="w-3.5 h-3.5" />
+                    <span>Remove</span>
+                  </button>
                 </div>
               </div>
 
@@ -1406,21 +1421,21 @@ export default function VolunteersPage() {
                   <div className="space-y-4 sm:space-y-6">
                     {/* Stats */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Events</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalEvents}</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Total Events</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Completed</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.completedEvents}</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Completed</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.completedEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Hours</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalHours}h</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Total Hours</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalHours}h</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Attendance</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Attendance</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
                       </div>
                     </div>
 

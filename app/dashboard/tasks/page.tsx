@@ -129,76 +129,76 @@ export default function TasksPage() {
   const completedTasks = tasks.filter((t) => t.status === "completed").length
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-          <FileText className="w-8 h-8 text-primary" />
-          My Tasks
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2.5 sm:gap-3">
+          <FileText className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
+          <span>My Tasks</span>
         </h1>
-        <p className="text-muted-foreground mt-2">View and manage your assigned tasks</p>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">View and manage your assigned tasks</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-card rounded-xl border border-border p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total Tasks</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{tasks.length}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Total Tasks</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{tasks.length}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-950/40 rounded-lg flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-4">
+        <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Pending</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{pendingTasks}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Pending</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{pendingTasks}</p>
             </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-yellow-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 dark:bg-yellow-950/40 rounded-lg flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400" />
             </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-4">
+        <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">In Progress</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{inProgressTasks}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">In Progress</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{inProgressTasks}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-950/40 rounded-lg flex items-center justify-center shrink-0">
+              <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-4">
+        <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Completed</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{completedTasks}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Completed</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{completedTasks}</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 dark:bg-green-950/40 rounded-lg flex items-center justify-center shrink-0">
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filter */}
-      <div className="bg-card rounded-xl border border-border p-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-foreground">Filter:</span>
+      <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <span className="text-xs sm:text-sm font-medium text-foreground shrink-0">Filter:</span>
           {(["all", "pending", "in-progress", "completed"] as const).map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${
                 filter === status
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -215,19 +215,19 @@ export default function TasksPage() {
       </div>
 
       {/* Tasks List */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {tasks.length > 0 ? (
           tasks.map((task) => (
             <div
               key={task._id}
-              className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-shadow"
+              className="bg-card rounded-xl border border-border p-4 sm:p-6 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-semibold text-foreground">{task.title}</h3>
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground break-words">{task.title}</h3>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+                      className={`px-2 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-medium border ${getPriorityColor(
                         task.priority
                       )}`}
                     >
@@ -235,13 +235,13 @@ export default function TasksPage() {
                       {task.priority}
                     </span>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}
+                      className={`px-2 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-medium ${getStatusColor(task.status)}`}
                     >
                       {task.status === "in-progress" ? "In Progress" : task.status}
                     </span>
                   </div>
-                  <p className="text-muted-foreground mb-3">{task.description}</p>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3">{task.description}</p>
+                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
                       <span>Assigned: {new Date(task.createdAt).toLocaleDateString()}</span>
