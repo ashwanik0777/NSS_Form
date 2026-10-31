@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import {
   Shield,
@@ -17,10 +17,14 @@ import {
   CheckCircle2,
   Sun,
   Flame,
+  Menu,
+  X,
 } from "lucide-react"
 import Footer from "@/components/footer"
 
 export default function AboutNSSPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-background text-foreground flex flex-col">
       {/* Top Header */}
@@ -54,8 +58,8 @@ export default function AboutNSSPage() {
               </div>
             </Link>
 
-            {/* Navigation */}
-            <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-2 lg:gap-3">
               <Link
                 href="/"
                 className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-muted transition-colors"
@@ -87,8 +91,60 @@ export default function AboutNSSPage() {
                 Apply
               </Link>
             </div>
+
+            {/* Mobile Nav Button */}
+            <div className="flex md:hidden items-center gap-2 shrink-0">
+              <Link
+                href="/register"
+                className="text-xs font-semibold px-2.5 py-1.5 bg-primary text-primary-foreground rounded-lg shadow-xs"
+              >
+                Apply
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-muted text-slate-800 dark:text-slate-200 hover:bg-slate-200 transition-colors"
+                aria-label="Toggle navigation"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-200/80 dark:border-border/60 bg-white/98 dark:bg-card/98 px-4 py-3 space-y-1 shadow-lg animate-in slide-in-from-top-2 duration-200">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-muted"
+            >
+              Home
+            </Link>
+            <Link
+              href="/about-nss"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-semibold text-primary bg-primary/10"
+            >
+              About NSS
+            </Link>
+            <Link
+              href="/whos-who"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-muted"
+            >
+              Who's Who (Leadership)
+            </Link>
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-muted"
+            >
+              Portal Login
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
