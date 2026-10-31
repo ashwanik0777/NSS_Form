@@ -12,7 +12,7 @@ import {
   Users,
   Globe2
 } from "lucide-react"
-import Footer from "@/components/footer"
+import PublicNavbar from "@/components/public-navbar"
 
 type DeveloperRoleType = "Lead" | "Member" | "Thread" | "Advisor" | "Contributor"
 
@@ -84,8 +84,9 @@ const developers: Developer[] = [
 
 export default function DevelopersPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
+      <PublicNavbar />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-6 shadow-lg">
@@ -307,7 +308,6 @@ export default function DevelopersPage() {
           </p>
         </div>
       </main>
-      <Footer />
     </div>
   )
 }
