@@ -202,14 +202,14 @@ export default function VolunteerReportsPage() {
 
   return (
     <ProtectedRoute requiredRole="volunteer">
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-              <FileText className="w-8 h-8 text-primary" />
-              Report & Issue Management
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary shrink-0" />
+              <span>Report & Issue Management</span>
             </h1>
-            <p className="text-muted-foreground mt-1">Submit and track your reports, complaints, and suggestions</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">Submit and track your reports, complaints, and suggestions</p>
           </div>
           <button
             onClick={() => {
@@ -217,9 +217,9 @@ export default function VolunteerReportsPage() {
               setError(null)
               setSuccess(null)
             }}
-            className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium shadow-xs"
           >
-            <PlusCircle className="w-5 h-5 mr-2" />
+            <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             New Report
           </button>
         </div>
@@ -231,7 +231,7 @@ export default function VolunteerReportsPage() {
         )}
 
         {showForm && (
-          <div className="bg-card rounded-xl border border-border p-6">
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground">Submit New Report</h3>
               <button
@@ -414,21 +414,21 @@ export default function VolunteerReportsPage() {
             {reports.map((report) => (
               <div
                 key={report._id}
-                className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-card rounded-xl border border-border p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => setSelectedReport(selectedReport?._id === report._id ? null : report)}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-foreground">{report.subject}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="text-base sm:text-lg font-semibold text-foreground break-words">{report.subject}</h3>
+                      <span className={`px-2 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-medium ${getStatusColor(report.status)}`}>
                         {report.status.replace("-", " ").toUpperCase()}
                       </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(report.priority)}`}>
+                      <span className={`px-2 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-medium ${getPriorityColor(report.priority)}`}>
                         {report.priority.toUpperCase()}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-2">
                       <span>ID: <strong className="text-foreground">{report.reportId}</strong></span>
                       <span>Category: <strong className="text-foreground">{getCategoryLabel(report.category)}</strong></span>
                       <span>Created: {new Date(report.createdAt).toLocaleDateString()}</span>

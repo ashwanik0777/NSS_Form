@@ -22,8 +22,13 @@ interface Notification {
 }
 
 export default function AdminHeader({ title, subtitle, action }: AdminHeaderProps) {
-  const { openMobileSidebar } = useAdminLayout()
+  const { openMobileSidebar, setHasPageHeader } = useAdminLayout()
   const { data: session } = useSession()
+
+  useEffect(() => {
+    setHasPageHeader?.(true)
+    return () => setHasPageHeader?.(false)
+  }, [setHasPageHeader])
 
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)

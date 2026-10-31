@@ -70,7 +70,7 @@ export default function ApplicationPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <Link
         href="/dashboard"
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
@@ -79,18 +79,18 @@ export default function ApplicationPage() {
         Back to Dashboard
       </Link>
 
-      <div className="bg-card rounded-xl border border-border p-6 shadow-sm space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground flex items-center">
-            <FileText className="w-6 h-6 mr-3 text-primary" />
-            My Application
+      <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
+            <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2.5 text-primary shrink-0" />
+            <span>My Application</span>
           </h1>
           {application.status === "approved" && (
             <a
               href={`/api/generate-pdf?id=${application._id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
             >
               <Download className="w-4 h-4 mr-2" />
               Download PDF
@@ -99,7 +99,7 @@ export default function ApplicationPage() {
         </div>
 
         {/* Basic summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Application Number</p>
             <p className="text-lg font-semibold text-foreground">{application.formNo}</p>
@@ -121,7 +121,7 @@ export default function ApplicationPage() {
         </div>
 
         {/* Full application details (excluding profile-completion uploads) */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border pt-4">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 border-t border-border pt-4">
           <div>
             <p className="text-xs text-muted-foreground">Unit Number</p>
             <p className="text-sm font-medium text-foreground">{application.unitNo || "—"}</p>

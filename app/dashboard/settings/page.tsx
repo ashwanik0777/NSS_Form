@@ -9,18 +9,18 @@ export default function SettingsPage() {
   const router = useRouter()
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <Link
         href="/dashboard"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-3 sm:mb-4"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Dashboard
       </Link>
 
-      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-foreground flex items-center mb-6">
-          <SettingsIcon className="w-6 h-6 mr-3 text-primary" />
+      <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center mb-4 sm:mb-6">
+          <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 mr-2.5 text-primary" />
           Settings
         </h1>
 

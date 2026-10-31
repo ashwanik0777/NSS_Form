@@ -267,26 +267,25 @@ export default function VolunteerDashboard() {
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-xl p-6 md:p-8 border border-primary/20 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center">
-              <Award className="w-8 h-8 mr-3 text-primary" />
-              Welcome, {user?.name || "Volunteer"}!
+      <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-xl p-4 sm:p-6 md:p-8 border border-primary/20 space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2 flex items-center gap-2">
+              <Award className="w-6 h-6 sm:w-8 sm:h-8 text-primary shrink-0" />
+              <span className="truncate">Welcome, {user?.name || "Volunteer"}!</span>
             </h1>
-            <p className="text-muted-foreground">Manage your NSS activities and track your progress</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Manage your NSS activities and track your progress</p>
           </div>
           {completion && completion.percent === 100 && (
-            <div className="mt-4 md:mt-0">
-              <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold text-center">
+            <div className="shrink-0">
+              <div className="bg-green-500 text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm text-center shadow-xs">
                 Profile Complete ✓
               </div>
             </div>
           )}
         </div>
-
       </div>
 
       {/* Live ticker for latest announcement & notification */}
@@ -377,7 +376,7 @@ export default function VolunteerDashboard() {
       })()}
 
       {/* Top Summary Bar */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Hours */}
         <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between mb-3">
@@ -622,7 +621,7 @@ export default function VolunteerDashboard() {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="absolute top-full right-0 mt-3 w-full sm:w-96 bg-card rounded-xl border border-border shadow-2xl p-4 z-50">
+            <div className="fixed inset-x-3 top-20 sm:top-auto sm:inset-x-auto sm:absolute sm:top-full sm:right-0 mt-3 sm:w-96 bg-card rounded-xl border border-border shadow-2xl p-4 z-50">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-foreground text-sm">Latest Notifications</h4>
                 <button
@@ -720,10 +719,10 @@ export default function VolunteerDashboard() {
 
       {/* Stats Overview */}
       {(taskStats || eventStats || meetingStats) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* Tasks Stats */}
           {taskStats && (
-            <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-foreground flex items-center">
                   <FileText className="w-4 h-4 mr-2 text-primary" />
@@ -731,22 +730,22 @@ export default function VolunteerDashboard() {
                 </h3>
                 <span className="text-xs text-muted-foreground">Total: {taskStats.total}</span>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-sm">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Pending</p>
-                  <p className="text-lg font-bold">{taskStats.pending}</p>
+                  <p className="text-base sm:text-lg font-bold">{taskStats.pending}</p>
                 </div>
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">In Progress</p>
-                  <p className="text-lg font-bold">{taskStats.inProgress}</p>
+                  <p className="text-base sm:text-lg font-bold">{taskStats.inProgress}</p>
                 </div>
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Completed</p>
-                  <p className="text-lg font-bold">{taskStats.completed}</p>
+                  <p className="text-base sm:text-lg font-bold">{taskStats.completed}</p>
                 </div>
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Cancelled</p>
-                  <p className="text-lg font-bold">{taskStats.cancelled}</p>
+                  <p className="text-base sm:text-lg font-bold">{taskStats.cancelled}</p>
                 </div>
               </div>
               <div className="mt-3">
@@ -759,7 +758,7 @@ export default function VolunteerDashboard() {
 
           {/* Events Stats */}
           {eventStats && (
-            <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-foreground flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-primary" />
@@ -767,22 +766,22 @@ export default function VolunteerDashboard() {
                 </h3>
                 <span className="text-xs text-muted-foreground">Total: {eventStats.totalEvents}</span>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
-                  <p className="text-muted-foreground text-xs mb-1">Upcoming/Ongoing</p>
-                  <p className="text-lg font-bold">{eventStats.upcomingOrOngoing}</p>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-sm">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
+                  <p className="text-muted-foreground text-xs mb-1 truncate">Upcoming/Ongoing</p>
+                  <p className="text-base sm:text-lg font-bold">{eventStats.upcomingOrOngoing}</p>
                 </div>
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Registered</p>
-                  <p className="text-lg font-bold">{eventStats.registered}</p>
+                  <p className="text-base sm:text-lg font-bold">{eventStats.registered}</p>
                 </div>
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Attended</p>
-                  <p className="text-lg font-bold">{eventStats.attended}</p>
+                  <p className="text-base sm:text-lg font-bold">{eventStats.attended}</p>
                 </div>
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Not Attended</p>
-                  <p className="text-lg font-bold">{eventStats.notAttended}</p>
+                  <p className="text-base sm:text-lg font-bold">{eventStats.notAttended}</p>
                 </div>
               </div>
               <div className="mt-3">
@@ -795,7 +794,7 @@ export default function VolunteerDashboard() {
 
           {/* Meetings Stats (placeholder) */}
           {meetingStats && (
-            <div className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-foreground flex items-center">
                   <Users className="w-4 h-4 mr-2 text-primary" />
@@ -803,14 +802,14 @@ export default function VolunteerDashboard() {
                 </h3>
                 <span className="text-xs text-muted-foreground">Total: {meetingStats.total}</span>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-sm">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Attended</p>
-                  <p className="text-lg font-bold">{meetingStats.attended}</p>
+                  <p className="text-base sm:text-lg font-bold">{meetingStats.attended}</p>
                 </div>
-                <div className="bg-muted/40 border border-border/50 rounded-lg p-3">
+                <div className="bg-muted/40 border border-border/50 rounded-lg p-2.5 sm:p-3">
                   <p className="text-muted-foreground text-xs mb-1">Not Attended</p>
-                  <p className="text-lg font-bold">{meetingStats.notAttended}</p>
+                  <p className="text-base sm:text-lg font-bold">{meetingStats.notAttended}</p>
                 </div>
               </div>
             </div>
@@ -818,61 +817,61 @@ export default function VolunteerDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Application Status Card */}
           {application && (
-            <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                <h2 className="text-xl font-semibold text-foreground flex items-center mb-2 sm:mb-0">
-                  <FileText className="w-5 h-5 mr-2 text-primary" />
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-primary shrink-0" />
                   Application Status
                 </h2>
-                {getStatusBadge(application.status)}
+                <div>{getStatusBadge(application.status)}</div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Application Number</p>
-                  <p className="text-xl font-bold text-foreground">{application.formNo}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                <div className="bg-muted/50 rounded-lg p-3.5 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Application Number</p>
+                  <p className="text-lg sm:text-xl font-bold text-foreground break-all">{application.formNo}</p>
                 </div>
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Institution</p>
-                  <p className="text-lg font-semibold text-foreground truncate">{application.institutionName}</p>
+                <div className="bg-muted/50 rounded-lg p-3.5 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Institution</p>
+                  <p className="text-base sm:text-lg font-semibold text-foreground truncate">{application.institutionName}</p>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-border space-y-2">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Submitted: {new Date(application.submittedAt).toLocaleDateString("en-IN", {
+              <div className="pt-3 sm:pt-4 border-t border-border space-y-2">
+                <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                  <Calendar className="w-4 h-4 mr-2 shrink-0" />
+                  <span>Submitted: {new Date(application.submittedAt).toLocaleDateString("en-IN", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
-                  })}
+                  })}</span>
                 </div>
                 {application.reviewedAt && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Reviewed: {new Date(application.reviewedAt).toLocaleDateString("en-IN", {
+                  <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                    <CheckCircle className="w-4 h-4 mr-2 shrink-0 text-emerald-600" />
+                    <span>Reviewed: {new Date(application.reviewedAt).toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
-                    })}
+                    })}</span>
                   </div>
                 )}
               </div>
 
               {application.status === "approved" && (
-                <div className="mt-4 pt-4 border-t border-border">
+                <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
                   <a
                     href={`/api/generate-pdf?id=${application._id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
                   >
-                    <FileText className="w-4 h-4 mr-2" />
+                    <FileText className="w-4 h-4 mr-2 shrink-0" />
                     Download Application PDF
                   </a>
                 </div>
@@ -881,27 +880,27 @@ export default function VolunteerDashboard() {
           )}
 
           {/* Selected Project Card */}
-        {/* Social Media Posts Section */}
-        <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg">
-                <Share2 className="w-5 h-5 text-primary" />
+          {/* Social Media Posts Section */}
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg">
+                  <Share2 className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground">Latest NSS Posts</h2>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">Stay updated with NSS activities</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-foreground">Latest NSS Posts</h2>
-                <p className="text-xs text-muted-foreground">Stay updated with NSS activities</p>
-              </div>
+              {missingPostsCount > 0 && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-full text-[11px] sm:text-xs font-semibold">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  {missingPostsCount} Missing
+                </div>
+              )}
             </div>
-            {missingPostsCount > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-full text-xs font-semibold">
-                <AlertCircle className="w-3 h-3" />
-                {missingPostsCount} Missing
-              </div>
-            )}
-          </div>
 
-          {socialPosts.length === 0 ? (
+            {socialPosts.length === 0 ? (
             <div className="text-center py-8">
               <Share2 className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
               <p className="text-sm text-muted-foreground">No social media posts available</p>
@@ -1316,9 +1315,9 @@ export default function VolunteerDashboard() {
         )} */}
           {/* My NSS Project */}
           {selectedProject && (
-            <div className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-foreground flex items-center">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center">
                   <FolderKanban className="w-5 h-5 mr-2 text-primary" />
                   My NSS Project
                 </h2>
@@ -1406,12 +1405,12 @@ function OfficialNssLinks() {
   ]
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
       {icons.map((i) => (
         <a key={i.key}
            href={i.url || '#'}
            target={i.url ? '_blank' : undefined}
-           className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-border ${i.bg} ${i.url ? 'opacity-100 hover:scale-105 transition-transform' : 'opacity-40 cursor-not-allowed'}`}
+           className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-xs border border-border ${i.bg} ${i.url ? 'opacity-100 hover:scale-105 active:scale-95 transition-transform' : 'opacity-40 cursor-not-allowed'}`}
            aria-label={i.label}
         >
           {i.svg}

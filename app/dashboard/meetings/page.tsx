@@ -93,24 +93,24 @@ export default function VolunteerMeetingsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Meetings</h1>
-          <p className="text-muted-foreground">View and register for upcoming NSS meetings</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Meetings</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">View and register for upcoming NSS meetings</p>
         </div>
       </div>
 
       {meetings.length === 0 ? (
-        <div className="text-center py-12 bg-card rounded-xl border border-border">
-          <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-          <h3 className="text-lg font-medium">No meetings found</h3>
-          <p className="text-muted-foreground">There are no upcoming meetings scheduled at this time.</p>
+        <div className="text-center py-8 sm:py-12 bg-card rounded-xl border border-border p-4">
+          <Calendar className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-muted-foreground mb-3 opacity-60" />
+          <h3 className="text-base sm:text-lg font-medium">No meetings found</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">There are no upcoming meetings scheduled at this time.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {meetings.map((meeting) => (
-            <div key={meeting._id} className="bg-card rounded-xl border border-border p-5 flex flex-col h-full shadow-sm hover:shadow-md transition-shadow">
+            <div key={meeting._id} className="bg-card rounded-xl border border-border p-4 sm:p-5 flex flex-col h-full shadow-xs hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-3">
                 <div className="bg-primary/10 text-primary px-3 py-1 rounded text-xs font-semibold">
                     {meeting.status.toUpperCase()}
