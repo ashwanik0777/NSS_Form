@@ -604,27 +604,63 @@ export async function sendApplicationRejectedEmail(to: string, data: Application
 }
 
 // Generic custom email function
-export async function sendCustomEmail(to: string, subject: string, htmlContent: string) {
+export interface CustomEmailRecipientInfo {
+  name?: string
+  unitNo?: string
+  formNo?: string
+  email?: string
+}
+
+export function replaceEmailVariables(text: string, recipient?: CustomEmailRecipientInfo): string {
+  if (!text) return ""
+  return text
+    .replace(/\{\{\s*name\s*\}\}/gi, recipient?.name || "Volunteer")
+    .replace(/\{\{\s*unitNo\s*\}\}/gi, recipient?.unitNo ? String(recipient.unitNo) : "NSS Unit")
+    .replace(/\{\{\s*unit\s*\}\}/gi, recipient?.unitNo ? String(recipient.unitNo) : "NSS Unit")
+    .replace(/\{\{\s*email\s*\}\}/gi, recipient?.email || "")
+    .replace(/\{\{\s*formNo\s*\}\}/gi, recipient?.formNo || "")
+    .replace(/\{\{\s*applicationId\s*\}\}/gi, recipient?.formNo || "")
+}
+
+export async function sendCustomEmail(
+  to: string,
+  subject: string,
+  content: string,
+  recipient?: CustomEmailRecipientInfo
+) {
+  const personalizedSubject = replaceEmailVariables(subject, { ...recipient, email: to })
+  const personalizedContent = replaceEmailVariables(content, { ...recipient, email: to })
+
+  // Convert plain text linebreaks to HTML paragraphs/breaks if no HTML tag is detected
+  const formattedContent = /<[a-z][\s\S]*>/i.test(personalizedContent)
+    ? personalizedContent
+    : personalizedContent
+        .split(/\n\s*\n/)
+        .map((paragraph) => `<p style="margin: 0 0 14px 0; color: #374151; font-size: 15px; line-height: 1.6;">${paragraph.replace(/\n/g, "<br/>")}</p>`)
+        .join("")
+
   const mailOptions = {
     from: process.env.SMTP_USER,
     to,
-    subject,
+    subject: personalizedSubject,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #1e40af; padding: 20px; text-align: center;">
-          <h1 style="color: white; margin: 0;">NSS Announcement</h1>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); padding: 24px 20px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">NATIONAL SERVICE SCHEME</h1>
+          <p style="color: #bfdbfe; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Gautam Buddha University • Greater Noida</p>
         </div>
-        <div style="padding: 20px; background-color: white;">
-          ${htmlContent}
+        <div style="padding: 28px 24px; background-color: #ffffff;">
+          ${formattedContent}
         </div>
-        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
-          <p>This email was sent from NSS Registration System</p>
+        <div style="background-color: #f8fafc; padding: 16px 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0 0 4px 0; font-weight: 500;">National Service Scheme (NSS), Gautam Buddha University</p>
+          <p style="margin: 0; color: #94a3b8;">This is an automated communication sent to registered NSS volunteers.</p>
         </div>
       </div>
     `,
   }
 
-  await transporter.sendMail(mailOptions)
+  return await transporter.sendMail(mailOptions)
 }
 
 // Event and Attendance Email Functions

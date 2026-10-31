@@ -6,6 +6,17 @@ const EmailLogSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    recipientName: {
+      type: String,
+    },
+    unitNo: {
+      type: String,
+    },
+    type: {
+      type: String,
+      enum: ["single", "bulk", "system"],
+      default: "single",
+    },
     subject: {
       type: String,
       required: true,
