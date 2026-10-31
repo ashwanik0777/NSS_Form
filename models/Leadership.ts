@@ -83,3 +83,4 @@ const LeadershipSchema = new Schema<ILeadership>(
 )
 
 export default mongoose.models.Leadership || mongoose.model<ILeadership>("Leadership", LeadershipSchema)
+

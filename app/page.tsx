@@ -38,8 +38,14 @@ export default function HomePage() {
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-2 sm:space-x-4">
               <Link
+                href="/about-nss"
+                className="px-3 py-2 text-foreground/80 hover:text-primary hover:bg-muted/80 rounded-lg transition-colors font-semibold text-sm"
+              >
+                About NSS
+              </Link>
+              <Link
                 href="/whos-who"
-                className="px-3.5 py-2 text-foreground/80 hover:text-primary hover:bg-muted/80 rounded-lg transition-colors font-semibold text-sm"
+                className="px-3 py-2 text-foreground/80 hover:text-primary hover:bg-muted/80 rounded-lg transition-colors font-semibold text-sm"
               >
                 Who's Who
               </Link>
@@ -57,22 +63,28 @@ export default function HomePage() {
               </Link>
             </nav>
             {/* Mobile Nav */}
-            <nav className="md:hidden flex items-center space-x-1.5 sm:space-x-2">
+            <nav className="md:hidden flex items-center space-x-1 sm:space-x-1.5">
+              <Link
+                href="/about-nss"
+                className="px-2 py-1 text-[11px] sm:text-xs font-semibold text-foreground/80 hover:text-primary rounded-md"
+              >
+                About
+              </Link>
               <Link
                 href="/whos-who"
-                className="px-2.5 py-1.5 text-xs font-semibold text-foreground/80 hover:text-primary rounded-md"
+                className="px-2 py-1 text-[11px] sm:text-xs font-semibold text-foreground/80 hover:text-primary rounded-md"
               >
                 Who's Who
               </Link>
               <Link
                 href="/register"
-                className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-semibold shadow hover:bg-primary/90 transition-all"
+                className="px-2.5 py-1.5 bg-primary text-primary-foreground rounded-md text-xs sm:text-sm font-semibold shadow hover:bg-primary/90 transition-all"
               >
                 Apply
               </Link>
               <Link
                 href="/login"
-                className="px-3 py-1.5 border border-border text-foreground rounded-md text-sm font-semibold hover:bg-muted hover:border-primary transition-all"
+                className="px-2.5 py-1.5 border border-border text-foreground rounded-md text-xs sm:text-sm font-semibold hover:bg-muted hover:border-primary transition-all"
               >
                 Login
               </Link>

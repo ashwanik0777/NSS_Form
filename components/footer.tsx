@@ -111,6 +111,11 @@ const Footer = () => {
               </Link>
             </li>
             <li>
+              <Link href="/about-nss" className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">
+                About NSS
+              </Link>
+            </li>
+            <li>
               <Link href="/whos-who" className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">
                 Who's Who (PO & Mentors)
               </Link>
