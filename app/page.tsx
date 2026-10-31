@@ -1,5 +1,18 @@
 import Link from "next/link"
-import { Shield, Users, Award, ArrowRight, CheckCircle, Zap, Globe } from "lucide-react"
+import {
+  Shield,
+  Users,
+  Award,
+  ArrowRight,
+  CheckCircle2,
+  Zap,
+  Globe,
+  Heart,
+  Calendar,
+  Building2,
+  Target,
+  Sparkles,
+} from "lucide-react"
 import Footer from "@/components/footer"
 import PublicNavbar from "@/components/public-navbar"
 
@@ -54,84 +67,165 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="about" className="py-20 bg-gradient-to-b from-muted/30 to-background">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-6">Why Join NSS?</h2>
-            <p className="text-muted-foreground max-w-3xl mx-auto text-lg leading-relaxed">
-              The National Service Scheme provides opportunities for students to participate in community service and
-              develop leadership skills while contributing to national development.
+      <section id="about" className="py-20 sm:py-24 bg-gradient-to-b from-slate-50/50 via-white to-slate-50/50 dark:from-muted/20 dark:via-background dark:to-muted/20 border-t border-slate-200/60 dark:border-border/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-3">
+              Core Pillars of NSS • GBU
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Why Join the National Service Scheme?
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium leading-relaxed mt-3">
+              NSS provides students with hands-on community service, leadership training, experiential field projects, and official Government certification.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="group bg-card rounded-2xl p-8 border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Users className="w-8 h-8 text-primary" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            {/* Card 1 */}
+            <div className="group relative bg-white dark:bg-card rounded-3xl p-7 sm:p-8 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-pink-500"></div>
+              <div>
+                <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-900 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-6 group-hover:scale-110 transition-transform shadow-xs">
+                  <Heart className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                  Community Service & Impact
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Engage in life-saving blood donation drives, health checkups, environmental cleanliness (Swachh Bharat), and adopted village welfare projects across Greater Noida.
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Community Service</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Engage in meaningful community service projects that create positive impact in society and help build a
-                better nation.
-              </p>
+              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-border/60 flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
+                <CheckCircle2 className="w-4 h-4" />
+                Direct Field Engagement
+              </div>
             </div>
 
-            <div className="group bg-card rounded-2xl p-8 border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Zap className="w-8 h-8 text-secondary" />
+            {/* Card 2 */}
+            <div className="group relative bg-white dark:bg-card rounded-3xl p-7 sm:p-8 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+              <div>
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 transition-transform shadow-xs">
+                  <Zap className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                  Leadership Development
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Cultivate team management, public address, organizational acumen, and crisis management skills through 7-day special annual residential camping programs.
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Leadership Development</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Develop leadership skills and gain valuable experience in organizing and managing projects that benefit
-                communities.
-              </p>
+              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-border/60 flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400">
+                <CheckCircle2 className="w-4 h-4" />
+                Special Camping & Youth Training
+              </div>
             </div>
 
-            <div className="group bg-card rounded-2xl p-8 border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Award className="w-8 h-8 text-accent" />
+            {/* Card 3 */}
+            <div className="group relative bg-white dark:bg-card rounded-3xl p-7 sm:p-8 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+              <div>
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-900 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-6 group-hover:scale-110 transition-transform shadow-xs">
+                  <Award className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                  Government Certification
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Earn official Ministry of Youth Affairs & Sports certificates that carry special weightage in university admissions, public sector jobs, and competitive examinations.
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Official Recognition</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Receive official certificates and recognition for your service to the nation from government
-                authorities.
-              </p>
+              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-border/60 flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                <CheckCircle2 className="w-4 h-4" />
+                Nationally Recognized Credentials
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-primary/5 via-background to-secondary/5">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Users className="w-10 h-10 text-white" />
+      <section className="py-16 sm:py-20 bg-slate-50 dark:bg-muted/30 border-y border-slate-200/80 dark:border-border/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              Impact by the Numbers
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+              GBU NSS At a Glance
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+            {/* Stat 1 */}
+            <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-md transition-shadow text-center flex flex-col items-center justify-center group overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-blue-600 dark:text-blue-400 tracking-tight mb-1">
+                600+
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">500+</div>
-              <div className="text-muted-foreground">Active Volunteers</div>
+              <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                Active Volunteers
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                Across 6 NSS Units
+              </div>
             </div>
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Globe className="w-10 h-10 text-white" />
+
+            {/* Stat 2 */}
+            <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-md transition-shadow text-center flex flex-col items-center justify-center group overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600"></div>
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight mb-1">
+                100+
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">10+</div>
-              <div className="text-muted-foreground">Projects Completed</div>
+              <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                Activities Conducted
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                Drives, Camps & Seminars
+              </div>
             </div>
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-accent to-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Award className="w-10 h-10 text-white" />
+
+            {/* Stat 3 */}
+            <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-md transition-shadow text-center flex flex-col items-center justify-center group overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-indigo-600"></div>
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight mb-1">
+                10+
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">8</div>
-              <div className="text-muted-foreground">Schools</div>
+              <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                Projects Completed
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                Village & Social Outreach
+              </div>
             </div>
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary via-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <CheckCircle className="w-10 h-10 text-white" />
+
+            {/* Stat 4 */}
+            <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-md transition-shadow text-center flex flex-col items-center justify-center group overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-amber-600"></div>
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-600 dark:text-amber-400 tracking-tight mb-1">
+                8
               </div>
-              <div className="text-3xl font-bold text-foreground mb-2">10+</div>
-              <div className="text-muted-foreground">Years of Service</div>
+              <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                Schools
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                Pan-University Coverage
+              </div>
+            </div>
+
+            {/* Stat 5 */}
+            <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-md transition-shadow text-center flex flex-col items-center justify-center group overflow-hidden col-span-2 sm:col-span-1">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-purple-600"></div>
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-purple-600 dark:text-purple-400 tracking-tight mb-1">
+                10+
+              </div>
+              <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                Years of Service
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                Dedicated Community Impact
+              </div>
             </div>
           </div>
         </div>
