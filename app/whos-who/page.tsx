@@ -316,30 +316,21 @@ export default function WhosWhoPage() {
                   </div>
 
                   {/* Officer Name */}
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+                  <h4 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-tight mt-0.5">
                     {officer.name}
                   </h4>
-
-                  {/* Designation */}
-                  <span className="mt-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
-                    Program Officer (PO)
-                  </span>
-
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                    Gautam Buddha University
-                  </p>
 
                   {/* Contact / Email */}
                   {officer.email ? (
                     <a
                       href={`mailto:${officer.email}`}
-                      className="mt-4 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-primary transition-colors truncate max-w-full"
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors truncate max-w-full"
                     >
                       <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
                       <span className="truncate">{officer.email}</span>
                     </a>
                   ) : (
-                    <div className="h-4 mt-3"></div>
+                    <div className="h-2"></div>
                   )}
                 </div>
               ))}
