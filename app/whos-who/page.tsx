@@ -27,6 +27,74 @@ interface Member {
   order: number
 }
 
+// Initial data with uploaded photos so the page renders instantly with zero loading delay
+const INITIAL_MEMBERS: Member[] = [
+  {
+    _id: "coord-initial",
+    name: "Dr. Nagendra Singh",
+    designation: "NSS Program Coordinator",
+    category: "coordinator",
+    unitNo: "All Units",
+    email: "nss@gbu.ac.in",
+    photo: "https://res.cloudinary.com/djltlifnp/image/upload/v1793475303/nss-uploads/leadership/kduefts31mubwbbhaurg.jpg",
+    order: 1,
+  },
+  {
+    _id: "unit-1-initial",
+    name: "Dr. Gaurav Kumar",
+    designation: "Program Officer (PO)",
+    category: "officer",
+    unitNo: "Unit 1",
+    photo: "https://res.cloudinary.com/djltlifnp/image/upload/v1793475321/nss-uploads/leadership/xvz7erf7icyzhyqerwl3.jpg",
+    order: 2,
+  },
+  {
+    _id: "unit-2-initial",
+    name: "Dr. Bhaswati Banerjee",
+    designation: "Program Officer (PO)",
+    category: "officer",
+    unitNo: "Unit 2",
+    photo: "https://res.cloudinary.com/djltlifnp/image/upload/v1793475374/nss-uploads/leadership/tdzfsqlinqjg3vzvtgjt.jpg",
+    order: 3,
+  },
+  {
+    _id: "unit-3-initial",
+    name: "Dr. Rahul Kapoor",
+    designation: "Program Officer (PO)",
+    category: "officer",
+    unitNo: "Unit 3",
+    photo: "https://res.cloudinary.com/djltlifnp/image/upload/v1793475407/nss-uploads/leadership/ye3wtwpycnaj6epcc531.jpg",
+    order: 4,
+  },
+  {
+    _id: "unit-4-initial",
+    name: "Dr. Rakesh Kumar",
+    designation: "Program Officer (PO)",
+    category: "officer",
+    unitNo: "Unit 4",
+    photo: "https://res.cloudinary.com/djltlifnp/image/upload/v1793475415/nss-uploads/leadership/n6nz7uvgr4cxzqne5big.jpg",
+    order: 5,
+  },
+  {
+    _id: "unit-5-initial",
+    name: "Dr. Shrutee Kanwar",
+    designation: "Program Officer (PO)",
+    category: "officer",
+    unitNo: "Unit 5",
+    photo: "https://res.cloudinary.com/djltlifnp/image/upload/v1793475421/nss-uploads/leadership/ar3tlypgbkl2d3aomx69.jpg",
+    order: 6,
+  },
+  {
+    _id: "unit-6-initial",
+    name: "Dr. Samar Raqshin",
+    designation: "Program Officer (PO)",
+    category: "officer",
+    unitNo: "Unit 6",
+    photo: "https://res.cloudinary.com/djltlifnp/image/upload/v1793475431/nss-uploads/leadership/airz009h1ahqkqkubi1x.jpg",
+    order: 7,
+  },
+]
+
 // Fixed 6 Units Structure with Official Program Officers
 const OFFICIAL_POS = [
   { unitNo: "Unit 1", unitNum: "01", fallbackName: "Dr. Gaurav Kumar", color: "from-blue-600 to-indigo-600" },
@@ -38,25 +106,22 @@ const OFFICIAL_POS = [
 ]
 
 export default function WhosWhoPage() {
-  const [members, setMembers] = useState<Member[]>([])
-  const [loading, setLoading] = useState(true)
+  const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     fetchMembers()
   }, [])
 
   const fetchMembers = async () => {
-    setLoading(true)
     try {
       const res = await fetch("/api/whos-who")
       const data = await res.json()
-      if (data.success && Array.isArray(data.members)) {
+      if (data.success && Array.isArray(data.members) && data.members.length > 0) {
         setMembers(data.members)
       }
     } catch (error) {
       console.error("Failed to load leadership team:", error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -184,15 +249,9 @@ export default function WhosWhoPage() {
 
       {/* Organizational Leadership Chart Canvas */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 flex-1 w-full">
-        {loading ? (
-          <div className="py-20 text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3"></div>
-            <p className="text-sm text-slate-500">Loading hierarchy chart...</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            {/* LEVEL 1: Program Coordinator (The Apex Card) */}
-            <div className="relative group w-full max-w-md">
+        <div className="flex flex-col items-center">
+          {/* LEVEL 1: Program Coordinator (The Apex Card) */}
+          <div className="relative group w-full max-w-md">
               {/* Outer Glow */}
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 rounded-3xl blur-sm opacity-25 group-hover:opacity-40 transition-opacity"></div>
 
@@ -336,7 +395,6 @@ export default function WhosWhoPage() {
               ))}
             </div>
           </div>
-        )}
       </main>
 
       {/* Footer */}
