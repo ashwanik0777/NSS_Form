@@ -622,6 +622,56 @@ export function replaceEmailVariables(text: string, recipient?: CustomEmailRecip
     .replace(/\{\{\s*applicationId\s*\}\}/gi, recipient?.formNo || "")
 }
 
+export function linkifyAndFormatContent(content: string): string {
+  if (!content) return ""
+
+  const isHtml = /<[a-z][\s\S]*>/i.test(content)
+
+  // 1. Convert markdown links: [Text](https://...)
+  let processed = content.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #1d4ed8; text-decoration: underline; font-weight: 600; word-break: break-all;">$1</a>'
+  )
+
+  // 2. Convert raw URLs (http:// or https://) not already in href
+  processed = processed.replace(/(?<!href=["'])(?<!>)(https?:\/\/[^\s<>"'\)]+)/gi, (match) => {
+    let url = match
+    let trailing = ""
+    while (/[.,;:!?)]$/.test(url)) {
+      trailing = url.slice(-1) + trailing
+      url = url.slice(0, -1)
+    }
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #1d4ed8; text-decoration: underline; font-weight: 500; word-break: break-all;">${url}</a>${trailing}`
+  })
+
+  // 3. Convert www. URLs
+  processed = processed.replace(/(?<!https?:\/\/)(?<!["'>])(www\.[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-\.]+[^\s<>"'\)]*)/gi, (match) => {
+    let url = match
+    let trailing = ""
+    while (/[.,;:!?)]$/.test(url)) {
+      trailing = url.slice(-1) + trailing
+      url = url.slice(0, -1)
+    }
+    return `<a href="https://${url}" target="_blank" rel="noopener noreferrer" style="color: #1d4ed8; text-decoration: underline; font-weight: 500; word-break: break-all;">${url}</a>${trailing}`
+  })
+
+  // 4. If plain text, convert paragraph breaks to HTML
+  if (!isHtml) {
+    return processed
+      .split(/\n\s*\n/)
+      .map(
+        (paragraph) =>
+          `<p style="margin: 0 0 14px 0; color: #374151; font-size: 15px; line-height: 1.6; word-break: break-word;">${paragraph.replace(
+            /\n/g,
+            "<br/>"
+          )}</p>`
+      )
+      .join("")
+  }
+
+  return processed
+}
+
 export async function sendCustomEmail(
   to: string,
   subject: string,
@@ -630,26 +680,19 @@ export async function sendCustomEmail(
 ) {
   const personalizedSubject = replaceEmailVariables(subject, { ...recipient, email: to })
   const personalizedContent = replaceEmailVariables(content, { ...recipient, email: to })
-
-  // Convert plain text linebreaks to HTML paragraphs/breaks if no HTML tag is detected
-  const formattedContent = /<[a-z][\s\S]*>/i.test(personalizedContent)
-    ? personalizedContent
-    : personalizedContent
-        .split(/\n\s*\n/)
-        .map((paragraph) => `<p style="margin: 0 0 14px 0; color: #374151; font-size: 15px; line-height: 1.6;">${paragraph.replace(/\n/g, "<br/>")}</p>`)
-        .join("")
+  const formattedContent = linkifyAndFormatContent(personalizedContent)
 
   const mailOptions = {
     from: process.env.SMTP_USER,
     to,
     subject: personalizedSubject,
     html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); width: 100%;">
         <div style="background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); padding: 24px 20px; text-align: center;">
           <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">NATIONAL SERVICE SCHEME</h1>
           <p style="color: #bfdbfe; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Gautam Buddha University • Greater Noida</p>
         </div>
-        <div style="padding: 28px 24px; background-color: #ffffff;">
+        <div style="padding: 24px 20px; background-color: #ffffff; word-break: break-word;">
           ${formattedContent}
         </div>
         <div style="background-color: #f8fafc; padding: 16px 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "@/hooks/use-toast"
+import { replaceEmailVariables, linkifyAndFormatContent } from "@/lib/email-formatter"
 import {
   Mail,
   Send,
@@ -40,9 +41,9 @@ import {
   ExternalLink,
   Filter,
   Check,
-  ChevronRight,
   Server,
   Zap,
+  Link as LinkIcon,
 } from "lucide-react"
 
 interface EmailTemplate {
@@ -690,7 +691,7 @@ export default function EmailSystemPage() {
           type: "single",
           recipients: [testEmailAddress.trim()],
           subject: "NSS Portal SMTP Verification Test",
-          content: `This is a verification test email from the NSS Email System (Gautam Buddha University).\n\nIf you are reading this, your SMTP transport and Gmail connection are working smoothly!`,
+          content: `This is a verification test email from the NSS Email System (Gautam Buddha University).\n\nIf you are reading this, your SMTP transport and Gmail connection are working smoothly!\n\nPortal: https://nss-gbu.collcom.org/login`,
         }),
       })
       const data = await res.json()
@@ -714,7 +715,7 @@ export default function EmailSystemPage() {
     }
   }
 
-  // Format sample preview text
+  // Format sample preview text with linkification
   const renderSamplePreview = (content: string, subject: string) => {
     const sample = {
       name: "Ramesh Sharma",
@@ -722,39 +723,38 @@ export default function EmailSystemPage() {
       email: "ramesh.sharma@example.com",
       formNo: "1902",
     }
-    const finalSubject = subject
-      .replace(/\{\{\s*name\s*\}\}/gi, sample.name)
-      .replace(/\{\{\s*unitNo\s*\}\}/gi, sample.unitNo)
-      .replace(/\{\{\s*email\s*\}\}/gi, sample.email)
-      .replace(/\{\{\s*formNo\s*\}\}/gi, sample.formNo)
-
-    const finalContent = content
-      .replace(/\{\{\s*name\s*\}\}/gi, sample.name)
-      .replace(/\{\{\s*unitNo\s*\}\}/gi, sample.unitNo)
-      .replace(/\{\{\s*email\s*\}\}/gi, sample.email)
-      .replace(/\{\{\s*formNo\s*\}\}/gi, sample.formNo)
+    const finalSubject = replaceEmailVariables(subject, sample)
+    const finalContent = replaceEmailVariables(content, sample)
+    const linkifiedHtml = linkifyAndFormatContent(finalContent)
 
     return (
-      <div className="border rounded-xl overflow-hidden shadow-sm bg-white text-slate-800">
-        <div className="bg-gradient-to-r from-blue-700 to-indigo-700 text-white p-5 text-center">
-          <p className="text-xs uppercase tracking-widest text-blue-200 font-semibold mb-1">
+      <div className="border rounded-xl overflow-hidden shadow-sm bg-white text-slate-800 w-full">
+        <div className="bg-gradient-to-r from-blue-700 to-indigo-700 text-white p-4 sm:p-5 text-center">
+          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-blue-200 font-semibold mb-1">
             National Service Scheme
           </p>
-          <h3 className="text-lg font-bold">Gautam Buddha University</h3>
-          <p className="text-xs text-blue-100 mt-1">Official Volunteer Communication</p>
+          <h3 className="text-base sm:text-lg font-bold">Gautam Buddha University</h3>
+          <p className="text-[11px] sm:text-xs text-blue-100 mt-1">Official Volunteer Communication</p>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           <div className="pb-3 border-b">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Subject</span>
-            <p className="font-semibold text-base text-slate-900 mt-0.5">{finalSubject || "(No subject set)"}</p>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Subject</span>
+            <p className="font-semibold text-sm sm:text-base text-slate-900 mt-0.5 break-words">
+              {finalSubject || "(No subject set)"}
+            </p>
           </div>
-          <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap min-h-[120px]">
-            {finalContent || "(No email content entered yet...)"}
-          </div>
+          <div
+            className="text-xs sm:text-sm leading-relaxed text-slate-700 min-h-[100px] break-words [&_a]:text-blue-600 [&_a]:underline [&_a]:font-medium hover:[&_a]:text-blue-800"
+            dangerouslySetInnerHTML={{
+              __html:
+                linkifiedHtml ||
+                '<p class="text-slate-400 italic text-xs">(No email content entered yet...)</p>',
+            }}
+          />
         </div>
-        <div className="bg-slate-50 border-t p-4 text-center text-xs text-slate-500">
+        <div className="bg-slate-50 border-t p-3 sm:p-4 text-center text-xs text-slate-500">
           <p className="font-medium text-slate-600">National Service Scheme (NSS), Gautam Buddha University</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">
             This is an automated communication sent to registered volunteers.
           </p>
         </div>
@@ -764,58 +764,53 @@ export default function EmailSystemPage() {
 
   return (
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="email.view">
-      <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-7xl">
+      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-2 border-b">
           <div>
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
-                <Mail className="w-6 h-6" />
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-blue-100 rounded-lg text-blue-700 shrink-0">
+                <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
                   Email Command Center
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-none">
                   Send, track, and automate student communications with live delivery telemetry
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Quick Metrics Bar */}
-          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-            <Card className="p-3 py-2 border shadow-none bg-blue-50/50">
-              <div className="flex items-center gap-2">
-                <Send className="w-4 h-4 text-blue-600" />
-                <div>
-                  <p className="text-[11px] font-medium text-slate-600">Total Sent</p>
-                  <p className="text-lg font-bold text-blue-700">{stats.totalSent}</p>
+          {/* Quick Metrics Bar - Mobile Responsive Grid */}
+          <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 w-full md:w-auto">
+            <Card className="p-2 sm:p-3 sm:py-2 border shadow-none bg-blue-50/50">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-[11px] font-medium text-slate-600 truncate">Total Sent</p>
+                  <p className="text-base sm:text-lg font-bold text-blue-700">{stats.totalSent}</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-3 py-2 border shadow-none bg-emerald-50/50">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-emerald-600" />
-                <div>
-                  <div className="flex items-center gap-1">
-                    <p className="text-[11px] font-medium text-slate-600">Today's Quota</p>
-                    <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-1 rounded">
-                      {stats.sentToday}/500
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 font-medium">{stats.remainingToday} left today</p>
+            <Card className="p-2 sm:p-3 sm:py-2 border shadow-none bg-emerald-50/50">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-[11px] font-medium text-slate-600 truncate">Today's Quota</p>
+                  <p className="text-xs sm:text-sm font-bold text-emerald-700 truncate">{stats.sentToday}/500</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-3 py-2 border shadow-none bg-purple-50/50">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-purple-600" />
-                <div>
-                  <p className="text-[11px] font-medium text-slate-600">Templates</p>
-                  <p className="text-lg font-bold text-purple-700">{templates.length}</p>
+            <Card className="p-2 sm:p-3 sm:py-2 border shadow-none bg-purple-50/50">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-[11px] font-medium text-slate-600 truncate">Templates</p>
+                  <p className="text-base sm:text-lg font-bold text-purple-700">{templates.length}</p>
                 </div>
               </div>
             </Card>
@@ -823,31 +818,30 @@ export default function EmailSystemPage() {
         </div>
 
         {/* Daily Quota / SMTP Info Banner */}
-        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 border border-blue-200/60 rounded-xl p-3.5 px-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 text-white rounded-md shrink-0">
-              <Server className="w-4 h-4" />
+        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 border border-blue-200/60 rounded-xl p-3 sm:p-3.5 px-3.5 sm:px-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+          <div className="flex items-start sm:items-center gap-2.5 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-blue-600 text-white rounded-md shrink-0 mt-0.5 sm:mt-0">
+              <Server className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-slate-800">Sender: gbunssofficial@gmail.com</span>
-                <Badge variant="outline" className="text-xs bg-white text-blue-700 border-blue-300">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="font-semibold text-xs sm:text-sm text-slate-800">Sender: gbunssofficial@gmail.com</span>
+                <Badge variant="outline" className="text-[10px] sm:text-xs bg-white text-blue-700 border-blue-300">
                   Gmail SMTP
                 </Badge>
-                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-300">
-                  Daily Quota: 500 emails/day
+                <Badge variant="outline" className="text-[10px] sm:text-xs bg-emerald-50 text-emerald-700 border-emerald-300">
+                  Daily Limit: 500 emails/day
                 </Badge>
               </div>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Bulk sending throttles automatically (150ms/email) to prevent provider spam filtering. Live tracking
-                keeps you updated per recipient.
+              <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
+                Bulk sending throttles automatically (150ms/email) to protect deliverability. Links pasted in emails automatically become clickable.
               </p>
             </div>
           </div>
           <Button
             size="sm"
             variant="outline"
-            className="text-xs shrink-0 bg-white hover:bg-blue-50 text-blue-700 border-blue-200"
+            className="text-xs shrink-0 w-full sm:w-auto bg-white hover:bg-blue-50 text-blue-700 border-blue-200"
             onClick={() => setActiveTab("settings")}
           >
             <Info className="w-3.5 h-3.5 mr-1.5" />
@@ -855,83 +849,88 @@ export default function EmailSystemPage() {
           </Button>
         </div>
 
-        {/* Tab Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 p-1 bg-slate-100 rounded-xl">
-            <TabsTrigger value="compose" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <Send className="w-4 h-4 mr-1.5" />
-              Compose
-            </TabsTrigger>
-            <TabsTrigger value="bulk" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <Users className="w-4 h-4 mr-1.5" />
-              Bulk Email
-              {recipientsList.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.2 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-full">
-                  {recipientsList.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <FileText className="w-4 h-4 mr-1.5" />
-              Templates
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <Clock className="w-4 h-4 mr-1.5" />
-              Email Logs
-              {emailLogs.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.2 bg-slate-200 text-slate-800 text-[10px] font-semibold rounded-full">
-                  {emailLogs.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm col-span-2 md:col-span-1">
-              <Server className="w-4 h-4 mr-1.5" />
-              SMTP & Limits
-            </TabsTrigger>
-          </TabsList>
+        {/* Tab Navigation - Horizontally Scrollable on Mobile Phones */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <div className="overflow-x-auto no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex min-w-full sm:grid sm:grid-cols-5 p-1 bg-slate-100 rounded-xl gap-1">
+              <TabsTrigger value="compose" className="text-xs sm:text-sm rounded-lg whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Send className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Compose
+              </TabsTrigger>
+              <TabsTrigger value="bulk" className="text-xs sm:text-sm rounded-lg whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Users className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Bulk Email
+                {recipientsList.length > 0 && (
+                  <span className="ml-1 sm:ml-1.5 px-1.5 py-0.2 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-full">
+                    {recipientsList.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="templates" className="text-xs sm:text-sm rounded-lg whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <FileText className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Templates
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="text-xs sm:text-sm rounded-lg whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Clock className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Email Logs
+                {emailLogs.length > 0 && (
+                  <span className="ml-1 sm:ml-1.5 px-1.5 py-0.2 bg-slate-200 text-slate-800 text-[10px] font-semibold rounded-full">
+                    {emailLogs.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="text-xs sm:text-sm rounded-lg whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Server className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                SMTP & Limits
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ======================================================== */}
           {/* TAB 1: COMPOSE SINGLE / DIRECT EMAIL */}
           {/* ======================================================== */}
-          <TabsContent value="compose" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <TabsContent value="compose" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
               <div className="lg:col-span-7 space-y-4">
                 <Card className="border shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-xl flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Send className="w-5 h-5 text-blue-600" />
+                  <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                        <Send className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                         Compose Email
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setComposePreview(!composePreview)}
-                          className="text-xs"
-                        >
-                          <Eye className="w-3.5 h-3.5 mr-1" />
-                          {composePreview ? "Hide Preview" : "Live Preview"}
-                        </Button>
-                      </div>
-                    </CardTitle>
-                    <CardDescription>
+                      </CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setComposePreview(!composePreview)}
+                        className="text-xs h-8"
+                      >
+                        <Eye className="w-3.5 h-3.5 mr-1" />
+                        {composePreview ? "Hide Preview" : "Live Preview"}
+                      </Button>
+                    </div>
+                    <CardDescription className="text-xs sm:text-sm">
                       Send direct or targeted emails to specific recipients or coordinators.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="compose-recipients">Recipients (comma-separated)</Label>
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="compose-recipients" className="text-xs sm:text-sm">
+                          Recipients (comma-separated)
+                        </Label>
                         <Input
                           id="compose-recipients"
                           placeholder="e.g. volunteer1@gmail.com, volunteer2@gmail.com"
                           value={composeData.recipients}
                           onChange={(e) => setComposeData((prev) => ({ ...prev, recipients: e.target.value }))}
+                          className="text-xs sm:text-sm"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="compose-template">Apply Preset Template</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="compose-template" className="text-xs sm:text-sm">
+                          Apply Preset Template
+                        </Label>
                         <Select
                           value={composeData.templateId}
                           onValueChange={(val) => {
@@ -939,17 +938,17 @@ export default function EmailSystemPage() {
                             if (selected) applyTemplateToCompose(selected)
                           }}
                         >
-                          <SelectTrigger id="compose-template">
+                          <SelectTrigger id="compose-template" className="text-xs sm:text-sm">
                             <SelectValue placeholder="Choose a saved template..." />
                           </SelectTrigger>
                           <SelectContent>
                             {templates.map((tpl) => (
-                              <SelectItem key={tpl._id} value={tpl._id}>
+                              <SelectItem key={tpl._id} value={tpl._id} className="text-xs sm:text-sm">
                                 {tpl.name}
                               </SelectItem>
                             ))}
                             {templates.length === 0 && (
-                              <SelectItem value="none" disabled>
+                              <SelectItem value="none" disabled className="text-xs">
                                 No templates found
                               </SelectItem>
                             )}
@@ -958,20 +957,25 @@ export default function EmailSystemPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="compose-subject">Subject</Label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="compose-subject" className="text-xs sm:text-sm">
+                        Subject
+                      </Label>
                       <Input
                         id="compose-subject"
                         placeholder="Subject line..."
                         value={composeData.subject}
                         onChange={(e) => setComposeData((prev) => ({ ...prev, subject: e.target.value }))}
+                        className="text-xs sm:text-sm"
                       />
                     </div>
 
                     {/* Variable shortcut chips */}
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="compose-content">Message Content</Label>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <Label htmlFor="compose-content" className="text-xs sm:text-sm">
+                          Message Content
+                        </Label>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-[11px] text-slate-500 font-medium">Insert tag:</span>
                           {["{{name}}", "{{unitNo}}", "{{email}}"].map((tag) => (
@@ -979,7 +983,7 @@ export default function EmailSystemPage() {
                               key={tag}
                               type="button"
                               onClick={() => insertVariable(tag, "compose")}
-                              className="px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded text-xs font-mono transition-colors"
+                              className="px-1.5 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded text-[11px] font-mono transition-colors"
                             >
                               +{tag}
                             </button>
@@ -988,18 +992,26 @@ export default function EmailSystemPage() {
                       </div>
                       <Textarea
                         id="compose-content"
-                        placeholder="Write your email here... Paragraphs and line breaks are automatically formatted into a professional NSS template."
-                        rows={10}
+                        placeholder="Write your email here... Any link or URL you paste (e.g. Google Form link, Zoom link, or website) automatically becomes an interactive clickable link!"
+                        rows={8}
                         value={composeData.content}
                         onChange={(e) => setComposeData((prev) => ({ ...prev, content: e.target.value }))}
-                        className="font-sans leading-relaxed text-sm"
+                        className="font-sans leading-relaxed text-xs sm:text-sm"
                       />
+
+                      {/* Clickable link auto-detection indicator */}
+                      <div className="flex items-center gap-1.5 text-[11px] text-blue-700 bg-blue-50/80 border border-blue-200/80 rounded-lg p-2">
+                        <LinkIcon className="w-3.5 h-3.5 shrink-0 text-blue-600" />
+                        <span>
+                          <b>Link Auto-Detection Active:</b> Any URLs or Google Forms pasted in this email automatically turn into working, clickable links for students.
+                        </span>
+                      </div>
                     </div>
 
                     <Button
                       onClick={sendSingleEmail}
                       disabled={loading || !composeData.recipients || !composeData.subject}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 text-xs sm:text-sm"
                     >
                       {loading ? (
                         <>
@@ -1018,18 +1030,18 @@ export default function EmailSystemPage() {
               </div>
 
               {/* Right Side: Live Email Template Preview */}
-              <div className="lg:col-span-5 space-y-4">
-                <Card className="border shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
+              <div className={`lg:col-span-5 space-y-4 ${composePreview ? "block" : "hidden lg:block"}`}>
+                <Card className="border shadow-sm sticky top-4">
+                  <CardHeader className="pb-3 p-4 sm:p-6">
+                    <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                       <Eye className="w-4 h-4 text-blue-600" />
                       Live Email Preview
                     </CardTitle>
-                    <CardDescription>
-                      This is how recipients see the email in their Gmail / Outlook client.
+                    <CardDescription className="text-xs">
+                      This is how recipients see the email in their Gmail or Outlook inbox.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                     {renderSamplePreview(composeData.content, composeData.subject)}
                   </CardContent>
                 </Card>
@@ -1040,23 +1052,23 @@ export default function EmailSystemPage() {
           {/* ======================================================== */}
           {/* TAB 2: BULK EMAIL WITH LIVE TELEMETRY TRACKER */}
           {/* ======================================================== */}
-          <TabsContent value="bulk" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <TabsContent value="bulk" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
               {/* Left Column: Audience and Filtering */}
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-7 space-y-4 sm:space-y-6">
                 {/* 1. Target Audience Selection */}
                 <Card className="border shadow-sm">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Users className="w-5 h-5 text-blue-600" />
+                  <CardHeader className="pb-3 p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                         1. Target Audience
                       </CardTitle>
                       {bulkFilter.recipientType !== "custom" && (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs h-8 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          className="text-xs h-7 sm:h-8 border-blue-200 text-blue-700 hover:bg-blue-50 self-start sm:self-auto"
                           onClick={() => setIsRecipientModalOpen(true)}
                         >
                           <Filter className="w-3.5 h-3.5 mr-1" />
@@ -1064,49 +1076,53 @@ export default function EmailSystemPage() {
                         </Button>
                       )}
                     </div>
-                    <CardDescription>
+                    <CardDescription className="text-xs">
                       Select the volunteer cohort or specify a custom mailing list.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="bulk-audience">Volunteer Group</Label>
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="bulk-audience" className="text-xs sm:text-sm">
+                          Volunteer Group
+                        </Label>
                         <Select
                           value={bulkFilter.recipientType}
                           onValueChange={(val) => setBulkFilter((prev) => ({ ...prev, recipientType: val }))}
                         >
-                          <SelectTrigger id="bulk-audience">
+                          <SelectTrigger id="bulk-audience" className="text-xs sm:text-sm">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="approved">Approved Volunteers</SelectItem>
-                            <SelectItem value="pending">Pending Applications</SelectItem>
-                            <SelectItem value="all">All Active Volunteers</SelectItem>
-                            <SelectItem value="rejected">Rejected Applicants</SelectItem>
-                            <SelectItem value="custom">Custom Email List</SelectItem>
+                            <SelectItem value="approved" className="text-xs sm:text-sm">Approved Volunteers</SelectItem>
+                            <SelectItem value="pending" className="text-xs sm:text-sm">Pending Applications</SelectItem>
+                            <SelectItem value="all" className="text-xs sm:text-sm">All Active Volunteers</SelectItem>
+                            <SelectItem value="rejected" className="text-xs sm:text-sm">Rejected Applicants</SelectItem>
+                            <SelectItem value="custom" className="text-xs sm:text-sm">Custom Email List</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       {bulkFilter.recipientType !== "custom" && (
-                        <div className="space-y-2">
-                          <Label htmlFor="bulk-unit">Unit Filter</Label>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="bulk-unit" className="text-xs sm:text-sm">
+                            Unit Filter
+                          </Label>
                           <Select
                             value={bulkFilter.unit}
                             onValueChange={(val) => setBulkFilter((prev) => ({ ...prev, unit: val }))}
                           >
-                            <SelectTrigger id="bulk-unit">
+                            <SelectTrigger id="bulk-unit" className="text-xs sm:text-sm">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="all">All Units (1 - 6)</SelectItem>
-                              <SelectItem value="1">Unit 1</SelectItem>
-                              <SelectItem value="2">Unit 2</SelectItem>
-                              <SelectItem value="3">Unit 3</SelectItem>
-                              <SelectItem value="4">Unit 4</SelectItem>
-                              <SelectItem value="5">Unit 5</SelectItem>
-                              <SelectItem value="6">Unit 6</SelectItem>
+                              <SelectItem value="all" className="text-xs sm:text-sm">All Units (1 - 6)</SelectItem>
+                              <SelectItem value="1" className="text-xs sm:text-sm">Unit 1</SelectItem>
+                              <SelectItem value="2" className="text-xs sm:text-sm">Unit 2</SelectItem>
+                              <SelectItem value="3" className="text-xs sm:text-sm">Unit 3</SelectItem>
+                              <SelectItem value="4" className="text-xs sm:text-sm">Unit 4</SelectItem>
+                              <SelectItem value="5" className="text-xs sm:text-sm">Unit 5</SelectItem>
+                              <SelectItem value="6" className="text-xs sm:text-sm">Unit 6</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1114,31 +1130,34 @@ export default function EmailSystemPage() {
                     </div>
 
                     {bulkFilter.recipientType === "custom" ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="custom-emails">Custom Email List (comma or newline separated)</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="custom-emails" className="text-xs sm:text-sm">
+                          Custom Email List (comma or newline separated)
+                        </Label>
                         <Textarea
                           id="custom-emails"
                           placeholder="student1@gmail.com, student2@gmail.com..."
                           rows={4}
                           value={bulkFilter.customRecipients}
                           onChange={(e) => setBulkFilter((prev) => ({ ...prev, customRecipients: e.target.value }))}
+                          className="text-xs sm:text-sm"
                         />
                       </div>
                     ) : (
-                      <div className="p-3 bg-slate-50 border rounded-lg flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                      <div className="p-2.5 sm:p-3 bg-slate-50 border rounded-lg flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
                           {loadingRecipients ? (
-                            <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+                            <RefreshCw className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
                           ) : (
-                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                           )}
-                          <div>
-                            <p className="text-xs font-semibold text-slate-800">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-slate-800 truncate">
                               {loadingRecipients
                                 ? "Counting matching volunteers..."
                                 : `Found ${recipientsList.length} volunteers (${selectedRecipientIds.size} selected)`}
                             </p>
-                            <p className="text-[11px] text-slate-500">
+                            <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">
                               Filtered by {bulkFilter.recipientType} • {bulkFilter.unit === "all" ? "All Units" : `Unit ${bulkFilter.unit}`}
                             </p>
                           </div>
@@ -1146,11 +1165,11 @@ export default function EmailSystemPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-xs text-blue-700 hover:text-blue-800"
+                          className="text-xs text-blue-700 hover:text-blue-800 h-7 px-2 shrink-0"
                           onClick={fetchRecipients}
                         >
                           <RefreshCw className="w-3.5 h-3.5 mr-1" />
-                          Refresh List
+                          Refresh
                         </Button>
                       </div>
                     )}
@@ -1159,26 +1178,28 @@ export default function EmailSystemPage() {
 
                 {/* 2. Message Composer */}
                 <Card className="border shadow-sm">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-indigo-600" />
+                  <CardHeader className="pb-3 p-4 sm:p-6">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                         2. Email Message
                       </CardTitle>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setPreviewBulkEmail(!previewBulkEmail)}
-                        className="text-xs"
+                        className="text-xs h-8"
                       >
                         <Eye className="w-3.5 h-3.5 mr-1" />
                         {previewBulkEmail ? "Edit Mode" : "Preview Branded Email"}
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="bulk-template-select">Choose Saved Template (Optional)</Label>
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="bulk-template-select" className="text-xs sm:text-sm">
+                        Choose Saved Template (Optional)
+                      </Label>
                       <Select
                         value={bulkTemplateId}
                         onValueChange={(val) => {
@@ -1186,12 +1207,12 @@ export default function EmailSystemPage() {
                           if (tpl) applyTemplateToBulk(tpl)
                         }}
                       >
-                        <SelectTrigger id="bulk-template-select">
+                        <SelectTrigger id="bulk-template-select" className="text-xs sm:text-sm">
                           <SelectValue placeholder="Select a template or compose freely..." />
                         </SelectTrigger>
                         <SelectContent>
                           {templates.map((tpl) => (
-                            <SelectItem key={tpl._id} value={tpl._id}>
+                            <SelectItem key={tpl._id} value={tpl._id} className="text-xs sm:text-sm">
                               {tpl.name}
                             </SelectItem>
                           ))}
@@ -1199,19 +1220,24 @@ export default function EmailSystemPage() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="bulk-subject">Subject Line</Label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="bulk-subject" className="text-xs sm:text-sm">
+                        Subject Line
+                      </Label>
                       <Input
                         id="bulk-subject"
                         placeholder="e.g. Mandatory Briefing Meeting for Unit {{unitNo}}"
                         value={bulkSubject}
                         onChange={(e) => setBulkSubject(e.target.value)}
+                        className="text-xs sm:text-sm"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="bulk-content">Email Body</Label>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <Label htmlFor="bulk-content" className="text-xs sm:text-sm">
+                          Email Body
+                        </Label>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-[11px] text-slate-500 font-medium">Personalize with:</span>
                           {["{{name}}", "{{unitNo}}", "{{email}}", "{{formNo}}"].map((tag) => (
@@ -1219,7 +1245,7 @@ export default function EmailSystemPage() {
                               key={tag}
                               type="button"
                               onClick={() => insertVariable(tag, "bulk")}
-                              className="px-2 py-0.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded text-xs font-mono transition-colors"
+                              className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded text-[11px] font-mono transition-colors"
                             >
                               +{tag}
                             </button>
@@ -1228,20 +1254,28 @@ export default function EmailSystemPage() {
                       </div>
                       <Textarea
                         id="bulk-content"
-                        placeholder="Dear {{name}},\n\nWrite your announcement or notice here. When sent in bulk, tags like {{name}} and {{unitNo}} are replaced dynamically with each student's real information."
-                        rows={9}
+                        placeholder="Dear {{name}},\n\nWrite your announcement or notice here. Paste links freely (e.g. https://forms.gle/...); they are automatically detected and formatted into working hyperlinks!"
+                        rows={8}
                         value={bulkContent}
                         onChange={(e) => setBulkContent(e.target.value)}
-                        className="font-sans leading-relaxed text-sm"
+                        className="font-sans leading-relaxed text-xs sm:text-sm"
                       />
+
+                      {/* Clickable link auto-detection indicator */}
+                      <div className="flex items-center gap-1.5 text-[11px] text-indigo-700 bg-indigo-50/80 border border-indigo-200/80 rounded-lg p-2">
+                        <LinkIcon className="w-3.5 h-3.5 shrink-0 text-indigo-600" />
+                        <span>
+                          <b>Link Auto-Detection Active:</b> Any links (Google Forms, meeting URLs, documents) pasted here will work as clickable links in recipients' email inboxes.
+                        </span>
+                      </div>
                     </div>
 
                     {/* Throttle & Safety Settings */}
-                    <div className="p-3 bg-slate-50 border rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="p-2.5 sm:p-3 bg-slate-50 border rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                       <div>
-                        <span className="font-semibold text-slate-700 block">Delivery Speed / Throttling</span>
-                        <span className="text-slate-500">
-                          Pause between each dispatch to comply with Gmail SMTP limits
+                        <span className="font-semibold text-slate-700 block text-xs">Delivery Speed / Throttling</span>
+                        <span className="text-slate-500 text-[11px]">
+                          Pause between each dispatch to comply with Gmail SMTP anti-spam limits
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1249,7 +1283,7 @@ export default function EmailSystemPage() {
                           value={String(bulkThrottleMs)}
                           onValueChange={(val) => setBulkThrottleMs(Number(val))}
                         >
-                          <SelectTrigger className="h-8 w-32 bg-white text-xs">
+                          <SelectTrigger className="h-8 w-full sm:w-32 bg-white text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1266,9 +1300,9 @@ export default function EmailSystemPage() {
                     <Button
                       onClick={startBulkEmailDispatch}
                       disabled={isSendingLive || !bulkSubject || !bulkContent}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 text-base shadow-sm"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 text-sm sm:text-base shadow-sm"
                     >
-                      <Play className="w-5 h-5 mr-2" />
+                      <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       Launch Live Bulk Email (
                       {bulkFilter.recipientType === "custom"
                         ? bulkFilter.customRecipients.split(/[,\n]/).filter((e) => e.includes("@")).length
@@ -1280,23 +1314,23 @@ export default function EmailSystemPage() {
               </div>
 
               {/* Right Column: Live Branded Preview */}
-              <div className="lg:col-span-5 space-y-4">
-                <Card className="border shadow-sm sticky top-6">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+              <div className={`lg:col-span-5 space-y-4 ${previewBulkEmail ? "block" : "hidden lg:block"}`}>
+                <Card className="border shadow-sm sticky top-4">
+                  <CardHeader className="pb-3 p-4 sm:p-6">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                         <Eye className="w-4 h-4 text-blue-600" />
                         Live Message Preview
-                      </div>
-                      <Badge variant="outline" className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200">
+                      </CardTitle>
+                      <Badge variant="outline" className="text-[10px] sm:text-xs bg-indigo-50 text-indigo-700 border-indigo-200">
                         Personalized Sample
                       </Badge>
-                    </CardTitle>
-                    <CardDescription>
+                    </div>
+                    <CardDescription className="text-xs">
                       Previewing with placeholder data: Ramesh Sharma (Unit 1, Form #1902)
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                     {renderSamplePreview(bulkContent, bulkSubject)}
                   </CardContent>
                 </Card>
@@ -1307,38 +1341,39 @@ export default function EmailSystemPage() {
           {/* ======================================================== */}
           {/* TAB 3: EMAIL TEMPLATES */}
           {/* ======================================================== */}
-          <TabsContent value="templates" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <TabsContent value="templates" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
               {/* Left Column: Create Template Form */}
               <div className="lg:col-span-5 space-y-4">
                 <Card className="border shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Plus className="w-5 h-5 text-blue-600" />
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                       Create New Template
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs">
                       Create reusable email templates with customizable variables.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tpl-name">Template Name</Label>
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="tpl-name" className="text-xs sm:text-sm">Template Name</Label>
                       <Input
                         id="tpl-name"
                         placeholder="e.g. Orientation Meeting Notice"
                         value={templateData.name}
                         onChange={(e) => setTemplateData((prev) => ({ ...prev, name: e.target.value }))}
+                        className="text-xs sm:text-sm"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="tpl-type">Category</Label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="tpl-type" className="text-xs sm:text-sm">Category</Label>
                       <Select
                         value={templateData.type}
                         onValueChange={(val: any) => setTemplateData((prev) => ({ ...prev, type: val }))}
                       >
-                        <SelectTrigger id="tpl-type">
+                        <SelectTrigger id="tpl-type" className="text-xs sm:text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1350,35 +1385,36 @@ export default function EmailSystemPage() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="tpl-subject">Default Subject</Label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="tpl-subject" className="text-xs sm:text-sm">Default Subject</Label>
                       <Input
                         id="tpl-subject"
                         placeholder="e.g. Important Update for NSS Volunteers ({{name}})"
                         value={templateData.subject}
                         onChange={(e) => setTemplateData((prev) => ({ ...prev, subject: e.target.value }))}
+                        className="text-xs sm:text-sm"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="tpl-content">Default Body</Label>
-                        <span className="text-[11px] text-slate-400">Supports variables</span>
+                        <Label htmlFor="tpl-content" className="text-xs sm:text-sm">Default Body</Label>
+                        <span className="text-[11px] text-slate-400">Supports variables & links</span>
                       </div>
                       <Textarea
                         id="tpl-content"
-                        placeholder="Write standard template text here..."
-                        rows={8}
+                        placeholder="Write standard template text here... Paste any links or forms freely."
+                        rows={7}
                         value={templateData.content}
                         onChange={(e) => setTemplateData((prev) => ({ ...prev, content: e.target.value }))}
-                        className="text-sm font-sans leading-relaxed"
+                        className="text-xs sm:text-sm font-sans leading-relaxed"
                       />
                     </div>
 
                     <Button
                       onClick={saveTemplate}
                       disabled={loading || !templateData.name || !templateData.subject || !templateData.content}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
                     >
                       <FileText className="w-4 h-4 mr-2" />
                       Save Template
@@ -1390,10 +1426,10 @@ export default function EmailSystemPage() {
               {/* Right Column: Saved Templates List */}
               <div className="lg:col-span-7 space-y-4">
                 <Card className="border shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 p-4 sm:p-6 gap-2">
                     <div>
-                      <CardTitle className="text-lg">Saved Templates ({templates.length})</CardTitle>
-                      <CardDescription>Quickly apply or edit standard email messages</CardDescription>
+                      <CardTitle className="text-base sm:text-lg">Saved Templates ({templates.length})</CardTitle>
+                      <CardDescription className="text-xs">Quickly apply or edit standard email messages</CardDescription>
                     </div>
                     {templates.length === 0 && (
                       <Button
@@ -1401,30 +1437,30 @@ export default function EmailSystemPage() {
                         variant="outline"
                         onClick={seedPresetTemplates}
                         disabled={seedingTemplates}
-                        className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+                        className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 self-start sm:self-auto"
                       >
                         <Sparkles className="w-3.5 h-3.5 mr-1" />
                         {seedingTemplates ? "Loading Presets..." : "Load 4 NSS Presets"}
                       </Button>
                     )}
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-3 p-4 sm:p-6 pt-0 sm:pt-0">
                     {templates.map((tpl) => (
                       <div
                         key={tpl._id}
-                        className="border rounded-xl p-4 bg-white hover:border-blue-200 transition-all space-y-2 shadow-xs"
+                        className="border rounded-xl p-3 sm:p-4 bg-white hover:border-blue-200 transition-all space-y-2 shadow-xs"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-semibold text-slate-900">{tpl.name}</h4>
-                              <Badge variant="secondary" className="text-xs capitalize">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                              <h4 className="font-semibold text-xs sm:text-sm text-slate-900 truncate">{tpl.name}</h4>
+                              <Badge variant="secondary" className="text-[10px] capitalize">
                                 {tpl.type}
                               </Badge>
                             </div>
-                            <p className="text-xs text-slate-500 mt-1 font-mono">{tpl.subject}</p>
+                            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-mono truncate">{tpl.subject}</p>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0">
                             <Button
                               size="sm"
                               variant="outline"
@@ -1464,9 +1500,9 @@ export default function EmailSystemPage() {
                     ))}
 
                     {templates.length === 0 && (
-                      <div className="text-center py-12 border border-dashed rounded-xl space-y-3">
-                        <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-                        <h4 className="font-semibold text-slate-700">No email templates created yet</h4>
+                      <div className="text-center py-10 sm:py-12 border border-dashed rounded-xl space-y-3 p-4">
+                        <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-slate-300 mx-auto" />
+                        <h4 className="font-semibold text-xs sm:text-sm text-slate-700">No email templates created yet</h4>
                         <p className="text-xs text-slate-500 max-w-sm mx-auto">
                           Create your first template above, or click below to load official NSS announcement presets.
                         </p>
@@ -1490,46 +1526,44 @@ export default function EmailSystemPage() {
           {/* ======================================================== */}
           {/* TAB 4: EMAIL AUDIT LOGS & TRACKING HISTORY */}
           {/* ======================================================== */}
-          <TabsContent value="logs" className="space-y-6">
+          <TabsContent value="logs" className="space-y-4 sm:space-y-6">
             <Card className="border shadow-sm">
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-blue-600" />
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                       Email Delivery Telemetry & Audit Logs
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs">
                       Full delivery trail of all individual and bulk dispatches with status codes.
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs"
-                      onClick={fetchEmailLogs}
-                    >
-                      <RefreshCw className="w-3.5 h-3.5 mr-1" />
-                      Refresh
-                    </Button>
-                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs h-8 self-start sm:self-auto"
+                    onClick={fetchEmailLogs}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                    Refresh
+                  </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
                 {/* Search and Filters */}
-                <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3">
                   <div className="relative flex-1 w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
                       placeholder="Search by recipient email, volunteer name, or subject..."
                       value={logSearchTerm}
                       onChange={(e) => setLogSearchTerm(e.target.value)}
-                      className="pl-9 text-sm"
+                      className="pl-9 text-xs sm:text-sm"
                     />
                   </div>
                   <Select value={logStatusFilter} onValueChange={setLogStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-40 text-xs">
+                    <SelectTrigger className="w-full sm:w-44 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1543,15 +1577,15 @@ export default function EmailSystemPage() {
 
                 {/* Logs List Table */}
                 <div className="border rounded-xl overflow-hidden bg-white shadow-xs">
-                  <div className="divide-y max-h-[550px] overflow-y-auto">
+                  <div className="divide-y max-h-[500px] overflow-y-auto">
                     {filteredLogs.map((log) => (
                       <div
                         key={log._id}
-                        className="p-3.5 sm:p-4 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        className="p-3 sm:p-4 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3"
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
                           <div
-                            className={`p-2 rounded-full shrink-0 mt-0.5 ${
+                            className={`p-1.5 sm:p-2 rounded-full shrink-0 mt-0.5 ${
                               log.status === "sent"
                                 ? "bg-emerald-100 text-emerald-700"
                                 : log.status === "failed"
@@ -1560,16 +1594,16 @@ export default function EmailSystemPage() {
                             }`}
                           >
                             {log.status === "sent" ? (
-                              <CheckCircle className="w-4 h-4" />
+                              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             ) : log.status === "failed" ? (
-                              <XCircle className="w-4 h-4" />
+                              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             ) : (
-                              <Clock className="w-4 h-4" />
+                              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             )}
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-semibold text-sm text-slate-900">{log.subject}</p>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-semibold text-xs sm:text-sm text-slate-900 break-words">{log.subject}</p>
                               {log.unitNo && log.unitNo !== "N/A" && (
                                 <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                                   Unit {log.unitNo}
@@ -1588,22 +1622,22 @@ export default function EmailSystemPage() {
                                 {log.status}
                               </Badge>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 break-all">
                               To: <span className="font-medium text-slate-700">{log.to}</span>
                               {log.recipientName && (
                                 <span className="text-slate-400"> ({log.recipientName})</span>
                               )}
                             </p>
                             {log.error && (
-                              <p className="text-xs text-red-600 font-mono mt-1 bg-red-50 p-1 rounded inline-block">
+                              <p className="text-[11px] text-red-600 font-mono mt-1 bg-red-50 p-1 rounded inline-block break-words">
                                 Error: {log.error}
                               </p>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                          <span className="text-xs text-slate-400 whitespace-nowrap">
+                        <div className="flex items-center gap-2 justify-between sm:justify-end shrink-0 pt-1 sm:pt-0 border-t sm:border-0 border-slate-100">
+                          <span className="text-[11px] text-slate-400 whitespace-nowrap">
                             {new Date(log.sentAt).toLocaleString([], {
                               month: "short",
                               day: "numeric",
@@ -1614,7 +1648,7 @@ export default function EmailSystemPage() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 text-xs text-blue-600 hover:text-blue-800"
+                            className="h-7 text-xs text-blue-600 hover:text-blue-800 px-2"
                             onClick={() => setSelectedLogDetail(log)}
                           >
                             <Eye className="w-3.5 h-3.5 mr-1" />
@@ -1625,9 +1659,9 @@ export default function EmailSystemPage() {
                     ))}
 
                     {filteredLogs.length === 0 && (
-                      <div className="text-center py-12 text-slate-400">
-                        <Mail className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                        <p className="font-medium text-sm">No email logs found matching criteria</p>
+                      <div className="text-center py-10 sm:py-12 text-slate-400">
+                        <Mail className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 text-slate-300" />
+                        <p className="font-medium text-xs sm:text-sm">No email logs found matching criteria</p>
                       </div>
                     )}
                   </div>
@@ -1639,23 +1673,23 @@ export default function EmailSystemPage() {
           {/* ======================================================== */}
           {/* TAB 5: SMTP CONFIGURATION & SENDING LIMITS */}
           {/* ======================================================== */}
-          <TabsContent value="settings" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <TabsContent value="settings" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
               {/* Left Column: Sending Quotas & Telemetry */}
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-7 space-y-4 sm:space-y-6">
                 <Card className="border shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                       Email Sending Limits & Account Quotas
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs">
                       Detailed breakdown of current SMTP configurations and sending thresholds.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-5">
+                  <CardContent className="space-y-4 sm:space-y-5 p-4 sm:p-6 pt-0 sm:pt-0">
                     {/* Live Quota Progress Bar */}
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl space-y-3">
+                    <div className="p-3.5 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl space-y-2.5 sm:space-y-3">
                       <div className="flex items-center justify-between text-xs font-semibold">
                         <span className="text-slate-800">Today's Dispatch Quota</span>
                         <span className="text-blue-700">
@@ -1666,7 +1700,7 @@ export default function EmailSystemPage() {
                         value={(stats.sentToday / stats.dailyLimit) * 100}
                         className="h-2.5 bg-blue-100"
                       />
-                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-500">
                         <span>Safe headroom: {stats.remainingToday} emails available today</span>
                         <span>Resets every 24 hours rolling</span>
                       </div>
@@ -1674,8 +1708,8 @@ export default function EmailSystemPage() {
 
                     {/* Detailed Limits Explanation */}
                     <div className="space-y-3 text-xs text-slate-700">
-                      <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
-                        <Info className="w-4 h-4 text-blue-600" />
+                      <h4 className="font-semibold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
+                        <Info className="w-4 h-4 text-blue-600 shrink-0" />
                         Active Provider Limit Details
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1695,13 +1729,13 @@ export default function EmailSystemPage() {
                         </div>
                       </div>
 
-                      <div className="p-3.5 bg-amber-50 border border-amber-200/80 rounded-lg text-amber-900 space-y-1">
+                      <div className="p-3 sm:p-3.5 bg-amber-50 border border-amber-200/80 rounded-lg text-amber-900 space-y-1">
                         <p className="font-semibold flex items-center gap-1.5">
-                          <AlertTriangle className="w-4 h-4 text-amber-600" />
+                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                           Rate Limiting & Burst Protection
                         </p>
-                        <p className="text-xs text-amber-800">
-                          Sending hundreds of emails instantly without delays can trigger Gmail error <code>421 Rate Limit Exceeded</code>. Our Bulk Email engine features automatic built-in throttling (150ms per dispatch) to ensure 100% inbox delivery without rate bans.
+                        <p className="text-[11px] sm:text-xs text-amber-800">
+                          Sending hundreds of emails instantly without delays can trigger Gmail error <code>421 Rate Limit Exceeded</code>. Our Bulk Email engine features automatic built-in throttling (150ms per dispatch) to ensure reliable inbox delivery without rate bans.
                         </p>
                       </div>
                     </div>
@@ -1710,27 +1744,27 @@ export default function EmailSystemPage() {
 
                 {/* Test Email Verification */}
                 <Card className="border shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
+                  <CardHeader className="pb-3 p-4 sm:p-6">
+                    <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                       <Zap className="w-4 h-4 text-amber-600" />
                       Send Verification Test Email
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs">
                       Send a one-click test email to verify that SMTP connection and Gmail authentication are active.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex gap-2">
+                  <CardContent className="space-y-3 p-4 sm:p-6 pt-0 sm:pt-0">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Input
                         placeholder="Enter your personal email (e.g. admin@gmail.com)..."
                         value={testEmailAddress}
                         onChange={(e) => setTestEmailAddress(e.target.value)}
-                        className="text-xs"
+                        className="text-xs sm:text-sm"
                       />
                       <Button
                         onClick={sendTestEmail}
                         disabled={testingSmtp || !testEmailAddress}
-                        className="bg-slate-800 hover:bg-slate-900 text-white shrink-0 text-xs"
+                        className="bg-slate-800 hover:bg-slate-900 text-white shrink-0 text-xs h-9 sm:h-10"
                       >
                         {testingSmtp ? (
                           <>
@@ -1752,37 +1786,37 @@ export default function EmailSystemPage() {
               {/* Right Column: Connection Credentials Status */}
               <div className="lg:col-span-5 space-y-4">
                 <Card className="border shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
+                  <CardHeader className="pb-3 p-4 sm:p-6">
+                    <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                       <Server className="w-4 h-4 text-blue-600" />
                       Active Transport Configuration
                     </CardTitle>
-                    <CardDescription>Configured via system environment variables.</CardDescription>
+                    <CardDescription className="text-xs">Configured via system environment variables.</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 text-xs">
-                    <div className="space-y-1.5">
-                      <Label className="text-slate-500">SMTP Host</Label>
+                  <CardContent className="space-y-3 sm:space-y-4 text-xs p-4 sm:p-6 pt-0 sm:pt-0">
+                    <div className="space-y-1">
+                      <Label className="text-slate-500 text-xs">SMTP Host</Label>
                       <Input value="smtp.gmail.com" disabled className="bg-slate-50 font-mono text-xs" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-slate-500">Port</Label>
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-slate-500 text-xs">Port</Label>
                         <Input value="587 (TLS/STARTTLS)" disabled className="bg-slate-50 font-mono text-xs" />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-slate-500">Security</Label>
+                      <div className="space-y-1">
+                        <Label className="text-slate-500 text-xs">Security</Label>
                         <Input value="STARTTLS" disabled className="bg-slate-50 font-mono text-xs" />
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label className="text-slate-500">Authenticated Sender Email</Label>
+                    <div className="space-y-1">
+                      <Label className="text-slate-500 text-xs">Authenticated Sender Email</Label>
                       <Input value="gbunssofficial@gmail.com" disabled className="bg-slate-50 font-mono text-xs" />
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label className="text-slate-500">Authentication Protocol</Label>
+                    <div className="space-y-1">
+                      <Label className="text-slate-500 text-xs">Authentication Protocol</Label>
                       <Input value="Google App Password (16-char token)" disabled className="bg-slate-50 text-xs" />
                     </div>
                   </CardContent>
@@ -1794,11 +1828,12 @@ export default function EmailSystemPage() {
 
         {/* ======================================================== */}
         {/* MODAL 1: LIVE BULK SENDING TELEMETRY TRACKER */}
+        {/* Mobile-Optimized: 2-column metrics, scrollable viewport */}
         {/* ======================================================== */}
         <Dialog open={isBulkTrackerOpen} onOpenChange={(open) => !isSendingLive && setIsBulkTrackerOpen(open)}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl border shadow-2xl">
+          <DialogContent className="max-w-2xl w-[94vw] sm:w-full p-0 overflow-hidden rounded-2xl border shadow-2xl max-h-[92vh] flex flex-col">
             {/* Header */}
-            <div className="p-5 bg-gradient-to-r from-slate-900 to-blue-950 text-white">
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-blue-950 text-white shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div
@@ -1810,7 +1845,7 @@ export default function EmailSystemPage() {
                         : "bg-blue-400"
                     }`}
                   />
-                  <h3 className="font-bold text-lg text-white">
+                  <h3 className="font-bold text-base sm:text-lg text-white">
                     {isSendingLive
                       ? "Live Bulk Dispatch Telemetry"
                       : isPausedLive
@@ -1831,29 +1866,29 @@ export default function EmailSystemPage() {
               </p>
             </div>
 
-            <div className="p-5 space-y-4">
-              {/* Metrics Row */}
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="p-2.5 bg-slate-50 rounded-xl border">
-                  <p className="text-[11px] text-slate-500 font-semibold">Total Queue</p>
-                  <p className="text-xl font-bold text-slate-800">{liveTotalCount}</p>
+            <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4 overflow-y-auto flex-1">
+              {/* Metrics Row - 2 cols on mobile, 4 cols on desktop */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                <div className="p-2 sm:p-2.5 bg-slate-50 rounded-xl border">
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold truncate">Total Queue</p>
+                  <p className="text-lg sm:text-xl font-bold text-slate-800">{liveTotalCount}</p>
                 </div>
-                <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200/60">
-                  <p className="text-[11px] text-emerald-700 font-semibold">Sent Successfully</p>
-                  <p className="text-xl font-bold text-emerald-700">{liveSentCount}</p>
+                <div className="p-2 sm:p-2.5 bg-emerald-50 rounded-xl border border-emerald-200/60">
+                  <p className="text-[10px] sm:text-[11px] text-emerald-700 font-semibold truncate">Sent Successfully</p>
+                  <p className="text-lg sm:text-xl font-bold text-emerald-700">{liveSentCount}</p>
                 </div>
-                <div className="p-2.5 bg-red-50 rounded-xl border border-red-200/60">
-                  <p className="text-[11px] text-red-700 font-semibold">Failed</p>
-                  <p className="text-xl font-bold text-red-700">{liveFailedCount}</p>
+                <div className="p-2 sm:p-2.5 bg-red-50 rounded-xl border border-red-200/60">
+                  <p className="text-[10px] sm:text-[11px] text-red-700 font-semibold truncate">Failed</p>
+                  <p className="text-lg sm:text-xl font-bold text-red-700">{liveFailedCount}</p>
                 </div>
-                <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-200/60">
-                  <p className="text-[11px] text-blue-700 font-semibold">Remaining</p>
-                  <p className="text-xl font-bold text-blue-700">{liveRemainingCount}</p>
+                <div className="p-2 sm:p-2.5 bg-blue-50 rounded-xl border border-blue-200/60">
+                  <p className="text-[10px] sm:text-[11px] text-blue-700 font-semibold truncate">Remaining</p>
+                  <p className="text-lg sm:text-xl font-bold text-blue-700">{liveRemainingCount}</p>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
                   <span>Overall Progress</span>
                   <span>{liveProgressPct}%</span>
@@ -1863,9 +1898,9 @@ export default function EmailSystemPage() {
 
               {/* Current Active Recipient Spotlight */}
               {activeRecipient && isSendingLive && (
-                <div className="p-2.5 bg-blue-50/80 border border-blue-200 rounded-lg flex items-center gap-2 text-xs text-blue-900">
+                <div className="p-2 sm:p-2.5 bg-blue-50/80 border border-blue-200 rounded-lg flex items-center gap-2 text-xs text-blue-900">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600 shrink-0" />
-                  <span className="font-semibold shrink-0">Currently dispatching to:</span>
+                  <span className="font-semibold shrink-0">Dispatching:</span>
                   <span className="font-medium truncate">{activeRecipient.name} ({activeRecipient.email})</span>
                 </div>
               )}
@@ -1876,12 +1911,12 @@ export default function EmailSystemPage() {
                   <span>Recipient Delivery Stream</span>
                   <span>{trackerDeliveryList.length} items</span>
                 </div>
-                <ScrollArea className="h-56">
+                <ScrollArea className="h-44 sm:h-56">
                   <div className="divide-y text-xs">
                     {trackerDeliveryList.map((item, idx) => (
                       <div
                         key={idx}
-                        className={`p-2.5 px-3 flex items-center justify-between gap-2 transition-colors ${
+                        className={`p-2 sm:p-2.5 px-3 flex items-center justify-between gap-2 transition-colors ${
                           item.deliveryStatus === "sending"
                             ? "bg-blue-50/60"
                             : item.deliveryStatus === "sent"
@@ -1892,14 +1927,14 @@ export default function EmailSystemPage() {
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-[10px] text-slate-400 font-mono w-6">#{idx + 1}</span>
+                          <span className="text-[10px] text-slate-400 font-mono w-5 sm:w-6">#{idx + 1}</span>
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">{item.name}</p>
-                            <p className="text-[11px] text-slate-500 truncate">{item.email}</p>
+                            <p className="font-semibold text-slate-900 truncate text-xs">{item.name}</p>
+                            <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">{item.email}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           {item.deliveryStatus === "sending" && (
                             <Badge className="bg-blue-100 text-blue-800 text-[10px] font-normal flex items-center gap-1">
                               <RefreshCw className="w-2.5 h-2.5 animate-spin" />
@@ -1932,7 +1967,7 @@ export default function EmailSystemPage() {
 
               {/* Completion Alert */}
               {!isSendingLive && liveRemainingCount === 0 && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-900">
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-emerald-900">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
                     <div>
@@ -1942,22 +1977,22 @@ export default function EmailSystemPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
                     {liveFailedCount > 0 && (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs h-8 border-red-300 text-red-700 hover:bg-red-50"
+                        className="text-xs h-7 sm:h-8 border-red-300 text-red-700 hover:bg-red-50"
                         onClick={retryFailedEmails}
                       >
                         <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                        Retry Failed ({liveFailedCount})
+                        Retry ({liveFailedCount})
                       </Button>
                     )}
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-xs h-8"
+                      className="text-xs h-7 sm:h-8"
                       onClick={exportDeliveryReport}
                     >
                       <Download className="w-3.5 h-3.5 mr-1" />
@@ -1968,15 +2003,15 @@ export default function EmailSystemPage() {
               )}
             </div>
 
-            {/* Modal Controls Footer */}
-            <DialogFooter className="p-4 bg-slate-50 border-t flex items-center justify-between sm:justify-between">
-              <div className="flex items-center gap-2">
+            {/* Modal Controls Footer - Stacked on Mobile */}
+            <DialogFooter className="p-3 sm:p-4 bg-slate-50 border-t flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 {isSendingLive ? (
                   <>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-xs"
+                      className="text-xs flex-1 sm:flex-initial"
                       onClick={togglePause}
                     >
                       {isPausedLive ? (
@@ -1994,18 +2029,18 @@ export default function EmailSystemPage() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      className="text-xs"
+                      className="text-xs flex-1 sm:flex-initial"
                       onClick={cancelSending}
                     >
                       <StopCircle className="w-3.5 h-3.5 mr-1" />
-                      Cancel Remaining
+                      Stop
                     </Button>
                   </>
                 ) : (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-xs"
+                    className="text-xs w-full sm:w-auto"
                     onClick={exportDeliveryReport}
                   >
                     <Download className="w-3.5 h-3.5 mr-1" />
@@ -2017,7 +2052,7 @@ export default function EmailSystemPage() {
               <Button
                 size="sm"
                 variant={isSendingLive ? "outline" : "default"}
-                className="text-xs"
+                className="text-xs w-full sm:w-auto"
                 disabled={isSendingLive}
                 onClick={() => setIsBulkTrackerOpen(false)}
               >
@@ -2031,34 +2066,34 @@ export default function EmailSystemPage() {
         {/* MODAL 2: INSPECT & SELECT BULK RECIPIENTS */}
         {/* ======================================================== */}
         <Dialog open={isRecipientModalOpen} onOpenChange={setIsRecipientModalOpen}>
-          <DialogContent className="max-w-3xl p-5 rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-lg">
-                <Users className="w-5 h-5 text-blue-600" />
+          <DialogContent className="max-w-3xl w-[94vw] sm:w-full p-4 sm:p-5 rounded-2xl max-h-[88vh] flex flex-col">
+            <DialogHeader className="shrink-0">
+              <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 Select Recipients ({selectedRecipientIds.size} of {recipientsList.length} chosen)
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs">
                 Review or deselect individual volunteers before dispatching your email.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="space-y-3 flex-1 overflow-y-auto pt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                   <Input
                     placeholder="Search name, email, or form number..."
                     value={recipientSearchTerm}
                     onChange={(e) => setRecipientSearchTerm(e.target.value)}
-                    className="pl-9 text-xs"
+                    className="pl-8 text-xs"
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-end sm:self-auto">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-xs h-8"
+                    className="text-xs h-7 sm:h-8"
                     onClick={() => setSelectedRecipientIds(new Set(recipientsList.map((r) => r.id)))}
                   >
                     Select All
@@ -2066,7 +2101,7 @@ export default function EmailSystemPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-xs h-8"
+                    className="text-xs h-7 sm:h-8"
                     onClick={() => setSelectedRecipientIds(new Set())}
                   >
                     Deselect All
@@ -2075,7 +2110,7 @@ export default function EmailSystemPage() {
               </div>
 
               <div className="border rounded-xl overflow-hidden">
-                <ScrollArea className="h-80">
+                <ScrollArea className="h-64 sm:h-80">
                   <div className="divide-y text-xs">
                     {recipientsList
                       .filter(
@@ -2089,7 +2124,7 @@ export default function EmailSystemPage() {
                         return (
                           <div
                             key={recipient.id}
-                            className={`p-2.5 px-3 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer ${
+                            className={`p-2 sm:p-2.5 px-3 flex items-center justify-between gap-2 sm:gap-3 hover:bg-slate-50 cursor-pointer ${
                               isChecked ? "bg-blue-50/30" : ""
                             }`}
                             onClick={() => {
@@ -2099,24 +2134,24 @@ export default function EmailSystemPage() {
                               setSelectedRecipientIds(next)
                             }}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
                               <Checkbox
                                 checked={isChecked}
                                 onCheckedChange={() => {}}
                                 className="pointer-events-none"
                               />
-                              <div>
-                                <p className="font-semibold text-slate-900">{recipient.name}</p>
-                                <p className="text-[11px] text-slate-500">{recipient.email}</p>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-slate-900 truncate text-xs">{recipient.name}</p>
+                                <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">{recipient.email}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 shrink-0">
                               {recipient.unitNo && (
                                 <Badge variant="outline" className="text-[10px]">
                                   Unit {recipient.unitNo}
                                 </Badge>
                               )}
-                              <span className="text-[10px] text-slate-400 font-mono">
+                              <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
                                 #{recipient.formNo}
                               </span>
                             </div>
@@ -2128,12 +2163,12 @@ export default function EmailSystemPage() {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="shrink-0 pt-2 border-t">
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs w-full sm:w-auto"
                 onClick={() => setIsRecipientModalOpen(false)}
               >
-                Confirm ({selectedRecipientIds.size} Volunteers)
+                Confirm Selection ({selectedRecipientIds.size} Volunteers)
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -2143,29 +2178,29 @@ export default function EmailSystemPage() {
         {/* MODAL 3: EMAIL LOG DETAILS VIEWER */}
         {/* ======================================================== */}
         <Dialog open={!!selectedLogDetail} onOpenChange={(open) => !open && setSelectedLogDetail(null)}>
-          <DialogContent className="max-w-xl p-5 rounded-2xl">
-            <DialogHeader>
+          <DialogContent className="max-w-xl w-[94vw] sm:w-full p-4 sm:p-5 rounded-2xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="shrink-0">
               <DialogTitle className="flex items-center gap-2 text-base">
-                <Mail className="w-5 h-5 text-blue-600" />
+                <Mail className="w-4 h-4 text-blue-600" />
                 Email Delivery Record
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs">
                 Sent on {selectedLogDetail && new Date(selectedLogDetail.sentAt).toLocaleString()}
               </DialogDescription>
             </DialogHeader>
 
             {selectedLogDetail && (
-              <div className="space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-lg">
+              <div className="space-y-3.5 text-xs flex-1 overflow-y-auto pt-2">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 p-3 bg-slate-50 rounded-lg">
                   <div>
-                    <span className="text-slate-400 font-semibold block">To</span>
-                    <span className="font-medium text-slate-800">{selectedLogDetail.to}</span>
+                    <span className="text-slate-400 font-semibold block text-[10px] uppercase">To</span>
+                    <span className="font-medium text-slate-800 break-all">{selectedLogDetail.to}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 font-semibold block">Status</span>
+                    <span className="text-slate-400 font-semibold block text-[10px] uppercase">Status</span>
                     <Badge
                       variant="outline"
-                      className={`capitalize ${
+                      className={`capitalize text-[10px] mt-0.5 ${
                         selectedLogDetail.status === "sent"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-300"
                           : "bg-red-50 text-red-700 border-red-300"
@@ -2174,36 +2209,35 @@ export default function EmailSystemPage() {
                       {selectedLogDetail.status}
                     </Badge>
                   </div>
-                  <div>
-                    <span className="text-slate-400 font-semibold block">Subject</span>
-                    <span className="font-medium text-slate-800">{selectedLogDetail.subject}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-semibold block">Type</span>
-                    <span className="capitalize text-slate-700">{selectedLogDetail.type || "single"}</span>
+                  <div className="col-span-2">
+                    <span className="text-slate-400 font-semibold block text-[10px] uppercase">Subject</span>
+                    <span className="font-medium text-slate-800 break-words">{selectedLogDetail.subject}</span>
                   </div>
                 </div>
 
                 {selectedLogDetail.error && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
                     <p className="font-bold">Failure Reason:</p>
-                    <p className="font-mono mt-0.5">{selectedLogDetail.error}</p>
+                    <p className="font-mono mt-0.5 break-words">{selectedLogDetail.error}</p>
                   </div>
                 )}
 
                 <div className="space-y-1.5">
-                  <span className="font-semibold text-slate-700 block">Rendered Content</span>
-                  <div className="p-4 border rounded-lg bg-white max-h-60 overflow-y-auto leading-relaxed text-slate-800 whitespace-pre-wrap">
-                    {selectedLogDetail.content}
-                  </div>
+                  <span className="font-semibold text-slate-700 block">Rendered Content (Interactive)</span>
+                  <div
+                    className="p-3 sm:p-4 border rounded-lg bg-white max-h-56 overflow-y-auto leading-relaxed text-slate-800 text-xs sm:text-sm break-words [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-800"
+                    dangerouslySetInnerHTML={{
+                      __html: linkifyAndFormatContent(selectedLogDetail.content),
+                    }}
+                  />
                 </div>
               </div>
             )}
 
-            <DialogFooter>
+            <DialogFooter className="shrink-0 pt-2 border-t">
               <Button
                 variant="outline"
-                className="text-xs"
+                className="text-xs w-full sm:w-auto"
                 onClick={() => setSelectedLogDetail(null)}
               >
                 Close
