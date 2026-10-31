@@ -641,85 +641,79 @@ export default function VolunteersPage() {
 
   return (
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="volunteers.view">
-      <AdminHeader title="Volunteers" subtitle="Manage registered NSS volunteers" />
+      <AdminHeader 
+        title="Volunteers" 
+        subtitle="Manage registered NSS volunteers" 
+        action={
+          <button
+            onClick={openExportModal}
+            disabled={exporting !== null}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-primary text-primary-foreground rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-all shadow-xs active:scale-95"
+            title="Export Volunteers"
+          >
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline sm:inline">Export</span>
+          </button>
+        }
+      />
       
-      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-        {/* Top Header Row with Export Button */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="md:hidden">
-            <h2 className="text-base font-bold text-foreground">Volunteers List</h2>
-            <p className="text-xs text-muted-foreground">
-              {totalVolunteers > 0 ? (searchQuery ? `${totalVolunteers} found` : `${totalVolunteers} registered`) : "0 volunteers"}
-            </p>
-          </div>
-          <div className="flex justify-end gap-3 ml-auto">
-            <button
-              onClick={openExportModal}
-              disabled={exporting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-primary-foreground rounded-lg text-xs sm:text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-xs"
-            >
-              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Export
-            </button>
-          </div>
-        </div>
-
+      <div className="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-3.5 md:space-y-4">
         {/* Analytics Cards (2x2 on mobile, 4-column on desktop) */}
         {analytics && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 md:gap-4">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Total Volunteers</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalVolunteers}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Total Volunteers</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.totalVolunteers}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 dark:bg-blue-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Project Vol.</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalActiveProjects}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Project Vol.</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.totalActiveProjects}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-green-100 dark:bg-green-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 dark:bg-green-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Total Events</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.totalEvents}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Total Events</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.totalEvents}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-purple-100 dark:bg-purple-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 dark:bg-purple-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 md:p-6 shadow-xs">
+            <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
-                  <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground truncate font-medium">Avg. Attendance</p>
-                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 md:mt-2 truncate">{analytics.avgAttendanceRate}%</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate font-medium">Avg. Attendance</p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">{analytics.avgAttendanceRate}%</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-yellow-100 dark:bg-yellow-950/50 rounded-lg flex items-center justify-center shrink-0">
-                  <Award className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-yellow-600 dark:text-yellow-400" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 dark:bg-yellow-950/50 rounded-xl flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" />
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Unit-wise Stat Cards (Horizontal Swipe Strip on Mobile, Grid on Desktop) */}
+        {/* Unit-wise Stat Cards (Single-row 6-column on Desktop, Horizontal Swipe on Mobile) */}
         {stats && Object.keys(stats.units || {}).length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Unit Distribution</h3>
@@ -732,25 +726,25 @@ export default function VolunteersPage() {
               </span>
             </div>
 
-            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 overflow-x-auto pb-2 pt-0.5 scrollbar-none snap-x md:overflow-visible">
+            <div className="flex md:grid md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5 lg:gap-3 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none snap-x md:overflow-visible">
               {Object.keys(stats.units || {}).sort().map((unit) => {
                 const u = stats.units[unit]
                 return (
-                  <div key={unit} className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs shrink-0 w-[150px] sm:w-[170px] md:w-auto snap-start hover:border-primary/40 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xs sm:text-sm font-semibold text-foreground">Unit {unit}</h3>
-                      <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium">
+                  <div key={unit} className="bg-card rounded-xl border border-border p-2.5 sm:p-3 shadow-xs shrink-0 w-[135px] sm:w-[150px] md:w-auto snap-start hover:border-primary/40 hover:shadow-xs transition-all">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <h4 className="text-xs sm:text-sm font-bold text-foreground">Unit {unit}</h4>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-semibold">
                         {u.approved} Vol.
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5 text-xs">
-                      <div className="p-1.5 sm:p-2 rounded-lg bg-green-50/80 dark:bg-green-950/20 border border-green-200/80 dark:border-green-900/40 text-center">
-                        <div className="text-green-900 dark:text-green-300 font-bold text-xs sm:text-sm">{u.approved}</div>
-                        <div className="text-[10px] text-green-700 dark:text-green-400">Approved</div>
+                    <div className="grid grid-cols-2 gap-1 text-[11px]">
+                      <div className="px-1.5 py-1 rounded-md bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 text-center">
+                        <div className="text-emerald-900 dark:text-emerald-300 font-bold text-xs">{u.approved}</div>
+                        <div className="text-[9px] text-emerald-700/90 dark:text-emerald-400/90 leading-tight">Approved</div>
                       </div>
-                      <div className="p-1.5 sm:p-2 rounded-lg bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 text-center">
-                        <div className="text-blue-900 dark:text-blue-300 font-bold text-xs sm:text-sm">{u.total}</div>
-                        <div className="text-[10px] text-blue-700 dark:text-blue-400">Total</div>
+                      <div className="px-1.5 py-1 rounded-md bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 text-center">
+                        <div className="text-blue-900 dark:text-blue-300 font-bold text-xs">{u.total}</div>
+                        <div className="text-[9px] text-blue-700/90 dark:text-blue-400/90 leading-tight">Total</div>
                       </div>
                     </div>
                   </div>
@@ -761,7 +755,7 @@ export default function VolunteersPage() {
         )}
 
         {/* Advanced Filters */}
-        <div className="bg-card rounded-xl border border-border p-3 sm:p-4 shadow-xs space-y-3">
+        <div className="bg-card rounded-xl border border-border p-2.5 sm:p-3.5 shadow-xs space-y-2.5">
           {/* Main search row with mobile filter toggle button */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
