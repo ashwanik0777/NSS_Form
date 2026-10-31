@@ -69,6 +69,7 @@ const groupedSidebar: {
     accentColor: "#0369a1",
     items: [
       { id: "users", label: "User Management", href: "/admin/users", icon: <Users className="w-4 h-4" />, permission: "users.view" },
+      { id: "whos-who", label: "Who's Who (Officers & Mentors)", href: "/admin/whos-who", icon: <Shield className="w-4 h-4" /> },
       { id: "volunteers", label: "Volunteers", href: "/admin/volunteers", icon: <UserCheck className="w-4 h-4" />, permission: "volunteers.view" },
       { id: "past-volunteers", label: "Past Volunteers", href: "/admin/past-volunteers", icon: <UserX className="w-4 h-4" />, permission: "volunteers.view" },
       { id: "manage-volunteers", label: "Manage Volunteer Data", href: "/admin/volunteers/manage", icon: <UserCog className="w-4 h-4" />, permission: "volunteers.edit" },

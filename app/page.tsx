@@ -36,22 +36,34 @@ export default function HomePage() {
               </div>
             </div>
             {/* Desktop Nav */}
-            <nav className="hidden md:flex space-x-2 sm:space-x-4">
+            <nav className="hidden md:flex items-center space-x-2 sm:space-x-4">
+              <Link
+                href="/whos-who"
+                className="px-3.5 py-2 text-foreground/80 hover:text-primary hover:bg-muted/80 rounded-lg transition-colors font-semibold text-sm"
+              >
+                Who's Who
+              </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 sm:px-6 sm:py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 text-sm"
               >
                 Apply Now
               </Link>
               <Link
                 href="/login"
-                className="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-border text-foreground rounded-lg hover:bg-muted hover:border-primary transition-all duration-300 font-semibold hover:scale-105 active:scale-95"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-border text-foreground rounded-lg hover:bg-muted hover:border-primary transition-all duration-300 font-semibold hover:scale-105 active:scale-95 text-sm"
               >
                 Login
               </Link>
             </nav>
             {/* Mobile Nav */}
-            <nav className="md:hidden flex items-center space-x-2">
+            <nav className="md:hidden flex items-center space-x-1.5 sm:space-x-2">
+              <Link
+                href="/whos-who"
+                className="px-2.5 py-1.5 text-xs font-semibold text-foreground/80 hover:text-primary rounded-md"
+              >
+                Who's Who
+              </Link>
               <Link
                 href="/register"
                 className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-semibold shadow hover:bg-primary/90 transition-all"

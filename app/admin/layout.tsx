@@ -56,6 +56,7 @@ export default function AdminLayout({
     if (path.startsWith("/admin/volunteers")) return "Volunteers"
     if (path.startsWith("/admin/past-volunteers")) return "Past Volunteers"
     if (path.startsWith("/admin/users")) return "User Management"
+    if (path.startsWith("/admin/whos-who")) return "Who's Who (Officers & Mentors)"
     if (path.startsWith("/admin/projects")) return "Projects"
     if (path.startsWith("/admin/events")) return "Events"
     if (path.startsWith("/admin/attendance/manual")) return "Manual Attendance"
