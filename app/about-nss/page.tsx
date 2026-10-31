@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import Link from "next/link"
 import {
   Shield,
@@ -17,135 +17,15 @@ import {
   CheckCircle2,
   Sun,
   Flame,
-  Menu,
-  X,
 } from "lucide-react"
 import Footer from "@/components/footer"
+import PublicNavbar from "@/components/public-navbar"
 
 export default function AboutNSSPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-background text-foreground flex flex-col">
-      {/* Top Header */}
-      <header className="bg-white/90 dark:bg-card/90 backdrop-blur-md border-b border-slate-200/80 dark:border-border/60 sticky top-0 z-50 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Logos */}
-            <Link href="/" className="flex items-center gap-2.5 sm:gap-4 group">
-              <img
-                src="/1.png"
-                alt="GBU Logo"
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-full shadow-xs bg-white p-0.5 border border-slate-200/80"
-              />
-              <img
-                src="/nssLogo.png"
-                alt="NSS Logo"
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-full shadow-xs bg-white p-0.5 border border-slate-200/80"
-              />
-              <img
-                src="/myBharatLogo.png"
-                alt="My Bharat Logo"
-                className="h-9 sm:h-11 w-auto object-contain hidden sm:block"
-              />
-              <div className="hidden md:block pl-2 border-l border-slate-200 dark:border-border">
-                <span className="font-bold text-sm block leading-tight text-slate-900 dark:text-white">
-                  National Service Scheme
-                </span>
-                <span className="text-xs text-slate-500 dark:text-muted-foreground block leading-tight">
-                  Gautam Buddha University
-                </span>
-              </div>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-2 lg:gap-3">
-              <Link
-                href="/"
-                className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-muted transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/about-nss"
-                className="text-xs sm:text-sm font-semibold text-primary bg-primary/10 px-2.5 py-1.5 rounded-lg transition-colors"
-              >
-                About NSS
-              </Link>
-              <Link
-                href="/whos-who"
-                className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-muted transition-colors"
-              >
-                Who's Who
-              </Link>
-              <Link
-                href="/login"
-                className="text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 border border-slate-300 dark:border-border rounded-lg hover:bg-slate-100 dark:hover:bg-muted transition-all"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-primary-foreground rounded-lg shadow-sm hover:bg-primary/90 transition-all"
-              >
-                Apply
-              </Link>
-            </div>
-
-            {/* Mobile Nav Button */}
-            <div className="flex md:hidden items-center gap-2 shrink-0">
-              <Link
-                href="/register"
-                className="text-xs font-semibold px-2.5 py-1.5 bg-primary text-primary-foreground rounded-lg shadow-xs"
-              >
-                Apply
-              </Link>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-muted text-slate-800 dark:text-slate-200 hover:bg-slate-200 transition-colors"
-                aria-label="Toggle navigation"
-              >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Dropdown */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200/80 dark:border-border/60 bg-white/98 dark:bg-card/98 px-4 py-3 space-y-1 shadow-lg animate-in slide-in-from-top-2 duration-200">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-muted"
-            >
-              Home
-            </Link>
-            <Link
-              href="/about-nss"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-semibold text-primary bg-primary/10"
-            >
-              About NSS
-            </Link>
-            <Link
-              href="/whos-who"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-muted"
-            >
-              Who's Who (Leadership)
-            </Link>
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-muted"
-            >
-              Portal Login
-            </Link>
-          </div>
-        )}
-      </header>
+      {/* Reusable Public Navbar */}
+      <PublicNavbar />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-white py-14 sm:py-20 md:py-24 px-4 sm:px-6">

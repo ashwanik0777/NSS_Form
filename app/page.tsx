@@ -1,97 +1,13 @@
 import Link from "next/link"
 import { Shield, Users, Award, ArrowRight, CheckCircle, Zap, Globe } from "lucide-react"
 import Footer from "@/components/footer"
+import PublicNavbar from "@/components/public-navbar"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Header */}
-      <header className="bg-card/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo Section */}
-            <div className="flex items-center">
-              <div className="flex gap-5 sm:gap-5">
-                <Link href="/" className="flex items-center" aria-label="GBU Home">
-                  <img
-                    src="/1.png"
-                    alt="GBU Logo"
-                    className="h-11 w-auto sm:h-13"
-                  />
-                </Link>
-                <Link href="/" className="flex items-center" aria-label="NSS Home">
-                  <img
-                    src="/nssLogo.png"
-                    alt="NSS Logo"
-                    className="h-10 w-auto sm:h-11"
-                  />
-                </Link>
-                <Link href="/" className="flex items-center" aria-label="My Bharat Home">
-                  <img
-                    src="/myBharatLogo.png"
-                    alt="My Bharat Logo"
-                    className="h-11 w-auto sm:h-12"
-                  />
-                </Link>
-              </div>
-            </div>
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center space-x-2 sm:space-x-4">
-              <Link
-                href="/about-nss"
-                className="px-3 py-2 text-foreground/80 hover:text-primary hover:bg-muted/80 rounded-lg transition-colors font-semibold text-sm"
-              >
-                About NSS
-              </Link>
-              <Link
-                href="/whos-who"
-                className="px-3 py-2 text-foreground/80 hover:text-primary hover:bg-muted/80 rounded-lg transition-colors font-semibold text-sm"
-              >
-                Who's Who
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 sm:px-6 sm:py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 text-sm"
-              >
-                Apply Now
-              </Link>
-              <Link
-                href="/login"
-                className="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-border text-foreground rounded-lg hover:bg-muted hover:border-primary transition-all duration-300 font-semibold hover:scale-105 active:scale-95 text-sm"
-              >
-                Login
-              </Link>
-            </nav>
-            {/* Mobile Nav */}
-            <nav className="md:hidden flex items-center space-x-1 sm:space-x-1.5">
-              <Link
-                href="/about-nss"
-                className="px-2 py-1 text-[11px] sm:text-xs font-semibold text-foreground/80 hover:text-primary rounded-md"
-              >
-                About
-              </Link>
-              <Link
-                href="/whos-who"
-                className="px-2 py-1 text-[11px] sm:text-xs font-semibold text-foreground/80 hover:text-primary rounded-md"
-              >
-                Who's Who
-              </Link>
-              <Link
-                href="/register"
-                className="px-2.5 py-1.5 bg-primary text-primary-foreground rounded-md text-xs sm:text-sm font-semibold shadow hover:bg-primary/90 transition-all"
-              >
-                Apply
-              </Link>
-              <Link
-                href="/login"
-                className="px-2.5 py-1.5 border border-border text-foreground rounded-md text-xs sm:text-sm font-semibold hover:bg-muted hover:border-primary transition-all"
-              >
-                Login
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      {/* Reusable Public Navbar */}
+      <PublicNavbar />
 
       {/* Hero Section */}
       <section className="py-24 px-4 relative overflow-hidden">
