@@ -5,7 +5,7 @@ import Leadership from "@/models/Leadership"
 // Sensible initial placeholder data so the page looks complete immediately
 const DEFAULT_LEADERSHIP = [
   {
-    name: "Dr. K. K. Dwivedi",
+    name: "Dr. Nagendra Singh",
     designation: "NSS Program Coordinator",
     category: "coordinator",
     unitNo: "All Units",
@@ -19,7 +19,7 @@ const DEFAULT_LEADERSHIP = [
     isActive: true,
   },
   {
-    name: "Unit 1 Program Officer",
+    name: "Dr. Gaurav Kumar",
     designation: "Program Officer (PO)",
     category: "officer",
     unitNo: "Unit 1",
@@ -45,7 +45,7 @@ const DEFAULT_LEADERSHIP = [
     isActive: true,
   },
   {
-    name: "Unit 2 Program Officer",
+    name: "Dr. Bhaswati Banerjee",
     designation: "Program Officer (PO)",
     category: "officer",
     unitNo: "Unit 2",
@@ -71,7 +71,7 @@ const DEFAULT_LEADERSHIP = [
     isActive: true,
   },
   {
-    name: "Unit 3 Program Officer",
+    name: "Dr. Rahul Kapoor",
     designation: "Program Officer (PO)",
     category: "officer",
     unitNo: "Unit 3",
@@ -97,7 +97,7 @@ const DEFAULT_LEADERSHIP = [
     isActive: true,
   },
   {
-    name: "Unit 4 Program Officer",
+    name: "Dr. Rakesh Kumar",
     designation: "Program Officer (PO)",
     category: "officer",
     unitNo: "Unit 4",
@@ -123,7 +123,7 @@ const DEFAULT_LEADERSHIP = [
     isActive: true,
   },
   {
-    name: "Unit 5 Program Officer",
+    name: "Dr. Shrutee Kanwar",
     designation: "Program Officer (PO)",
     category: "officer",
     unitNo: "Unit 5",
@@ -149,7 +149,7 @@ const DEFAULT_LEADERSHIP = [
     isActive: true,
   },
   {
-    name: "Unit 6 Program Officer",
+    name: "Dr. Samar Raqshin",
     designation: "Program Officer (PO)",
     category: "officer",
     unitNo: "Unit 6",
