@@ -2,7 +2,17 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { Users, Mail, Shield, Award } from "lucide-react"
+import {
+  Users,
+  Mail,
+  Shield,
+  Award,
+  ChevronDown,
+  Sparkles,
+  ArrowDown,
+  Building2,
+  ExternalLink,
+} from "lucide-react"
 import Footer from "@/components/footer"
 
 interface Member {
@@ -16,6 +26,16 @@ interface Member {
   photo?: string
   order: number
 }
+
+// Fixed 6 Units Structure with Official Program Officers
+const OFFICIAL_POS = [
+  { unitNo: "Unit 1", unitNum: "01", fallbackName: "Dr. Gaurav Kumar", color: "from-blue-600 to-indigo-600" },
+  { unitNo: "Unit 2", unitNum: "02", fallbackName: "Dr. Bhaswati Banerjee", color: "from-indigo-600 to-purple-600" },
+  { unitNo: "Unit 3", unitNum: "03", fallbackName: "Dr. Rahul Kapoor", color: "from-violet-600 to-blue-600" },
+  { unitNo: "Unit 4", unitNum: "04", fallbackName: "Dr. Rakesh Kumar", color: "from-sky-600 to-blue-600" },
+  { unitNo: "Unit 5", unitNum: "05", fallbackName: "Dr. Shrutee Kanwar", color: "from-teal-600 to-emerald-600" },
+  { unitNo: "Unit 6", unitNum: "06", fallbackName: "Dr. Samar Raqshin", color: "from-emerald-600 to-teal-600" },
+]
 
 export default function WhosWhoPage() {
   const [members, setMembers] = useState<Member[]>([])
@@ -40,28 +60,42 @@ export default function WhosWhoPage() {
     }
   }
 
-  // Get coordinator
-  const coordinator = members.find(
-    (m) => m.category === "coordinator" || m.designation.toLowerCase().includes("coordinator")
-  )
+  // Find Coordinator
+  const coordinator =
+    members.find(
+      (m) => m.category === "coordinator" || m.designation.toLowerCase().includes("coordinator")
+    ) || {
+      _id: "coord-default",
+      name: "Dr. Nagendra Singh",
+      designation: "NSS Program Coordinator",
+      category: "coordinator" as const,
+      unitNo: "All Units",
+      email: "nss@gbu.ac.in",
+      photo: "",
+      order: 1,
+    }
 
-  // Get unit program officers (Unit 1 to Unit 6)
-  const unitOfficers = [1, 2, 3, 4, 5, 6].map((num) => {
-    const unitTag = `Unit ${num}`
-    const found = members.find(
-      (m) => m.unitNo === unitTag && (m.category === "officer" || m.designation.toLowerCase().includes("officer"))
+  // Build the 6 POs
+  const pos = OFFICIAL_POS.map((u) => {
+    const dbMember = members.find(
+      (m) =>
+        m.unitNo === u.unitNo &&
+        (m.category === "officer" || m.designation.toLowerCase().includes("officer"))
     )
     return {
-      unitNumber: num,
-      unitLabel: `Unit ${num}`,
-      member: found,
+      ...u,
+      _id: dbMember?._id || u.unitNo,
+      name: dbMember?.name || u.fallbackName,
+      designation: "Program Officer (PO)",
+      email: dbMember?.email || "",
+      photo: dbMember?.photo || "",
     }
   })
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-foreground flex flex-col">
-      {/* Header */}
-      <header className="bg-white/95 dark:bg-card/90 backdrop-blur-md border-b border-slate-200/80 dark:border-border/60 sticky top-0 z-50">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-background text-foreground flex flex-col font-sans selection:bg-blue-500/20">
+      {/* Top Navbar */}
+      <header className="bg-white/90 dark:bg-card/90 backdrop-blur-md border-b border-slate-200/80 dark:border-border/60 sticky top-0 z-50 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logos */}
@@ -91,7 +125,7 @@ export default function WhosWhoPage() {
               </div>
             </Link>
 
-            {/* Navigation links */}
+            {/* Nav */}
             <div className="flex items-center gap-1.5 sm:gap-3">
               <Link
                 href="/"
@@ -109,7 +143,7 @@ export default function WhosWhoPage() {
                 href="/whos-who"
                 className="text-xs sm:text-sm font-semibold text-primary bg-primary/10 px-2.5 py-1.5 rounded-lg transition-colors"
               >
-                Who's Who
+                Leadership Chart
               </Link>
               <Link
                 href="/login"
@@ -128,47 +162,50 @@ export default function WhosWhoPage() {
         </div>
       </header>
 
-      {/* Hero Header - Clean, Light & Airy (No dark heavy strips) */}
-      <section className="bg-gradient-to-b from-blue-50/60 via-slate-50 to-slate-50 dark:from-muted/20 dark:via-background dark:to-background border-b border-slate-200/60 py-10 sm:py-14 px-4 text-center">
-        <div className="max-w-3xl mx-auto space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/70 text-blue-800 dark:bg-blue-950 dark:text-blue-300 text-xs font-semibold">
+      {/* Hero Banner with Subtle Dot Grid */}
+      <section className="relative overflow-hidden bg-white dark:bg-card border-b border-slate-200/80 dark:border-border/60 py-10 sm:py-14 px-4 text-center">
+        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+        <div className="max-w-3xl mx-auto relative z-10 space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold">
             <Shield className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            Gautam Buddha University • NSS Leadership
+            NSS Organizational Chart • GBU
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Who's Who in NSS
+            NSS Leadership Hierarchy
           </h1>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-            राष्ट्रीय सेवा योजना - संगठनात्मक ढाँचा
+            Program Coordinator & 6 Unit Program Officers
           </p>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
-            Program Coordinator and the Program Officers (POs) for the 6 Units of Gautam Buddha University.
+          <p className="text-xs text-slate-400 max-w-md mx-auto">
+            Governing and guiding all volunteer community drives and activities across Gautam Buddha University.
           </p>
         </div>
       </section>
 
-      {/* Main Body */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 flex-1 w-full space-y-12">
+      {/* Organizational Leadership Chart Canvas */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 flex-1 w-full">
         {loading ? (
           <div className="py-20 text-center">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3"></div>
-            <p className="text-sm text-slate-500">Loading leadership directory...</p>
+            <p className="text-sm text-slate-500">Loading hierarchy chart...</p>
           </div>
         ) : (
-          <>
-            {/* 1. NSS Program Coordinator (Clean, Elegant Profile Card) */}
-            {coordinator && (
-              <section className="space-y-4">
-                <div className="text-center">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Head of NSS</span>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-0.5">
-                    NSS Program Coordinator
-                  </h2>
-                  <div className="w-12 h-1 bg-primary rounded-full mx-auto mt-2"></div>
-                </div>
+          <div className="flex flex-col items-center">
+            {/* LEVEL 1: Program Coordinator (The Apex Card) */}
+            <div className="relative group w-full max-w-md">
+              {/* Outer Glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 rounded-3xl blur-sm opacity-25 group-hover:opacity-40 transition-opacity"></div>
 
-                <div className="max-w-md mx-auto bg-white dark:bg-card rounded-2xl shadow-xs border border-slate-200/80 dark:border-border/60 p-6 sm:p-8 text-center flex flex-col items-center hover:shadow-md transition-shadow">
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-slate-200 dark:border-border p-1 shadow-sm bg-white dark:bg-muted mb-4">
+              <div className="relative bg-white dark:bg-card border-2 border-blue-600/30 dark:border-blue-500/40 rounded-3xl shadow-xl p-6 sm:p-8 flex flex-col items-center text-center">
+                {/* Crown/Apex Tag */}
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-600 text-white text-[11px] font-extrabold uppercase tracking-wider shadow-sm mb-4">
+                  <Shield className="w-3.5 h-3.5 text-amber-300" />
+                  NSS Program Coordinator
+                </span>
+
+                {/* Coordinator Avatar */}
+                <div className="relative mb-3">
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white dark:border-card shadow-lg bg-gradient-to-tr from-blue-600 to-indigo-500 p-1">
                     {coordinator.photo ? (
                       <img
                         src={coordinator.photo}
@@ -176,102 +213,138 @@ export default function WhosWhoPage() {
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <div className="w-full h-full bg-slate-100 dark:bg-muted flex items-center justify-center rounded-full text-slate-400">
+                      <div className="w-full h-full bg-slate-100 dark:bg-muted flex items-center justify-center rounded-full text-slate-500">
                         <Users className="w-12 h-12" />
                       </div>
                     )}
                   </div>
-
-                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                    {coordinator.name}
-                  </h3>
-                  <span className="mt-1 px-3.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900">
-                    {coordinator.designation}
-                  </span>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">
-                    National Service Scheme (NSS) • Gautam Buddha University
-                  </p>
-
-                  {coordinator.email && (
-                    <a
-                      href={`mailto:${coordinator.email}`}
-                      className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors"
-                    >
-                      <Mail className="w-3.5 h-3.5" />
-                      {coordinator.email}
-                    </a>
-                  )}
+                  <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-card shadow-xs" title="Active Head"></span>
                 </div>
-              </section>
-            )}
 
-            {/* 2. Program Officers for the 6 Units (Clean 6-Card Grid without any blue strips) */}
-            <section className="space-y-6 pt-4">
-              <div className="text-center">
-                <span className="text-xs font-bold uppercase tracking-wider text-primary">Unit Officers</span>
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-0.5">
-                  Program Officers (6 NSS Units)
+                {/* Name */}
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {coordinator.name}
                 </h2>
-                <div className="w-12 h-1 bg-primary rounded-full mx-auto mt-2"></div>
+                <p className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 mt-1">
+                  University NSS Head
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Gautam Buddha University, Greater Noida
+                </p>
+
+                {coordinator.email && (
+                  <a
+                    href={`mailto:${coordinator.email}`}
+                    className="mt-4 inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 transition-colors"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    {coordinator.email}
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Tree Stem / Connector Stem */}
+            <div className="flex flex-col items-center">
+              {/* Vertical line from Coordinator */}
+              <div className="w-0.5 h-8 sm:h-12 bg-gradient-to-b from-blue-600 to-blue-400"></div>
+
+              {/* Central Junction Hub */}
+              <div className="w-7 h-7 rounded-full bg-white dark:bg-card border-2 border-blue-500 shadow-sm flex items-center justify-center text-blue-600">
+                <ArrowDown className="w-3.5 h-3.5" />
               </div>
 
-              {/* Clean 6-Unit Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {unitOfficers.map(({ unitNumber, unitLabel, member }) => (
-                  <div
-                    key={unitLabel}
-                    className="bg-white dark:bg-card rounded-2xl shadow-xs border border-slate-200/80 dark:border-border/60 p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow group"
-                  >
-                    {/* Unit Pill Badge */}
-                    <span className="inline-block px-3 py-1 rounded-full bg-slate-100 dark:bg-muted text-slate-700 dark:text-slate-300 text-xs font-bold mb-4 border border-slate-200/80 dark:border-border">
-                      NSS {unitLabel}
-                    </span>
+              {/* Vertical line continuing down */}
+              <div className="w-0.5 h-6 bg-blue-400 hidden lg:block"></div>
+            </div>
 
-                    {/* Member Photo */}
-                    <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 dark:border-border p-1 bg-white dark:bg-muted shadow-xs mb-4">
-                      {member?.photo ? (
-                        <img
-                          src={member.photo}
-                          alt={member.name}
-                          className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-slate-100 dark:bg-muted flex items-center justify-center rounded-full text-slate-400 font-bold text-lg">
-                          {member?.name ? member.name.replace(/dr\.?\s*/i, "").charAt(0) : "P"}
-                        </div>
-                      )}
-                    </div>
+            {/* Desktop Horizontal Connecting Beam (Shows on Desktop) */}
+            <div className="hidden lg:block w-full max-w-5xl relative">
+              {/* Horizontal Bar linking the units */}
+              <div className="h-0.5 bg-blue-300 dark:bg-blue-900 w-full rounded-full"></div>
 
-                    {/* Officer Name & Designation */}
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
-                      {member ? member.name : `Program Officer, ${unitLabel}`}
-                    </h3>
-
-                    <p className="text-xs font-semibold text-primary mt-1">
-                      Program Officer (PO)
-                    </p>
-
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      NSS {unitLabel} • Gautam Buddha University
-                    </p>
-
-                    {/* Email if available */}
-                    {member?.email ? (
-                      <a
-                        href={`mailto:${member.email}`}
-                        className="mt-4 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-                      >
-                        <Mail className="w-3.5 h-3.5 text-primary" />
-                        <span>{member.email}</span>
-                      </a>
-                    ) : (
-                      <div className="h-4 mt-4"></div>
-                    )}
+              {/* Dropdown markers for each column */}
+              <div className="grid grid-cols-6 w-full">
+                {pos.map((p) => (
+                  <div key={p.unitNo} className="flex flex-col items-center">
+                    <div className="w-0.5 h-6 bg-blue-300 dark:bg-blue-900"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-950"></div>
                   </div>
                 ))}
               </div>
-            </section>
-          </>
+            </div>
+
+            {/* Section Tag for Units */}
+            <div className="mt-4 mb-8 text-center">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Unit Program Officers
+              </span>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                The 6 NSS Units
+              </h3>
+            </div>
+
+            {/* LEVEL 2: The 6 Unit Program Officers Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 w-full">
+              {pos.map((officer) => (
+                <div
+                  key={officer.unitNo}
+                  className="group relative bg-white dark:bg-card border border-slate-200/90 dark:border-border/70 rounded-2xl shadow-xs hover:shadow-xl hover:border-blue-400/80 transition-all duration-300 p-6 flex flex-col items-center text-center overflow-hidden hover:-translate-y-1"
+                >
+                  {/* Subtle Top Accent Ribbon */}
+                  <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${officer.color}`}></div>
+
+                  {/* Unit Badge (e.g. Unit 01, Unit 02) */}
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-muted text-slate-700 dark:text-slate-300 text-xs font-mono font-bold mb-4 border border-slate-200/60 dark:border-border">
+                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                    NSS {officer.unitNo}
+                  </div>
+
+                  {/* Officer Portrait */}
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200/80 dark:border-border p-1 bg-white dark:bg-muted shadow-sm mb-3.5 group-hover:border-blue-500 transition-colors">
+                    {officer.photo ? (
+                      <img
+                        src={officer.photo}
+                        alt={officer.name}
+                        className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-slate-100 dark:bg-muted flex items-center justify-center rounded-full text-slate-500 font-bold text-lg">
+                        {officer.name.replace(/dr\.?\s*/i, "").charAt(0)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Officer Name */}
+                  <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+                    {officer.name}
+                  </h4>
+
+                  {/* Designation */}
+                  <span className="mt-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                    Program Officer (PO)
+                  </span>
+
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    Gautam Buddha University
+                  </p>
+
+                  {/* Contact / Email */}
+                  {officer.email ? (
+                    <a
+                      href={`mailto:${officer.email}`}
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-primary transition-colors truncate max-w-full"
+                    >
+                      <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">{officer.email}</span>
+                    </a>
+                  ) : (
+                    <div className="h-4 mt-3"></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </main>
 
