@@ -42,42 +42,6 @@ interface Developer {
 
 const developers: Developer[] = [
   {
-    id: "mayank-prabhakar",
-    name: "Mayank Prabhakar",
-    role: "Developer",
-    roleType: "Lead",
-    image: "https://res.cloudinary.com/djltlifnp/image/upload/v1793476444/nss-uploads/leadership/e9v1qv1k0al0uh9sqnto.png",
-    rollNumber: "255UCS033",
-    batch: "2025-29",
-    program: "B-Tech CSE",
-    school: "SOICT",
-    department: "Computer Science and Engineering",
-    email: "255ucs033@gbu.ac.in",
-    linkedin: "https://www.linkedin.com/in/i-mayank-prabhakar-/",
-    website: "https://mayank-prabhakar.me/",
-    instagram: "https://www.instagram.com/i.mayank.prabhakaR",
-    bio: "Passionate developer focused on building scalable, performant, and interactive web applications for Gautam Buddha University.",
-    responsibilities: [
-      "Full-stack web application development",
-      "UI/UX enhancement & mobile responsiveness",
-      "Core feature architecture and implementation",
-      "Performance optimization & accessibility"
-    ],
-    technologies: [
-      "Next.js",
-      "React",
-      "TypeScript",
-      "TailwindCSS",
-      "Node.js",
-      "MongoDB"
-    ],
-    contributions: [
-      "Engineered responsive navigation and public leadership modules",
-      "Optimized mobile viewport experiences and layout hierarchy",
-      "Integrated secure Cloudinary media management and APIs"
-    ],
-  },
-  {
     id: "ashwanik0777",
     name: "Ashwani Kushwaha",
     role: "Full Stack Developer",
@@ -114,6 +78,42 @@ const developers: Developer[] = [
       "Implemented secure authentication and role-based access control",
       "Optimized database schema for efficient data retrieval",
       "Deployed project and maintained documentation"
+    ],
+  },
+  {
+    id: "mayank-prabhakar",
+    name: "Mayank Prabhakar",
+    role: "Developer",
+    roleType: "Lead",
+    image: "https://res.cloudinary.com/djltlifnp/image/upload/v1793476444/nss-uploads/leadership/e9v1qv1k0al0uh9sqnto.png",
+    rollNumber: "255UCS033",
+    batch: "2025-29",
+    program: "B-Tech CSE",
+    school: "SOICT",
+    department: "Computer Science and Engineering",
+    email: "255ucs033@gbu.ac.in",
+    linkedin: "https://www.linkedin.com/in/i-mayank-prabhakar-/",
+    website: "https://mayank-prabhakar.me/",
+    instagram: "https://www.instagram.com/i.mayank.prabhakaR",
+    bio: "Passionate developer focused on building scalable, performant, and interactive web applications for Gautam Buddha University.",
+    responsibilities: [
+      "Full-stack web application development",
+      "UI/UX enhancement & mobile responsiveness",
+      "Core feature architecture and implementation",
+      "Performance optimization & accessibility"
+    ],
+    technologies: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "TailwindCSS",
+      "Node.js",
+      "MongoDB"
+    ],
+    contributions: [
+      "Engineered responsive navigation and public leadership modules",
+      "Optimized mobile viewport experiences and layout hierarchy",
+      "Integrated secure Cloudinary media management and APIs"
     ],
   }
 ]
