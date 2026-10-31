@@ -203,46 +203,47 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center py-6 sm:py-10 md:py-12 px-3 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="max-w-md w-full space-y-8 relative z-10">
+      <div className="max-w-md w-full space-y-4 sm:space-y-6 md:space-y-8 relative z-10 my-auto">
         <div className="text-center">
-          {/* <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl hover-lift"> */}
-            {/* <Shield className="w-14 h-14 text-white" /> */}
-            {/* logo 1+ logo 2 + logo3 */}
-            <div className="flex space-x-8 justify-center mb-8 items-center">
-              <img src="/1.png" alt="GBU Logo" className="w-22 h-22 rounded-full border-2 border-white" />
-              <img src="/nssLogo.png" alt="NSS Logo" className="w-20 h-20 rounded-full border-2 border-white" />
-              <img src="/myBharatLogo.png" alt="GBU Logo" className="w-35 h-25 rounded-full border-2 border-white" />
+          <div className="flex items-center justify-center gap-2.5 sm:gap-6 mb-3 sm:mb-5">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white shadow-sm border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0">
+              <img src="/1.png" alt="GBU Logo" className="w-full h-full object-contain rounded-full" />
             </div>
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white shadow-sm border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0">
+              <img src="/nssLogo.png" alt="NSS Logo" className="w-full h-full object-contain rounded-full" />
+            </div>
+            <div className="h-10 sm:h-12 w-auto max-w-[100px] sm:max-w-[130px] rounded-lg bg-white shadow-sm border border-slate-200/80 p-1 flex items-center justify-center shrink-0">
+              <img src="/myBharatLogo.png" alt="My Bharat Logo" className="h-full w-auto object-contain" />
+            </div>
+          </div>
 
-       
-          <h2 className="text-4xl font-bold text-foreground mb-2">NSS Digital Login</h2>
-          <p className="text-lg text-muted-foreground mb-1">National Service Scheme - Gautam Buddha University</p>
-          <p className="text-sm text-muted-foreground">राष्ट्रीय सेवा योजना - गौतम बुद्ध विश्वविद्यालय </p>
-          {/* <p className="text-xs text-muted-foreground mt-2">For Admin, Sub-Admin & Volunteers</p> */}
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-1 tracking-tight">NSS Digital Login</h2>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium px-2 leading-snug">National Service Scheme - Gautam Buddha University</p>
+          <p className="text-[11px] sm:text-xs text-muted-foreground/80 px-2 mt-0.5">राष्ट्रीय सेवा योजना - गौतम बुद्ध विश्वविद्यालय</p>
         </div>
 
-        <div className="bg-card/80 backdrop-blur-md rounded-2xl shadow-2xl border border-border/50 p-8">
+        <div className="bg-card/90 backdrop-blur-md rounded-2xl shadow-xl border border-border/50 p-4 sm:p-6 md:p-8">
           {!forgotOpen ? (
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="space-y-5">
+            <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
+              <div className="space-y-3.5 sm:space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-3">
+                  <label className="block text-xs sm:text-sm font-semibold text-foreground mb-2">
                     <span className="flex items-center">
-                      <Shield className="w-4 h-4 mr-2 text-primary" />
+                      <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 text-primary" />
                       Login As
                     </span>
                   </label>
-                  <div className="grid grid-cols-2 gap-4 p-1 bg-muted/50 rounded-lg border border-border/50">
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2 p-1 bg-muted/60 rounded-xl border border-border/50">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, loginAs: "volunteer" })}
-                      className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      className={`flex items-center justify-center px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 ${
                         formData.loginAs === "volunteer"
-                          ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                          ? "bg-primary text-primary-foreground shadow-sm scale-[1.01]"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`}
                     >
@@ -251,9 +252,9 @@ export default function LoginForm() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, loginAs: "admin" })}
-                      className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      className={`flex items-center justify-center px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 ${
                         formData.loginAs === "admin"
-                          ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                          ? "bg-primary text-primary-foreground shadow-sm scale-[1.01]"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`}
                     >
@@ -263,8 +264,8 @@ export default function LoginForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="flex items-center text-sm font-semibold text-foreground mb-3">
-                    <Mail className="w-4 h-4 mr-2 text-primary" />
+                  <label htmlFor="email" className="flex items-center text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">
+                    <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 text-primary" />
                     Email Address
                   </label>
                   <input
@@ -274,14 +275,14 @@ export default function LoginForm() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-4 py-3 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
+                    className="w-full px-3.5 py-2.5 sm:py-3 border border-border rounded-lg bg-input text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
                     placeholder="Enter your email"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="flex items-center text-sm font-semibold text-foreground mb-3">
-                    <Lock className="w-4 h-4 mr-2 text-primary" />
+                  <label htmlFor="password" className="flex items-center text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">
+                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 text-primary" />
                     Password
                   </label>
                   <div className="relative">
@@ -292,18 +293,19 @@ export default function LoginForm() {
                       required
                       value={formData.password}
                       onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
-                      className="w-full px-4 py-3 pr-12 border border-border rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
+                      className="w-full px-3.5 py-2.5 sm:py-3 pr-11 border border-border rounded-lg bg-input text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:border-primary/30"
                       placeholder="Enter your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200 p-1"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </button>
                   </div>
-                  <div className="mt-2 text-right">
+                  <div className="mt-1.5 text-right">
                     <button
                       type="button"
                       onClick={openForgot}
@@ -316,7 +318,7 @@ export default function LoginForm() {
               </div>
 
               {error && (
-                <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm font-medium animate-in slide-in-from-top-2 duration-300">
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium animate-in slide-in-from-top-2 duration-300">
                   {error}
                 </div>
               )}
@@ -324,25 +326,25 @@ export default function LoginForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center py-3 px-4 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:from-primary/90 hover:to-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                className="w-full flex items-center justify-center py-2.5 sm:py-3 px-4 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:from-primary/90 hover:to-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-sm sm:text-base shadow-md hover:shadow-lg active:scale-[0.98]"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="animate-spin w-5 h-5 mr-2" />
+                    <Loader2 className="animate-spin w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Signing in...
                   </>
                 ) : (
                   <>
-                    <Shield className="w-5 h-5 mr-2" />
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Sign in
                   </>
                 )}
               </button>
 
-              <div className="text-center">
+              <div className="text-center pt-1">
                 <a
                   href="/register"
-                  className="text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
+                  className="text-xs sm:text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline inline-flex items-center gap-1"
                 >
                   Apply for NSS Registration →
                 </a>
