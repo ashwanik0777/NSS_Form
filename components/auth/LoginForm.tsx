@@ -147,7 +147,7 @@ export default function LoginForm() {
 
     try {
       const result = await signIn("credentials", {
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
         redirect: false,
       })
@@ -158,45 +158,43 @@ export default function LoginForm() {
         } else {
           setError("Invalid email or password")
         }
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 100))
-        const session = await getSession()
-        const user = session?.user as any
-        
-        if (!user) {
-          setError("Failed to get user session. Please try again.")
-          return
-        }
-        
-        const userRole = user?.role ?? "user"
-        const mustChangePassword = user?.mustChangePassword ?? false
-        
-        if (mustChangePassword) {
-          router.push("/set-password")
-        } else {
-          // Check login preference
-          if (formData.loginAs === "admin") {
-            // User wants to login as Admin/Convener
-            if (userRole === "admin" || userRole === "sub-admin") {
-              router.push("/admin")
-            } else {
-              // Not an admin but tried to login as one
-              await signOut({ redirect: false })
-              setError("Access Denied: You are a registered Volunteer. Please switch to the 'Volunteer' tab to login.")
-            }
-          } else {
-            // User wants to login as Volunteer
-            if (userRole === "admin" || userRole === "sub-admin") {
-              await signOut({ redirect: false })
-              setError("Access Denied: You are an Administrator. Please switch to the 'Convener / Admin' tab to login.")
-            } else {
-              router.push("/dashboard")
-            }
-          }
-        }
+        return
       }
+
+      // Retrieve session with resilient fallback
+      let session = await getSession()
+      if (!session?.user) {
+        await new Promise((resolve) => setTimeout(resolve, 250))
+        session = await getSession()
+      }
+      if (!session?.user) {
+        try {
+          const res = await fetch("/api/auth/session")
+          if (res.ok) {
+            const data = await res.json()
+            if (data?.user) session = data
+          }
+        } catch {}
+      }
+
+      const user = session?.user as any
+      const userRole = user?.role ?? "user"
+      const mustChangePassword = user?.mustChangePassword ?? false
+
+      if (mustChangePassword) {
+        router.push("/set-password")
+        return
+      }
+
+      // Automatically route according to authenticated role
+      if (userRole === "admin" || userRole === "sub-admin") {
+        router.push("/admin")
+      } else {
+        router.push("/dashboard")
+      }
+      router.refresh()
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      setError("An error occurred during sign in. Please try again.")
     } finally {
       setLoading(false)
     }

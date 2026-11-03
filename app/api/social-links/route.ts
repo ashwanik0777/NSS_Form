@@ -5,7 +5,7 @@ import SocialLinks from "@/models/SocialLinks"
 export async function GET() {
   try {
     await dbConnect()
-    const doc = await SocialLinks.findOne({ key: "nss" }).lean()
+    const doc: any = await SocialLinks.findOne({ key: "nss" }).lean()
     return NextResponse.json({ success: true, links: {
       facebook: doc?.facebook || "",
       instagram: doc?.instagram || "",

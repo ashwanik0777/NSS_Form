@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react"
 import { hasPermission } from "@/lib/permissions"
 import {
   LayoutDashboard,
+  Image as ImageIcon,
   FileText,
   Users,
   Settings,
@@ -95,6 +96,7 @@ const groupedSidebar: {
     accentColor: "#be185d",
     items: [
       { id: "announcements", label: "Announcements", href: "/admin/announcements", icon: <Megaphone className="w-4 h-4" />, permission: "announcements.view" },
+      { id: "gallery", label: "Media Gallery", href: "/admin/gallery", icon: <ImageIcon className="w-4 h-4" /> },
       { id: "social-posts", label: "Social Media Posts", href: "/admin/social-posts", icon: <Share2 className="w-4 h-4" />, permission: "social.view" },
       { id: "grievances", label: "Grievances", href: "/admin/grievances", icon: <FileText className="w-4 h-4" />, permission: "volunteers.view" },
       { id: "reports", label: "Reports & Issues", href: "/admin/reports", icon: <FileText className="w-4 h-4" />, permission: "volunteers.view" },

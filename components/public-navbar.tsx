@@ -13,6 +13,7 @@ export default function PublicNavbar() {
     { label: "Home", href: "/" },
     { label: "About NSS", href: "/about-nss" },
     { label: "Who's Who", href: "/whos-who" },
+    { label: "Gallery", href: "/gallery" },
   ]
 
   const isActive = (href: string) => {
@@ -73,25 +74,19 @@ export default function PublicNavbar() {
             })}
             <Link
               href="/login"
-              className="text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 border border-slate-300 dark:border-border rounded-lg hover:bg-slate-100 dark:hover:bg-muted transition-all ml-1"
+              className="text-xs sm:text-sm font-bold px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-sm hover:bg-primary/90 transition-all active:scale-95 ml-2"
             >
               Login
             </Link>
-            <Link
-              href="/register"
-              className="text-xs sm:text-sm font-semibold px-3.5 py-1.5 sm:px-4 sm:py-2 bg-primary text-primary-foreground rounded-lg shadow-sm hover:bg-primary/90 transition-all active:scale-95"
-            >
-              Apply
-            </Link>
           </nav>
 
-          {/* Mobile Right Controls (Apply Pill + Hamburger) */}
+          {/* Mobile Right Controls (Focused Login Pill + Hamburger) */}
           <div className="flex md:hidden items-center gap-2 shrink-0">
             <Link
-              href="/register"
-              className="text-xs font-semibold px-3 py-1.5 bg-primary text-primary-foreground rounded-lg shadow-xs active:scale-95 transition-transform"
+              href="/login"
+              className="text-xs font-bold px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg shadow-xs active:scale-95 transition-transform"
             >
-              Apply
+              Login
             </Link>
             <button
               type="button"
@@ -125,20 +120,15 @@ export default function PublicNavbar() {
               </Link>
             )
           })}
-          <Link
-            href="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-muted"
-          >
-            Portal Login
-          </Link>
-          <Link
-            href="/register"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-lg text-sm font-semibold text-primary-foreground bg-primary text-center mt-2"
-          >
-            Apply Now (Register)
-          </Link>
+          <div className="pt-2">
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-4 py-2.5 rounded-lg text-sm font-bold text-primary-foreground bg-primary text-center shadow-xs active:scale-95 transition-all"
+            >
+              Login to Portal
+            </Link>
+          </div>
         </div>
       )}
     </header>

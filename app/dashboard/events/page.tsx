@@ -16,6 +16,9 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  X,
   UploadCloud,
 } from "lucide-react"
 import Link from "next/link"
@@ -32,6 +35,8 @@ interface Event {
   status: string
   registrationStatus?: "registered" | "declined" | "pending"
   isDefaulter?: boolean
+  locationCoordinates?: { latitude: number; longitude: number }
+  attendanceRadius?: number
 }
 
 interface MyEvent {
@@ -52,6 +57,21 @@ interface MyEvent {
   workDescription?: string
 }
 
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
 export default function EventsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -60,7 +80,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null)
-  const [action, setAction] = useState<"start" | "end">("start")
+  const [action, setAction] = useState<"start" | "end" | "mark_attendance">("start")
   const [showModal, setShowModal] = useState(false)
   const [photo, setPhoto] = useState<string | null>(null)
   const [location, setLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(
@@ -75,12 +95,12 @@ export default function EventsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalEvents, setTotalEvents] = useState(0)
-  
+
   // New states for better UX
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [locationLoading, setLocationLoading] = useState(false)
   const [modalMessage, setModalMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null)
-  
+
   const eventsPerPage = 10
 
   useEffect(() => {
@@ -139,7 +159,8 @@ export default function EventsPage() {
           }
           resolve({ latitude, longitude, address })
         },
-        (error) => reject(error)
+        (error) => reject(error),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       )
     })
   }
@@ -150,9 +171,9 @@ export default function EventsPage() {
     input.type = "file"
     input.accept = "image/*"
     input.capture = "environment"
-    
+
     input.oncancel = () => {
-        setUploadingPhoto(false)
+      setUploadingPhoto(false)
     }
 
     input.onchange = async (e: any) => {
@@ -162,7 +183,7 @@ export default function EventsPage() {
         try {
           // Check file size (limit to 20MB before compression)
           if (file.size > 20 * 1024 * 1024) {
-             throw new Error("File size too large. Please upload an image smaller than 20MB.")
+            throw new Error("File size too large. Please upload an image smaller than 20MB.")
           }
 
           // Compress image
@@ -182,16 +203,16 @@ export default function EventsPage() {
             setPhoto(data.url)
             setModalMessage({ type: "success", text: "Photo uploaded successfully!" })
           } else {
-             throw new Error(data.message || "Upload failed")
+            throw new Error(data.message || "Upload failed")
           }
         } catch (error: any) {
           console.error("Upload error:", error)
-          setModalMessage({ 
-              type: "error", 
-              text: error.message || "Failed to upload photo. Please check your internet connection and try again." 
+          setModalMessage({
+            type: "error",
+            text: error.message || "Failed to upload photo. Please check your internet connection and try again."
           })
         } finally {
-            setUploadingPhoto(false)
+          setUploadingPhoto(false)
         }
       }
     }
@@ -215,12 +236,12 @@ export default function EventsPage() {
       )
     } catch (error: any) {
       console.error("Location error:", error)
-      setModalMessage({ 
-          type: "error", 
-          text: "Failed to get location. Please ensure GPS is enabled and browser permission is granted." 
+      setModalMessage({
+        type: "error",
+        text: "Failed to get location. Please ensure GPS is enabled and browser permission is granted."
       })
     } finally {
-        setLocationLoading(false)
+      setLocationLoading(false)
     }
   }
 
@@ -234,7 +255,7 @@ export default function EventsPage() {
 
     setSubmitting(true)
     setModalMessage(null)
-    
+
     try {
       const res = await fetch("/api/volunteer/events", {
         method: "POST",
@@ -306,25 +327,23 @@ export default function EventsPage() {
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        event.status === "completed"
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${event.status === "completed"
                           ? "bg-green-100 text-green-800"
                           : event.status === "started"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-gray-100 text-gray-800"
-                      }`}
+                        }`}
                     >
                       {event.status}
                     </span>
                     {event.status === "completed" && event.reviewStatus && (
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                          event.reviewStatus === "approved"
+                        className={`px-2 py-1 rounded-full text-xs font-medium border ${event.reviewStatus === "approved"
                             ? "bg-green-50 text-green-700 border-green-200"
                             : event.reviewStatus === "rejected"
                               ? "bg-red-50 text-red-700 border-red-200"
                               : "bg-yellow-50 text-yellow-700 border-yellow-200"
-                        }`}
+                          }`}
                       >
                         {event.reviewStatus === "approved"
                           ? "Approved"
@@ -460,7 +479,10 @@ export default function EventsPage() {
                         Decline (Provide Reason)
                       </button>
                       {event.isDefaulter && (
-                        <p className="text-xs text-red-600 text-center">⚠️ You are marked as defaulter for this event</p>
+                        <p className="text-xs text-red-600 text-center flex items-center justify-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          You are marked as defaulter for this event
+                        </p>
                       )}
                     </div>
                   )}
@@ -488,11 +510,11 @@ export default function EventsPage() {
                     </button>
                   ) : myEvent && myEvent.status === "started" ? (
                     <button
-                        disabled
-                        className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors opacity-90 cursor-default"
-                        >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Attendance Marked
+                      disabled
+                      className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors opacity-90 cursor-default"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Attendance Marked
                     </button>
                   ) : (
                     <div className="w-full flex items-center justify-center px-4 py-2 bg-green-100 text-green-800 rounded-lg">
@@ -537,11 +559,10 @@ export default function EventsPage() {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`px-3 py-2 border rounded-lg transition-colors ${
-                        currentPage === pageNum
+                      className={`px-3 py-2 border rounded-lg transition-colors ${currentPage === pageNum
                           ? "bg-primary text-primary-foreground border-primary"
                           : "border-border hover:bg-muted"
-                      }`}
+                        }`}
                     >
                       {pageNum}
                     </button>
@@ -563,76 +584,133 @@ export default function EventsPage() {
 
       {/* Event Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 max-w-md w-full max-h-[92vh] overflow-y-auto shadow-2xl">
-            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
-              Mark Attendance
-            </h2>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 max-w-md w-full max-h-[92vh] overflow-y-auto shadow-2xl smooth-modal">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                Mark Attendance
+              </h2>
+              <button
+                onClick={() => {
+                  setShowModal(false)
+                  setSelectedEvent(null)
+                  setPhoto(null)
+                  setLocation(null)
+                  setWorkDescription("")
+                  setModalMessage(null)
+                }}
+                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
             {modalMessage && (
-               <div className={`mb-4 p-3 rounded-lg flex items-start gap-2 text-sm ${
-                   modalMessage.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 
-                   modalMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 
-                   'bg-blue-50 text-blue-700 border border-blue-200'
-               }`}>
-                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                   <p>{modalMessage.text}</p>
-               </div>
+              <div className={`mb-4 p-3 rounded-lg flex items-start gap-2 text-sm ${modalMessage.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
+                  modalMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
+                    'bg-blue-50 text-blue-700 border border-blue-200'
+                }`}>
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <p>{modalMessage.text}</p>
+              </div>
             )}
 
             <div className="space-y-4">
               {/* Location Section */}
               <div className="bg-muted/30 rounded-lg p-4 border border-border">
-                  <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-primary" /> Location Status
-                  </p>
-                  
-                  {locationLoading ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Detecting your location...</span>
-                      </div>
-                  ) : location ? (
-                      <div>
-                          <p className="text-xs text-green-600 font-medium flex items-center gap-1 mb-1">
-                              <CheckCircle className="w-3 h-3" /> Location Verified
-                          </p>
-                          <p className="text-xs text-muted-foreground break-words">{location.address}</p>
-                      </div>
-                  ) : (
-                      <div className="text-sm text-red-500">
-                          <p>Location needed.</p>
-                          <button 
-                             onClick={async () => {
-                                 setLocationLoading(true)
-                                 try {
-                                     const loc = await getCurrentLocation()
-                                     setLocation(loc)
-                                 } catch(e) {
-                                     setModalMessage({ type: 'error', text: 'Retry failed. Check GPS.'})
-                                 } finally {
-                                     setLocationLoading(false)
-                                 }
-                             }}
-                             className="text-primary hover:underline text-xs mt-1"
-                          >
-                              Try Again
-                          </button>
-                      </div>
-                  )}
+                <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" /> Location Status
+                </p>
+
+                {locationLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Detecting your location...</span>
+                  </div>
+                ) : location ? (
+                  <div>
+                    <p className="text-xs text-green-600 font-medium flex items-center gap-1 mb-1">
+                      <CheckCircle className="w-3 h-3" /> Location Verified
+                    </p>
+                    <p className="text-xs text-muted-foreground break-words mb-2">{location.address}</p>
+                    {(() => {
+                      const curEvent = events.find((e) => e._id === selectedEvent)
+                      if (curEvent?.locationCoordinates?.latitude && curEvent?.locationCoordinates?.longitude) {
+                        const dist = Math.round(calculateDistance(
+                          curEvent.locationCoordinates.latitude,
+                          curEvent.locationCoordinates.longitude,
+                          location.latitude,
+                          location.longitude
+                        ))
+                        const maxRadius = curEvent.attendanceRadius || 50
+                        const isInside = dist <= maxRadius
+                        return (
+                          <div className={`p-2.5 rounded-lg border text-xs font-medium flex items-start gap-2 ${isInside
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
+                              : 'bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300'
+                            }`}>
+                            <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-semibold flex items-center gap-1.5">
+                                {isInside ? (
+                                  <>Within Venue Geofence <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" /></>
+                                ) : (
+                                  <>Outside Venue Geofence <AlertTriangle className="w-3.5 h-3.5 text-amber-600 inline" /></>
+                                )}
+                              </p>
+                              <p className="text-[11px] opacity-90 mt-0.5">
+                                Your distance from venue: <span className="font-mono font-bold">{dist}m</span> (Required: &le;{maxRadius}m)
+                              </p>
+                              {!isInside && (
+                                <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">
+                                  Please move closer to the event venue to mark attendance.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      }
+                      return (
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          Location detected. No venue geofencing restriction for this event.
+                        </p>
+                      )
+                    })()}
+                  </div>
+                ) : (
+                  <div className="text-sm text-red-500">
+                    <p>Location needed.</p>
+                    <button
+                      onClick={async () => {
+                        setLocationLoading(true)
+                        try {
+                          const loc = await getCurrentLocation()
+                          setLocation(loc)
+                        } catch (e) {
+                          setModalMessage({ type: 'error', text: 'Retry failed. Check GPS.' })
+                        } finally {
+                          setLocationLoading(false)
+                        }
+                      }}
+                      className="text-primary hover:underline text-xs mt-1"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Attendance Photo *
                 </label>
-                
+
                 {uploadingPhoto ? (
-                    <div className="w-full h-48 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center bg-muted/20">
-                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
-                        <span className="text-sm font-medium text-foreground">Uploading & Compressing...</span>
-                        <span className="text-xs text-muted-foreground mt-1">Please wait, do not close.</span>
-                    </div>
+                  <div className="w-full h-48 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center bg-muted/20">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                    <span className="text-sm font-medium text-foreground">Uploading & Compressing...</span>
+                    <span className="text-xs text-muted-foreground mt-1">Please wait, do not close.</span>
+                  </div>
                 ) : photo ? (
                   <div className="relative">
                     <img src={photo} alt="Event photo" className="w-full h-48 object-cover rounded-lg border border-border" />
@@ -644,7 +722,7 @@ export default function EventsPage() {
                       <Camera className="w-4 h-4" />
                     </button>
                     <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Uploaded
+                      <CheckCircle className="w-3 h-3" /> Uploaded
                     </div>
                   </div>
                 ) : (
@@ -654,7 +732,7 @@ export default function EventsPage() {
                     className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="p-3 bg-primary/10 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                        <Camera className="w-6 h-6 text-primary" />
+                      <Camera className="w-6 h-6 text-primary" />
                     </div>
                     <span className="text-sm font-medium text-foreground">Tap to Capture Photo</span>
                     <span className="text-xs text-muted-foreground mt-1">Camera will open automatically</span>
@@ -687,8 +765,8 @@ export default function EventsPage() {
                     </>
                   ) : (
                     <>
-                        <CheckCircle className="w-4 h-4" />
-                        Submit Attendance
+                      <CheckCircle className="w-4 h-4" />
+                      Submit Attendance
                     </>
                   )}
                 </button>
@@ -700,16 +778,28 @@ export default function EventsPage() {
 
       {/* Registration Modal */}
       {showRegistrationModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 max-w-md w-full shadow-2xl">
-            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
-              {registrationAction === "register" ? "Register for Event" : "Decline Event"}
-            </h2>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 max-w-md w-full shadow-2xl smooth-modal">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                {registrationAction === "register" ? "Register for Event" : "Decline Event"}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowRegistrationModal(false)
+                  setSelectedEvent(null)
+                  setDeclineReason("")
+                }}
+                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
             {registrationAction === "register" ? (
               <div className="space-y-4">
                 <p className="text-muted-foreground">
-                  By registering, you confirm that you will attend this event. If you fail to attend or mark your attendance, 
+                  By registering, you confirm that you will attend this event. If you fail to attend or mark your attendance,
                   you will be added to the defaulter list.
                 </p>
                 <div className="flex space-x-4">
@@ -766,7 +856,7 @@ export default function EventsPage() {
             ) : (
               <div className="space-y-4">
                 <p className="text-muted-foreground">
-                  Please provide a reason for declining this event. If you don't register and don't provide a reason, 
+                  Please provide a reason for declining this event. If you don't register and don't provide a reason,
                   you will be added to the defaulter list.
                 </p>
                 <div>

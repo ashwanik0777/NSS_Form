@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Download, Eye, Loader2, AlertCircle, CheckCircle2, CreditCard } from "lucide-react"
+import { Download, Eye, Loader2, AlertCircle, CheckCircle2, CreditCard, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -175,19 +175,21 @@ export default function VolunteerIDCardPage() {
             {eligibility.reason?.includes("profile") && (
               <Button
                 variant="link"
-                className="ml-2 p-0 h-auto"
+                className="ml-2 p-0 h-auto inline-flex items-center"
                 onClick={() => router.push("/dashboard/profile")}
               >
-                Complete Profile →
+                Complete Profile
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             )}
             {eligibility.reason?.includes("project") && (
               <Button
                 variant="link"
-                className="ml-2 p-0 h-auto"
+                className="ml-2 p-0 h-auto inline-flex items-center"
                 onClick={() => router.push("/dashboard/projects")}
               >
-                Select Project →
+                Select Project
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             )}
           </AlertDescription>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
+import AdminHeader from "@/components/admin/AdminHeader"
 import { Loader2, X, CheckCircle2, Filter } from "lucide-react"
 
 export default function AdminGrievancesPage() {
@@ -97,19 +98,24 @@ export default function AdminGrievancesPage() {
 
   return (
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="volunteers.view">
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+      <AdminHeader
+        title="Grievances"
+        subtitle="Review and resolve volunteer grievances"
+      />
+
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+        <div className="bg-card rounded-2xl border border-border p-3.5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Grievances</h1>
-            <p className="text-muted-foreground mt-1">Review and resolve student grievances</p>
+            <h2 className="text-sm sm:text-base font-bold text-foreground">Volunteer Grievances</h2>
+            <p className="text-xs text-muted-foreground">Filter by status and assigned unit</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-1 sm:flex-none">
+              <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
               <select
                 value={filters.status}
                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="px-3 py-2 border border-border rounded-lg text-sm"
+                className="w-full sm:w-auto px-3 py-2 border border-border rounded-xl text-xs sm:text-sm bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
               >
                 <option value="all">All Status</option>
                 <option value="open">Open</option>
@@ -118,12 +124,12 @@ export default function AdminGrievancesPage() {
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 flex-1 sm:flex-none">
+              <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
               <select
                 value={filters.unitNo}
                 onChange={(e) => setFilters({ ...filters, unitNo: e.target.value })}
-                className="px-3 py-2 border border-border rounded-lg text-sm"
+                className="w-full sm:w-auto px-3 py-2 border border-border rounded-xl text-xs sm:text-sm bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
               >
                 <option value="all">All Units</option>
                 {units.map((u) => (
@@ -213,8 +219,8 @@ export default function AdminGrievancesPage() {
         </div>
 
         {editing && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-xl w-full p-6">
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-card rounded-2xl border border-border max-w-xl w-full p-4 sm:p-6 shadow-2xl smooth-modal max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-foreground">Update Grievance</h2>
                 <button

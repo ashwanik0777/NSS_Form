@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
+import AdminHeader from "@/components/admin/AdminHeader"
 import { Loader2, Filter, Search, FileText, User, Calendar, MessageSquare, Paperclip, Send, X, CheckCircle2, Clock, AlertCircle } from "lucide-react"
 
 export default function AdminReportsPage() {
@@ -216,19 +217,14 @@ export default function AdminReportsPage() {
 
   return (
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="volunteers.view">
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-              <FileText className="w-8 h-8 text-primary" />
-              Report & Issue Management
-            </h1>
-            <p className="text-muted-foreground mt-1">Manage and resolve all reports, complaints, and suggestions</p>
-          </div>
-        </div>
+      <AdminHeader
+        title="Reports & Issues"
+        subtitle="Manage and resolve reports, complaints, and suggestions"
+      />
 
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="bg-card rounded-xl border border-border p-4">
             <div className="text-sm text-muted-foreground">Total Reports</div>
             <div className="text-2xl font-bold text-foreground">{stats.total}</div>
@@ -409,8 +405,8 @@ export default function AdminReportsPage() {
 
         {/* Report Detail Modal */}
         {selectedReport && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-card rounded-2xl border border-border max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl smooth-modal">
               <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-foreground">Report Details</h2>

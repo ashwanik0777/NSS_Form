@@ -17,330 +17,404 @@ import {
   CheckCircle2,
   Sun,
   Flame,
+  Check,
+  Building2,
+  BookOpen,
 } from "lucide-react"
 import Footer from "@/components/footer"
 import PublicNavbar from "@/components/public-navbar"
 
 export default function AboutNSSPage() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50/70 via-white to-slate-50/70 dark:from-background dark:via-background dark:to-muted/20 text-foreground flex flex-col">
       {/* Reusable Public Navbar */}
       <PublicNavbar />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-white py-14 sm:py-20 md:py-24 px-4 sm:px-6">
-        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
-        <div className="max-w-5xl mx-auto text-center relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-medium text-blue-200 shadow-sm">
-            <Shield className="w-4 h-4 text-amber-400" />
-            Ministry of Youth Affairs & Sports, Government of India
+      {/* Hero Section - Clean, Light & Prestigious Institutional Look */}
+      <section className="relative overflow-hidden py-14 sm:py-20 px-4 bg-gradient-to-b from-blue-50/60 via-white to-slate-50/50 dark:from-blue-950/20 dark:via-background dark:to-background border-b border-slate-200/80 dark:border-border/60">
+        {/* Subtle Background Pattern & Glows */}
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
+        <div className="absolute -top-20 -left-20 w-80 h-80 bg-amber-500/10 blur-[90px] rounded-full pointer-events-none"></div>
+        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-blue-500/10 blur-[90px] rounded-full pointer-events-none"></div>
+
+        <div className="max-w-4xl mx-auto text-center relative z-10 space-y-4">
+          {/* Government Ministry Badge */}
+
+
+          {/* NSS Emblem Badge */}
+          <div className="relative inline-flex items-center justify-center my-2">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white dark:bg-card p-2 border-2 border-amber-400/80 dark:border-amber-400 shadow-xl flex items-center justify-center hover:scale-105 transition-transform duration-300">
+              <img
+                src="/nssLogo.png"
+                alt="NSS Emblem - Konark Rath Wheel"
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
-            National Service Scheme <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-amber-300">(NSS)</span>
+          {/* Main Title */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.15]">
+            National Service Scheme <span className="text-primary">(NSS)</span>
           </h1>
 
-          <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-amber-300">
-            "NOT ME BUT YOU"
-          </p>
-          <p className="text-sm sm:text-base text-blue-100/90 max-w-2xl mx-auto leading-relaxed">
-            राष्ट्रीय सेवा योजना - गौतम बुद्ध विश्वविद्यालय
+          {/* Hindi Title & University */}
+          <div className="flex items-center justify-center gap-2 flex-wrap text-base sm:text-lg font-bold text-slate-700 dark:text-slate-300">
+            <span>राष्ट्रीय सेवा योजना</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+            <span>गौतम बुद्ध विश्वविद्यालय</span>
+          </div>
+
+          {/* Official Motto Ribbon */}
+          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs sm:text-sm font-extrabold tracking-wider uppercase">
+            <span>"NOT ME BUT YOU"</span>
+            <span>•</span>
+            <span>स्वयं से पहले आप</span>
+          </div>
+
+          {/* Subtitle Description */}
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed pt-1">
+            Fostering the spirit of selfless voluntary service, civic responsibility, and holistic nation-building among youth at Gautam Buddha University.
           </p>
 
-          <div className="pt-4 flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
+          {/* Action CTAs */}
+          <div className="pt-3 flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-lg hover:bg-primary/90 transition-all active:scale-95"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
             >
               Enroll as Volunteer
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/whos-who"
-              className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 text-white font-semibold text-sm transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-card border-2 border-slate-200 dark:border-border hover:border-primary text-slate-800 dark:text-slate-200 font-bold text-sm shadow-xs hover:bg-slate-50 dark:hover:bg-muted transition-all"
             >
-              View 6 NSS Units & POs
+              <Users className="w-4 h-4 text-primary" />
+              <span>View 6 NSS Units & POs</span>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Main Content Sections */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 flex-1 w-full space-y-16">
-        {/* Key Quick Fact Pills */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border/60 shadow-xs text-center">
-            <Calendar className="w-6 h-6 text-primary mx-auto mb-2" />
-            <span className="block text-2xl font-bold text-slate-900 dark:text-white">1969</span>
-            <span className="text-xs text-slate-500 font-medium">Launched in Gandhiji's Centenary Year</span>
+      {/* Main Content Area */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 flex-1 w-full space-y-12 sm:space-y-16">
+        {/* Key Quick Fact Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+          <div className="relative bg-white dark:bg-card rounded-2xl p-5 border border-slate-200/90 dark:border-border/60 shadow-xs text-center overflow-hidden hover:shadow-md transition-shadow">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-primary flex items-center justify-center mx-auto mb-2 border border-blue-200/60 dark:border-blue-900">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <span className="block text-2xl font-black text-slate-900 dark:text-white">1969</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight">
+              Launched in Gandhiji's Centenary Year
+            </span>
           </div>
 
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border/60 shadow-xs text-center">
-            <Sun className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-            <span className="block text-2xl font-bold text-slate-900 dark:text-white">Konark Wheel</span>
-            <span className="text-xs text-slate-500 font-medium">Symbolizes Continuous Social Progress</span>
+          <div className="relative bg-white dark:bg-card rounded-2xl p-5 border border-slate-200/90 dark:border-border/60 shadow-xs text-center overflow-hidden hover:shadow-md transition-shadow">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-2 border border-amber-200/60 dark:border-amber-900">
+              <Sun className="w-5 h-5" />
+            </div>
+            <span className="block text-2xl font-black text-slate-900 dark:text-white">Konark Wheel</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight">
+              Symbol of Continuous Social Progress
+            </span>
           </div>
 
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border/60 shadow-xs text-center">
-            <Award className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
-            <span className="block text-2xl font-bold text-slate-900 dark:text-white">120+ Hours</span>
-            <span className="text-xs text-slate-500 font-medium">Annual Community Service Work</span>
+          <div className="relative bg-white dark:bg-card rounded-2xl p-5 border border-slate-200/90 dark:border-border/60 shadow-xs text-center overflow-hidden hover:shadow-md transition-shadow">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-2 border border-emerald-200/60 dark:border-emerald-900">
+              <Award className="w-5 h-5" />
+            </div>
+            <span className="block text-2xl font-black text-slate-900 dark:text-white">240 Hours</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight">
+              Community Service over 2 Academic Years
+            </span>
           </div>
 
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border/60 shadow-xs text-center">
-            <Users className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-            <span className="block text-2xl font-bold text-slate-900 dark:text-white">6 Units</span>
-            <span className="text-xs text-slate-500 font-medium">Empowered at Gautam Buddha University</span>
+          <div className="relative bg-white dark:bg-card rounded-2xl p-5 border border-slate-200/90 dark:border-border/60 shadow-xs text-center overflow-hidden hover:shadow-md transition-shadow">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-indigo-500"></div>
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-2 border border-indigo-200/60 dark:border-indigo-900">
+              <Users className="w-5 h-5" />
+            </div>
+            <span className="block text-2xl font-black text-slate-900 dark:text-white">6 Units</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight">
+              Guided by Dedicated Program Officers
+            </span>
           </div>
         </div>
 
         {/* Section 1: Introduction to NSS */}
-        <section className="bg-white dark:bg-card rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-border/60 shadow-sm space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-600 dark:text-blue-400">
+        <section className="bg-white dark:bg-card rounded-3xl p-6 sm:p-10 border border-slate-200/90 dark:border-border/60 shadow-xs space-y-6">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-primary border border-blue-200/70 dark:border-blue-900 shrink-0">
               <Shield className="w-5 h-5" />
             </div>
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-primary">Overview</span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">
                 Introduction to the National Service Scheme
               </h2>
             </div>
           </div>
 
-          <div className="prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 space-y-4 text-sm sm:text-base leading-relaxed">
+          {/* Highlight Quote Box */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 dark:from-blue-950/40 dark:via-muted/20 dark:to-background border-l-4 border-primary text-slate-800 dark:text-slate-200">
+            <p className="text-sm sm:text-base font-semibold leading-relaxed italic">
+              "The central objective of NSS is to provide youth with direct community service experience without any bias, ensuring dignity, social justice, and progress for every section of society."
+            </p>
+          </div>
+
+          <div className="text-slate-600 dark:text-slate-300 space-y-4 text-sm sm:text-base leading-relaxed font-normal">
             <p>
-              The <strong>National Service Scheme</strong> (
-              <a
-                href="https://nss.gov.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline font-semibold inline-flex items-center gap-0.5"
-              >
-                NSS
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-              ) is a fundamental sector Scheme of the Government of India, Ministry of Youth Affairs & Sports, New Delhi. Popularly known as NSS, the scheme was launched in <strong>Gandhiji’s Centenary year in 1969</strong>. NSS is a voluntary association of youth in Colleges, Universities and at the +2 level, to take part in various government-led community service activities & programmes, from time to time.
+              The <strong>National Service Scheme (NSS)</strong> is a central sector scheme administered by the{" "}
+              <strong>Ministry of Youth Affairs & Sports, Government of India</strong>. Launched during Mahatma Gandhi’s Centenary Year in <strong>1969</strong>, NSS has grown into one of the world's largest youth volunteer organizations, mobilizing millions of university and college students toward constructive nation-building.
             </p>
 
             <p>
-              The sole objective of the NSS is to provide <strong>hands-on training experience to youth in delivering community service without any biases</strong>. NSS volunteers work to confirm that everyone who is needy gets help to improve their living standard and lead a life of dignity. Thus, we want{" "}
-              <a
-                href="https://www.gbu.ac.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline font-semibold inline-flex items-center gap-0.5"
-              >
-                GBU
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>{" "}
-              students and faculty members/staff members to contribute meaningfully to the development of our country.
+              At <strong>Gautam Buddha University (GBU), Greater Noida</strong>, NSS acts as a dynamic bridge between students and the broader social reality of surrounding rural and semi-urban communities. Volunteers actively participate in blood donation camps, environmental cleanups, tree plantations, literacy drives, and rural sanitation campaigns.
             </p>
 
             <p>
-              The main objective of NSS is to inculcate the spirit of social service among students and to provide them with an opportunity to work for the welfare of the community. The program is designed to promote volunteerism among students and to create an awareness of the problems faced by society.
+              Through this continuous service, students develop leadership acumen, emotional maturity, democratic tolerance, and an empathetic perspective toward the socio-economic challenges of our country.
             </p>
           </div>
         </section>
 
-        {/* Section 2: Motto and Logo of NSS */}
-        <section className="bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-lg relative overflow-hidden">
-          <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-
+        {/* Section 2: Motto and Logo of NSS - Clean & Elegant Light Theme */}
+        <section className="bg-white dark:bg-card rounded-3xl p-6 sm:p-10 border border-slate-200/90 dark:border-border/60 shadow-xs relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-            {/* Logo Display */}
-            <div className="lg:col-span-4 flex flex-col items-center text-center">
-              <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-white p-3 shadow-2xl border-4 border-amber-400/80 flex items-center justify-center">
+            {/* Logo Display Card */}
+            <div className="lg:col-span-5 flex flex-col items-center text-center p-6 rounded-2xl bg-gradient-to-b from-amber-50/60 via-slate-50/60 to-blue-50/50 dark:from-amber-950/20 dark:via-muted/20 dark:to-background border border-amber-200/80 dark:border-amber-900/40 shadow-xs">
+              <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-white dark:bg-card p-3 shadow-xl border-4 border-amber-400 flex items-center justify-center hover:scale-105 transition-transform duration-300">
                 <img
                   src="/nssLogo.png"
                   alt="NSS Emblem - Konark Rath Wheel"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className="mt-4 text-xs font-semibold text-blue-200 uppercase tracking-widest">
+              <span className="mt-4 text-xs font-bold text-primary uppercase tracking-widest">
                 The Official NSS Emblem
               </span>
-              <p className="text-amber-300 text-sm font-bold mt-1">
-                Rath Wheel of Konark Sun Temple
+              <p className="text-slate-900 dark:text-white text-base font-extrabold mt-0.5">
+                Konark Sun Temple Rath Wheel
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs">
+                Odisha, India • 24 Spokes representing 24 hours of relentless service
               </p>
             </div>
 
-            {/* Explanation */}
-            <div className="lg:col-span-8 space-y-5">
+            {/* Explanation Column */}
+            <div className="lg:col-span-7 space-y-4 sm:space-y-5">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Philosophy</span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-                  Motto and Logo of NSS
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  Philosophical Foundation
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-0.5">
+                  Motto and Logo Symbolism
                 </h2>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15">
-                <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-red-400" />
-                  Motto: “NOT ME BUT YOU”
+              {/* Motto Box */}
+              <div className="bg-amber-50/80 dark:bg-amber-950/30 rounded-2xl p-4 sm:p-5 border border-amber-200/90 dark:border-amber-900/50 space-y-1.5">
+                <h3 className="text-base sm:text-lg font-bold text-amber-900 dark:text-amber-300 flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-rose-500" />
+                  Motto: “NOT ME BUT YOU” (स्वयं से पहले आप)
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-200 mt-2 leading-relaxed">
-                  The motto reflects the spirit of democratic living and upholds the need for selfless service. It underlines that the welfare of an individual is ultimately dependent on the welfare of society as a whole.
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+                  The motto reflects the essence of democratic living and selfless public duty. It underscores that an individual's welfare is inextricably intertwined with the welfare of society as a whole.
                 </p>
               </div>
 
-              <div className="space-y-3 text-xs sm:text-sm text-slate-200 leading-relaxed">
-                <p>
-                  <strong>The Rath Wheel of Konark:</strong> The NSS logo is based on the giant Rath Wheel of the world-famous Konark Sun Temple, Odisha, India. The wheel signifies the cycle of conception and conservation for continuity as well as change, and suggests the continuous striving of the NSS for progressive social change.
-                </p>
-                <p>
-                  <strong>Colours of Motivation:</strong> The Navy Blue colour in the NSS logo provides depth and reflects the cosmos of which the NSS is a tiny part, ready to contribute its share. The Red colour provides motivation to the youth volunteers to be active, energetic, and dedicated towards nation-building social activities.
-                </p>
+              {/* Explanatory Cards */}
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-muted/30 border border-slate-200/80 dark:border-border/60">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mb-1">
+                    The Rath Wheel of Konark:
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    The NSS logo is inspired by the monumental chariot wheel of the world-renowned Konark Sun Temple in Odisha. The wheel represents the cyclical harmony of creation, conservation, and continuous striving for social change.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-muted/30 border border-slate-200/80 dark:border-border/60">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mb-1">
+                    Significance of the Colors:
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    <strong>Navy Blue</strong> represents the vast cosmos, of which NSS is a modest yet proactive contributor. <strong>Red</strong> signifies youthful dynamism, boundless enthusiasm, and heartfelt compassion for nation-building.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section 3: Dual Pillars & Camping Programs */}
+        {/* Section 3: Activities & Camping Programs */}
         <section className="space-y-6">
           <div className="text-center max-w-xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">Structure</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1">
-              Activities & Camping Programs
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+              Activities & Camping Framework
             </h2>
-            <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-2"></div>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              A comprehensive dual-track program designed for balanced personal growth and social impact
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
             {/* Card 1 */}
-            <div className="bg-white dark:bg-card p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-border/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="relative bg-white dark:bg-card p-6 rounded-2xl border border-slate-200/90 dark:border-border/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
               <div>
-                <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-primary mb-4">
-                  <Calendar className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-primary mb-3.5 border border-blue-200/70 dark:border-blue-900">
+                  <Calendar className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
                   1. Regular Activities
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Conducted across semesters including weekly campus meetings, community service, digital literacy drives, campus cleanliness, and social service projects. Students are expected to complete a designated number of service hours annually.
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                  Conducted year-round across university semesters, including weekly meetings, campus cleanliness, literacy campaigns, tree plantation drives, and health awareness events.
                 </p>
               </div>
-              <span className="mt-4 pt-3 border-t border-slate-100 dark:border-border text-xs font-semibold text-primary inline-flex items-center gap-1">
-                Ongoing Community Engagement <CheckCircle2 className="w-4 h-4" />
-              </span>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-border/60 text-xs font-semibold text-primary flex items-center justify-between">
+                <span>120 Hours / Academic Year</span>
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+              </div>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-white dark:bg-card p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-border/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="relative bg-white dark:bg-card p-6 rounded-2xl border border-slate-200/90 dark:border-border/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
               <div>
-                <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 mb-4">
-                  <Sun className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-3.5 border border-amber-200/70 dark:border-amber-900">
+                  <Sun className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  2. 7-Day Special Camping
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
+                  2. 7-Day Special Camp
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Special camping programs are held for a duration of 7 days in adopted rural/semi-urban areas. Volunteers engage directly with village communities in sanitation, tree plantation, health checkups, and awareness campaigns.
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                  An intensive 7-day annual residential immersion camp in adopted villages around Greater Noida. Volunteers work directly with villagers in community development and sanitation.
                 </p>
               </div>
-              <span className="mt-4 pt-3 border-t border-slate-100 dark:border-border text-xs font-semibold text-amber-600 inline-flex items-center gap-1">
-                Immersive Rural Experience <CheckCircle2 className="w-4 h-4" />
-              </span>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-border/60 text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center justify-between">
+                <span>Residential Village Immersion</span>
+                <CheckCircle2 className="w-4 h-4 text-amber-500" />
+              </div>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-white dark:bg-card p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-border/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="relative bg-white dark:bg-card p-6 rounded-2xl border border-slate-200/90 dark:border-border/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
               <div>
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 mb-4">
-                  <Compass className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3.5 border border-emerald-200/70 dark:border-emerald-900">
+                  <Compass className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  3. Integration & Adventure Camps
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
+                  3. Integration & Adventure
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  NSS organizes National Integration Camps (NICs) to bring youth from different states together. The scheme also conducts adventure, trekking, and leadership training camps to sharpen personality, teamwork, and resilience.
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                  Opportunities to represent GBU in National Integration Camps (NIC), Pre-Republic Day Camps, disaster relief teams, and state/national adventure expeditions.
                 </p>
               </div>
-              <span className="mt-4 pt-3 border-t border-slate-100 dark:border-border text-xs font-semibold text-emerald-600 inline-flex items-center gap-1">
-                National Integration & Adventure <CheckCircle2 className="w-4 h-4" />
-              </span>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-border/60 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+                <span>National Representation</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Section 4: Benefits to NSS Volunteer */}
-        <section className="bg-white dark:bg-card rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-border/60 shadow-sm space-y-8">
+        {/* Section 4: Benefits to an NSS Volunteer */}
+        <section className="bg-white dark:bg-card rounded-3xl p-6 sm:p-10 border border-slate-200/90 dark:border-border/60 shadow-xs space-y-6">
           <div className="text-center max-w-xl mx-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Personal Growth</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1">
-              Benefits to an NSS Volunteer
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Personal Transformation
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+              Core Benefits for Volunteers
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Transformative exposure that shapes students into responsible citizens and visionary leaders
+              Shaping students into empathetic leaders, skilled organizers, and responsible global citizens
             </p>
-            <div className="w-16 h-1 bg-emerald-500 rounded-full mx-auto mt-2"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-muted/40 border border-slate-200/70 dark:border-border/60 flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 shadow-xs">
-                <Target className="w-7 h-7" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-muted/30 border border-slate-200/80 dark:border-border/60 flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-primary border border-blue-200/60 dark:border-blue-900 flex items-center justify-center mb-3.5 shadow-2xs">
+                <Target className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                A Skilful Social Leader
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1.5">
+                A Visionary Social Leader
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Develops real-world problem-solving, public speaking, decision-making, and the confidence to take initiatives that uplift society.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+                Develops practical problem-solving capabilities, public speaking, group dynamics, and crisis handling in real-world scenarios.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-muted/40 border border-slate-200/70 dark:border-border/60 flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4 shadow-xs">
-                <Award className="w-7 h-7" />
+            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-muted/30 border border-slate-200/80 dark:border-border/60 flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900 flex items-center justify-center mb-3.5 shadow-2xs">
+                <Award className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1.5">
                 A Competent Administrator
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Gains hands-on experience in program planning, team management, coordination with university authorities, and community logistics.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+                Gains hands-on experience in project planning, institutional coordination, budget management, and logistics execution.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-muted/40 border border-slate-200/70 dark:border-border/60 flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 shadow-xs">
-                <Heart className="w-7 h-7" />
+            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-muted/30 border border-slate-200/80 dark:border-border/60 flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900 flex items-center justify-center mb-3.5 shadow-2xs">
+                <Heart className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                A Kind & Compassionate Person
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1.5">
+                A Compassionate Citizen
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Cultivates deep empathy, humility, and an understanding of humanity, realizing that true fulfillment comes from selfless community service.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+                Builds genuine social empathy, breaks socio-economic barriers, and understands the dignity of honest collective labor.
               </p>
             </div>
           </div>
 
-          <div className="mt-8 p-4 sm:p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-center max-w-2xl mx-auto">
-            <span className="text-xs sm:text-sm font-semibold text-blue-900 dark:text-blue-200">
-              Upon successful completion of the required service hours and special camp, volunteers are awarded official government-recognized certificates recognizing their distinguished service.
+          {/* Certificate Notice Pill */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50/80 via-emerald-50/50 to-slate-50 dark:from-blue-950/30 dark:via-emerald-950/20 dark:to-background border border-blue-200/80 dark:border-blue-900/60 text-center max-w-2xl mx-auto">
+            <span className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed block">
+              🎖️ <strong>Official Certification:</strong> Upon completing 240 hours of service and the 7-day special camp, volunteers earn government certificates signed by university authorities, conferring academic and career preference.
             </span>
           </div>
         </section>
 
-        {/* Section 5: Call to Action */}
-        <section className="bg-gradient-to-r from-primary to-indigo-600 text-white rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-xl">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-            Be the Change. Join NSS at Gautam Buddha University.
+        {/* Section 5: Clean, Light & Inviting Enrollment CTA */}
+        <section className="relative rounded-3xl overflow-hidden bg-white dark:bg-card p-8 sm:p-12 text-center border border-slate-200/90 dark:border-border/60 shadow-xs space-y-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900 text-xs font-semibold text-primary">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span>Admissions Open for GBU Volunteers</span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Ready to Begin Your NSS Journey?
           </h2>
-          <p className="text-xs sm:text-sm md:text-base text-blue-100 max-w-xl mx-auto">
+
+          <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-relaxed font-normal">
             Step forward to make an enduring impact. Register online, get assigned to your academic unit, and embark on a rewarding journey of service.
           </p>
-          <div className="pt-2 flex items-center justify-center gap-3">
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <Link
               href="/register"
-              className="px-6 py-3 rounded-xl bg-white text-primary font-bold text-sm shadow-md hover:bg-slate-100 transition-all active:scale-95"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
             >
-              Apply for NSS Registration
+              <span>Apply for NSS Registration</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/whos-who"
-              className="px-6 py-3 rounded-xl bg-primary/20 border border-white/30 text-white font-semibold text-sm hover:bg-white/10 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted border-2 border-slate-200 dark:border-border hover:border-primary text-slate-800 dark:text-slate-200 font-bold text-sm transition-all shadow-2xs"
             >
-              Meet the Leadership
+              <Users className="w-4 h-4 text-primary" />
+              <span>Meet the Leadership & POs</span>
             </Link>
           </div>
         </section>

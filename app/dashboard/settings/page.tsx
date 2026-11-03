@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Settings as SettingsIcon, Lock, ArrowLeft } from "lucide-react"
+import { Settings as SettingsIcon, Lock, ArrowLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
 export default function SettingsPage() {
@@ -36,7 +36,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Update your account password</p>
               </div>
             </div>
-            <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </Link>
         </div>
       </div>

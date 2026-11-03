@@ -12,11 +12,30 @@ import {
   Building2,
   Target,
   Sparkles,
+  Image as ImageIcon,
 } from "lucide-react"
 import Footer from "@/components/footer"
 import PublicNavbar from "@/components/public-navbar"
+import dbConnect from "@/lib/mongodb"
+import Gallery from "@/models/Gallery"
 
-export default function HomePage() {
+async function getFeaturedGallery() {
+  try {
+    await dbConnect()
+    const items = await Gallery.find()
+      .select("title category imageUrl eventDate createdAt")
+      .sort({ isFeatured: -1, createdAt: -1 })
+      .limit(4)
+      .lean()
+    return items
+  } catch {
+    return []
+  }
+}
+
+export default async function HomePage() {
+  const galleryItems = await getFeaturedGallery()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Reusable Public Navbar */}
@@ -30,10 +49,6 @@ export default function HomePage() {
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           {/* Government & University Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-card border border-slate-200/90 dark:border-border shadow-xs text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-6">
-            <Shield className="w-4 h-4 text-primary" />
-            <span>Ministry of Youth Affairs & Sports • Gautam Buddha University</span>
-          </div>
 
           {/* NSS Emblem Badge */}
           <div className="relative inline-flex items-center justify-center mb-6">
@@ -47,9 +62,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Main Title */}
+          {/* Main Title - Uniform Color for National Service Scheme */}
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-3">
-            National Service <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-primary dark:from-blue-400 dark:to-indigo-300">Scheme</span>
+            National Service Scheme
           </h1>
 
           {/* Hindi Title & University */}
@@ -60,11 +75,8 @@ export default function HomePage() {
           </div>
 
           {/* Official Motto Ribbon */}
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 text-xs sm:text-sm font-bold tracking-wide uppercase mb-6 shadow-xs">
-            <span>Motto:</span>
-            <span className="font-extrabold">"NOT ME BUT YOU"</span>
-            <span>•</span>
-            <span>स्वयं से पहले आप</span>
+          <div className="inline-flex items-center px-4 py-1 rounded-full bg-amber-500/[0.07] border border-amber-500/20 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold tracking-wider uppercase mb-6">
+            <span>"NOT ME BUT YOU"</span>
           </div>
 
           {/* Subtitle Description */}
@@ -73,7 +85,7 @@ export default function HomePage() {
           </p>
 
           {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3.5 sm:gap-4 justify-center items-center mb-10">
+          <div className="flex flex-col sm:flex-row gap-3.5 sm:gap-4 justify-center items-center">
             <Link
               href="/register"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm sm:text-base shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
@@ -82,34 +94,12 @@ export default function HomePage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/whos-who"
+              href="/about-nss"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white dark:bg-card border-2 border-slate-200 dark:border-border text-slate-800 dark:text-slate-200 font-bold text-sm sm:text-base hover:bg-slate-50 dark:hover:bg-muted hover:border-primary transition-all shadow-xs"
             >
-              <Users className="w-4 h-4 text-primary" />
-              Meet 6 NSS Units & POs
+              Learn More
+              <ArrowRight className="w-4 h-4 text-primary" />
             </Link>
-            <Link
-              href="/about-nss"
-              className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-primary transition-colors underline-offset-4 hover:underline sm:ml-2"
-            >
-              Learn More →
-            </Link>
-          </div>
-
-          {/* Quick Highlight Micro Pills */}
-          <div className="pt-6 border-t border-slate-200/60 dark:border-border/60 flex items-center justify-center gap-3 sm:gap-6 flex-wrap text-xs font-semibold text-slate-600 dark:text-slate-400">
-            <div className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>240 Hours Community Service</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>Government 'B' & 'C' Certificates</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>6 Official Units at GBU</span>
-            </div>
           </div>
         </div>
       </section>
@@ -119,75 +109,97 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-3">
-              Core Pillars of NSS • GBU
+              Core Benefits of NSS
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Why Join the National Service Scheme?
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium leading-relaxed mt-3">
-              NSS provides students with hands-on community service, leadership training, experiential field projects, and official Government certification.
-            </p>
+
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            {/* Card 1 */}
-            <div className="group relative bg-white dark:bg-card rounded-3xl p-7 sm:p-8 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-pink-500"></div>
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-900 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-6 group-hover:scale-110 transition-transform shadow-xs">
-                  <Heart className="w-7 h-7" />
+          {/* 5 Core Benefits Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {/* Card 1: Hands-on Community Service */}
+            <div className="group relative bg-white dark:bg-card rounded-2xl p-5 sm:p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-500"></div>
+              <div className="flex items-start gap-3.5 mb-2.5">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-900 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                  <Heart className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">
-                  Community Service & Impact
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug pt-1">
+                  Hands-on Community Service
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Engage in life-saving blood donation drives, health checkups, environmental cleanliness (Swachh Bharat), and adopted village welfare projects across Greater Noida.
-                </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-border/60 flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
-                <CheckCircle2 className="w-4 h-4" />
-                Direct Field Engagement
-              </div>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Engage directly in impactful local initiatives across Greater Noida, including life-saving blood donation drives, health checkups, and Swachh Bharat environmental cleanliness campaigns.
+              </p>
             </div>
 
-            {/* Card 2 */}
-            <div className="group relative bg-white dark:bg-card rounded-3xl p-7 sm:p-8 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 transition-transform shadow-xs">
-                  <Zap className="w-7 h-7" />
+            {/* Card 2: Leadership Development */}
+            <div className="group relative bg-white dark:bg-card rounded-2xl p-5 sm:p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+              <div className="flex items-start gap-3.5 mb-2.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                  <Zap className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug pt-1">
                   Leadership Development
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Cultivate team management, public address, organizational acumen, and crisis management skills through 7-day special annual residential camping programs.
-                </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-border/60 flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400">
-                <CheckCircle2 className="w-4 h-4" />
-                Special Camping & Youth Training
-              </div>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Build essential real-world skills like team management, public speaking, organizational acumen, and crisis management.
+              </p>
             </div>
 
-            {/* Card 3 */}
-            <div className="group relative bg-white dark:bg-card rounded-3xl p-7 sm:p-8 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-900 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-6 group-hover:scale-110 transition-transform shadow-xs">
-                  <Award className="w-7 h-7" />
+            {/* Card 3: Special Residential Camping */}
+            <div className="group relative bg-white dark:bg-card rounded-2xl p-5 sm:p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-600"></div>
+              <div className="flex items-start gap-3.5 mb-2.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-900 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                  <Calendar className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug pt-1">
+                  Special Residential Camping
+                </h3>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Participate in immersive 7-day annual residential camping programs designed for intensive youth training and community bonding.
+              </p>
+            </div>
+          </div>
+
+          {/* Cards 4 & 5 Centered */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-4 sm:mt-5 max-w-4xl mx-auto">
+            {/* Card 4: Government Certification */}
+            <div className="group relative bg-white dark:bg-card rounded-2xl p-5 sm:p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+              <div className="flex items-start gap-3.5 mb-2.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-900 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                  <Award className="w-5 h-5" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug pt-1">
                   Government Certification
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Earn official Ministry of Youth Affairs & Sports certificates that carry special weightage in university admissions, public sector jobs, and competitive examinations.
-                </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-border/60 flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-                <CheckCircle2 className="w-4 h-4" />
-                Nationally Recognized Credentials
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Earn official credentials from the Ministry of Youth Affairs & Sports, Government of India.
+              </p>
+            </div>
+
+            {/* Card 5: Academic & Career Weightage */}
+            <div className="group relative bg-white dark:bg-card rounded-2xl p-5 sm:p-6 border border-slate-200/90 dark:border-border shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+              <div className="flex items-start gap-3.5 mb-2.5">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                  <Target className="w-5 h-5" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug pt-1">
+                  Academic & Career Weightage
+                </h3>
               </div>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Use your nationally recognized certificates to gain an edge in university admissions, public sector job applications, and competitive examinations.
+              </p>
             </div>
           </div>
         </div>
@@ -215,9 +227,7 @@ export default function HomePage() {
               <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                 Active Volunteers
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                Across 6 NSS Units
-              </div>
+
             </div>
 
             {/* Stat 2 */}
@@ -229,9 +239,7 @@ export default function HomePage() {
               <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                 Activities Conducted
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                Drives, Camps & Seminars
-              </div>
+
             </div>
 
             {/* Stat 3 */}
@@ -243,9 +251,7 @@ export default function HomePage() {
               <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                 Projects Completed
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                Village & Social Outreach
-              </div>
+
             </div>
 
             {/* Stat 4 */}
@@ -257,9 +263,7 @@ export default function HomePage() {
               <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                 Schools
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                Pan-University Coverage
-              </div>
+
             </div>
 
             {/* Stat 5 */}
@@ -271,9 +275,7 @@ export default function HomePage() {
               <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                 Years of Service
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                Dedicated Community Impact
-              </div>
+
             </div>
           </div>
         </div>
@@ -288,7 +290,7 @@ export default function HomePage() {
                 Operational Structure • GBU
               </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                6 Official NSS Units
+                6 NSS Units
               </h2>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium mt-1">
                 Guided by NSS Program Coordinator Dr. Nagendra Singh and 6 Unit Program Officers.
@@ -405,38 +407,101 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Official Enrollment CTA Section */}
-      <section className="py-20 sm:py-24 relative overflow-hidden bg-slate-900 text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px] opacity-30 pointer-events-none"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-blue-600/15 blur-[120px] pointer-events-none rounded-full"></div>
-
-        <div className="max-w-4xl mx-auto text-center px-4 relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-blue-200">
-            <Shield className="w-4 h-4 text-amber-400" />
-            Enrollment Open • Academic Year 2026-27
+      {/* Photo Gallery Showcase */}
+      <section className="py-20 sm:py-24 bg-white dark:bg-card border-t border-slate-200/60 dark:border-border/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-2">
+                Visual Showcase • GBU NSS
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Photo Gallery Highlights
+              </h2>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium mt-1">
+                Recent moments of community impact, special camps, and volunteer drives.
+              </p>
+            </div>
+            <Link
+              href="/gallery"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-slate-200 dark:border-border hover:border-primary text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 hover:text-primary transition-all group shrink-0 shadow-2xs"
+            >
+              <span>Explore Full Gallery</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-primary" />
+            </Link>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+          {galleryItems && galleryItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {galleryItems.map((photo: any) => (
+                <Link
+                  key={photo._id.toString()}
+                  href="/gallery"
+                  className="group relative bg-slate-50 dark:bg-muted/40 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-border/60 shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 block"
+                >
+                  <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-muted/60">
+                    <img
+                      src={photo.imageUrl}
+                      alt={photo.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-2.5 left-2.5">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/20">
+                        {photo.category}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-3.5 space-y-1">
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors">
+                      {photo.title}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-primary" />
+                      {new Date(photo.eventDate || photo.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-slate-50 dark:bg-muted/20 border border-slate-200/80 dark:border-border/60 rounded-3xl p-10 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                <ImageIcon className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">NSS Photo Gallery</h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                Browse our high-resolution photo archives of special camps, tree plantations, blood donation drives, and official convocations.
+              </p>
+              <Link
+                href="/gallery"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground text-xs sm:text-sm font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-xs"
+              >
+                Open Photo Gallery
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Official Enrollment CTA Section */}
+      <section className="py-16 sm:py-20 bg-white dark:bg-background border-t border-slate-200/80 dark:border-border/60">
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Ready to Serve the Nation?
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Open to all enrolled undergraduate and postgraduate students across all 8 Schools of Gautam Buddha University. Fulfill your 240 hours of community service and earn national recognition.
-          </p>
-
-          <div className="pt-4 flex flex-col sm:flex-row gap-3.5 justify-center items-center">
+          <div className="pt-1">
             <Link
               href="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 font-bold text-sm sm:text-base shadow-xl hover:scale-105 active:scale-95 transition-all"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:px-9 sm:py-4 bg-primary text-primary-foreground font-bold text-sm sm:text-base rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
             >
-              Enroll as Volunteer
+              <span>Enroll as Volunteer</span>
               <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/about-nss"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white/10 border border-white/20 hover:bg-white/20 text-white rounded-xl font-bold text-sm sm:text-base transition-all"
-            >
-              Read Full NSS Overview
             </Link>
           </div>
         </div>

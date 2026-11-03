@@ -10,6 +10,7 @@ export interface IEvent extends Document {
     latitude: number
     longitude: number
   }
+  attendanceRadius?: number // Geofencing radius in meters (default 50)
   startTime?: Date
   endTime?: Date
   coordinator?: string
@@ -51,6 +52,11 @@ const EventSchema = new Schema<IEvent>(
       latitude: { type: Number },
       longitude: { type: Number },
     },
+    attendanceRadius: {
+      type: Number,
+      default: 50, // Default 50 meters
+      min: 10,
+    },
     startTime: {
       type: Date,
     },
@@ -88,4 +94,3 @@ const EventSchema = new Schema<IEvent>(
 )
 
 export default mongoose.models.Event || mongoose.model<IEvent>("Event", EventSchema)
-

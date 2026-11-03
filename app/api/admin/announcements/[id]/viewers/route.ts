@@ -46,7 +46,7 @@ export async function GET(
     // Get application details for each viewer
     const viewerDetails = await Promise.all(
       views.map(async (view: any) => {
-        const application = await NSSApplication.findOne({
+        const application: any = await NSSApplication.findOne({
           userId: view.volunteerId._id,
           status: "approved",
         })

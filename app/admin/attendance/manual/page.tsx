@@ -135,7 +135,7 @@ export default function ManualAttendancePage() {
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="events.manage">
       <AdminHeader title="Manual Attendance" subtitle="Mark attendance for missed volunteers in past events" />
 
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-3 sm:p-5 md:p-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
         
         {message && (
           <div className={`p-4 rounded-lg flex items-center gap-3 ${

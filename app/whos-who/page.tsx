@@ -9,7 +9,6 @@ import {
   Award,
   ChevronDown,
   Sparkles,
-  ArrowDown,
   Building2,
   ExternalLink,
 } from "lucide-react"
@@ -229,44 +228,25 @@ export default function WhosWhoPage() {
             </div>
           </div>
 
-          {/* Tree Stem / Connector Stem */}
-          <div className="flex flex-col items-center">
-            {/* Vertical line from Coordinator */}
-            <div className="w-0.5 h-8 sm:h-12 bg-gradient-to-b from-blue-600 to-blue-400"></div>
-
-            {/* Central Junction Hub */}
-            <div className="w-7 h-7 rounded-full bg-white dark:bg-card border-2 border-blue-500 shadow-sm flex items-center justify-center text-blue-600">
-              <ArrowDown className="w-3.5 h-3.5" />
+          {/* Elegant Divider & Section Header for Unit Officers */}
+          <div className="w-full max-w-4xl my-10 sm:my-14 text-center space-y-3 relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-slate-200 dark:border-border"></div>
             </div>
-
-            {/* Vertical line continuing down */}
-            <div className="w-0.5 h-6 bg-blue-400 hidden lg:block"></div>
-          </div>
-
-          {/* Desktop Horizontal Connecting Beam (Shows on Desktop) */}
-          <div className="hidden lg:block w-full max-w-5xl relative">
-            {/* Horizontal Bar linking the units */}
-            <div className="h-0.5 bg-blue-300 dark:bg-blue-900 w-full rounded-full"></div>
-
-            {/* Dropdown markers for each column */}
-            <div className="grid grid-cols-6 w-full">
-              {pos.map((p) => (
-                <div key={p.unitNo} className="flex flex-col items-center">
-                  <div className="w-0.5 h-6 bg-blue-300 dark:bg-blue-900"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-950"></div>
-                </div>
-              ))}
+            <div className="relative flex justify-center">
+              <span className="px-4 py-1.5 rounded-full bg-white dark:bg-card border border-slate-200/90 dark:border-border shadow-2xs text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                <Users className="w-3.5 h-3.5" />
+                Unit Leadership • The 6 NSS Units
+              </span>
             </div>
-          </div>
-
-          {/* Section Tag for Units */}
-          <div className="mt-4 mb-8 text-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Unit Program Officers
-            </span>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-              The 6 NSS Units
-            </h3>
+            <div className="pt-2">
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Program Officers (POs)
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto font-medium mt-1">
+                Faculty coordinators guiding student volunteers and leading community service across university schools
+              </p>
+            </div>
           </div>
 
           {/* LEVEL 2: The 6 Unit Program Officers Grid */}

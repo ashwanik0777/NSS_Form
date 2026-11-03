@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Loader2, ArrowLeft, CheckCircle, XCircle, Clock, Users, Save, Search } from "lucide-react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
+import AdminHeader from "@/components/admin/AdminHeader"
 
 interface Registration {
   _id: string
@@ -175,89 +176,98 @@ export default function MeetingAttendancePage() {
 
   return (
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="events.manage">
-        <div className="p-6">
-            <button onClick={() => router.back()} className="mb-4 flex items-center text-sm text-muted-foreground hover:text-primary">
-                <ArrowLeft className="w-4 h-4 mr-1" /> Back to Meetings
-            </button>
-            <div className="flex flex-col gap-6 mb-6">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1 className="text-2xl font-bold">{meeting?.title}</h1>
-                        <p className="text-muted-foreground flex items-center gap-2">
-                           Attendance Management 
-                           <span className={`px-2 py-0.5 rounded-full text-xs ${meeting?.isAttendanceOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                               {meeting?.isAttendanceOpen ? 'Active' : 'Closed'}
-                           </span>
-                        </p>
-                    </div>
-                     <div className="flex items-center gap-3">
-                         {meeting && (
-                             <button
-                                onClick={toggleAttendanceWindow}
-                                disabled={isToggling}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                    meeting.isAttendanceOpen 
-                                    ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
-                                }`}
-                             >
-                                 {meeting.isAttendanceOpen ? 'Stop Attendance' : 'Open Attendance'}
-                             </button>
-                         )}
-                         <div className="flex items-center gap-2 bg-card p-2 rounded-lg border border-border">
-                             <div className="text-sm font-medium whitespace-nowrap">Hours to Grant:</div>
-                             <input 
-                                type="number" 
-                                min="0" 
-                                step="0.5" 
-                                value={inputHours} 
-                                onChange={(e) => setInputHours(Number(e.target.value))}
-                                className="w-16 px-2 py-1 border rounded text-right"
-                             />
-                         </div>
-                    </div>
-                </div>
+      <AdminHeader
+        title="Meeting Attendance"
+        subtitle={meeting?.title || "Session Attendance"}
+        action={
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card text-foreground text-xs sm:text-sm font-medium hover:bg-muted transition-colors shadow-xs"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </button>
+        }
+      />
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+        <div className="bg-card rounded-2xl border border-border p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">{meeting?.title}</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 mt-1">
+              Attendance Window:
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${meeting?.isAttendanceOpen ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'}`}>
+                {meeting?.isAttendanceOpen ? 'Active' : 'Closed'}
+              </span>
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+            {meeting && (
+              <button
+                onClick={toggleAttendanceWindow}
+                disabled={isToggling}
+                className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 shadow-xs ${
+                  meeting.isAttendanceOpen 
+                    ? 'bg-red-600 text-white hover:bg-red-700' 
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }`}
+              >
+                {meeting.isAttendanceOpen ? 'Stop Attendance' : 'Open Attendance'}
+              </button>
+            )}
+            <div className="flex items-center gap-2 bg-muted/40 p-1.5 sm:p-2 rounded-xl border border-border">
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Hours:</span>
+              <input 
+                type="number" 
+                min="0" 
+                step="0.5" 
+                value={inputHours} 
+                onChange={(e) => setInputHours(Number(e.target.value))}
+                className="w-16 px-2 py-1 border border-border rounded-lg text-right text-xs sm:text-sm bg-input text-foreground font-semibold"
+              />
+            </div>
+          </div>
+        </div>
 
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                     <div className="bg-white p-4 rounded-lg border">
-                         <div className="text-sm text-muted-foreground">Total Registered</div>
-                         <div className="text-2xl font-bold">{registrations.length}</div>
-                     </div>
-                     <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                         <div className="text-sm text-green-600">Present</div>
-                         <div className="text-2xl font-bold text-green-700">
-                             {registrations.filter(r => r.status === 'attended').length}
-                         </div>
-                     </div>
-                     <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-                         <div className="text-sm text-red-600">Absent</div>
-                         <div className="text-2xl font-bold text-red-700">
-                             {registrations.filter(r => r.status === 'absent').length}
-                         </div>
-                     </div>
-                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                         <div className="text-sm text-gray-600">Pending</div>
-                         <div className="text-2xl font-bold text-gray-700">
-                             {registrations.filter(r => r.status === 'registered').length}
-                         </div>
-                     </div>
-                </div>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="bg-card p-3.5 sm:p-4 rounded-xl border border-border shadow-xs">
+            <div className="text-xs font-medium text-muted-foreground">Total Registered</div>
+            <div className="text-xl sm:text-2xl font-bold text-foreground mt-1">{registrations.length}</div>
+          </div>
+          <div className="bg-emerald-500/10 p-3.5 sm:p-4 rounded-xl border border-emerald-500/20 shadow-xs">
+            <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Present</div>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-800 dark:text-emerald-300 mt-1">
+              {registrations.filter(r => r.status === 'attended').length}
+            </div>
+          </div>
+          <div className="bg-rose-500/10 p-3.5 sm:p-4 rounded-xl border border-rose-500/20 shadow-xs">
+            <div className="text-xs font-semibold text-rose-700 dark:text-rose-400">Absent</div>
+            <div className="text-xl sm:text-2xl font-bold text-rose-800 dark:text-rose-300 mt-1">
+              {registrations.filter(r => r.status === 'absent').length}
+            </div>
+          </div>
+          <div className="bg-amber-500/10 p-3.5 sm:p-4 rounded-xl border border-amber-500/20 shadow-xs">
+            <div className="text-xs font-semibold text-amber-700 dark:text-amber-400">Pending</div>
+            <div className="text-xl sm:text-2xl font-bold text-amber-800 dark:text-amber-300 mt-1">
+              {registrations.filter(r => r.status === 'registered').length}
+            </div>
+          </div>
+        </div>
 
-                {/* Unit Wise Breakdown */}
-                <div className="bg-white p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-3">Unit-wise Summary</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {unitStats.map(stat => (
-                            <div key={stat.unit} className="px-3 py-1.5 bg-gray-50 rounded border text-sm">
-                                <span className="font-medium">Unit {stat.unit}:</span> {stat.attended}/{stat.total} Present
-                            </div>
-                        ))}
-                    </div>
-                </div>
+        {/* Unit Wise Breakdown */}
+        <div className="bg-card p-3.5 sm:p-4 rounded-xl border border-border shadow-xs">
+          <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2.5">Unit-wise Summary</h3>
+          <div className="flex flex-wrap gap-2">
+            {unitStats.map(stat => (
+              <div key={stat.unit} className="px-3 py-1.5 bg-muted/40 rounded-lg border border-border text-xs text-foreground">
+                <span className="font-semibold">Unit {stat.unit}:</span> {stat.attended}/{stat.total} Present
+              </div>
+            ))}
+          </div>
+        </div>
 
-                {/* Filters */}
-                <div className="flex gap-4 p-4 bg-gray-50 rounded-lg border items-center flex-wrap">
+        {/* Filters */}
+        <div className="flex gap-3 sm:gap-4 p-3.5 sm:p-4 bg-card rounded-xl border border-border items-center flex-wrap shadow-xs">
                     <div className="flex-1 min-w-[300px]">
                         <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">Search Volunteer</label>
                         <div className="relative">
@@ -272,38 +282,37 @@ export default function MeetingAttendancePage() {
                         </div>
                     </div>
                     <div className="w-48">
-                        <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">Filter by Unit</label>
+                        <label className="text-xs font-semibold uppercase text-muted-foreground mb-1 block">Filter by Unit</label>
                         <select 
                             value={filterUnit} 
                             onChange={(e) => setFilterUnit(e.target.value)}
-                            className="w-full px-3 py-2 bg-white border rounded"
+                            className="w-full px-3 py-2 bg-input text-foreground border border-border rounded-lg"
                         >
                             <option value="">All Units</option>
                             {unitStats.map(s => <option key={s.unit} value={s.unit}>Unit {s.unit}</option>)}
                         </select>
                     </div>
                 </div>
-            </div>
 
             {/* Actions */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2">
                 <button 
                     onClick={() => handleUpdateStatus("attended")}
                     disabled={selectedIds.length === 0 || updating}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 text-sm font-medium shadow-xs"
                 >
                     <CheckCircle className="w-4 h-4" /> Mark Attended ({selectedIds.length})
                 </button>
                 <button 
                     onClick={() => handleUpdateStatus("absent")}
                     disabled={selectedIds.length === 0 || updating}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:opacity-50 text-sm font-medium shadow-xs"
                 >
                     <XCircle className="w-4 h-4" /> Mark Absent ({selectedIds.length})
                 </button>
             </div>
 
-            <div className="bg-white border rounded-lg overflow-hidden">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xs">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b">
                         <tr>

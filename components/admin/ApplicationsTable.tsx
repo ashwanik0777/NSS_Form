@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { ArrowRightLeft, AlertCircle, CheckCircle } from "lucide-react"
+import { ArrowRightLeft, AlertCircle, CheckCircle, FileText, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface Application {
@@ -228,19 +228,35 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
         body: JSON.stringify({
           status: reviewAction === "approve" ? "approved" : "rejected",
           rejectionReason: reviewAction === "reject" ? rejectionReason : undefined,
-          reviewedBy: "admin-user-id", // This should come from auth context
+          reviewedBy: user?.id || "admin-user-id",
         }),
       })
 
       const data = await response.json()
       if (data.success) {
+        // Optimistically update status in current list for instant feedback
+        setApplications((prev) =>
+          prev.map((app) =>
+            app._id === selectedApp._id
+              ? {
+                  ...app,
+                  status: reviewAction === "approve" ? "approved" : "rejected",
+                  rejectionReason: reviewAction === "reject" ? rejectionReason : undefined,
+                  reviewedAt: new Date().toISOString(),
+                }
+              : app
+          )
+        )
         setShowReviewModal(false)
         setSelectedApp(null)
         setRejectionReason("")
         fetchApplications()
+      } else {
+        alert(data.message || "Failed to review application")
       }
     } catch (error) {
       console.error("Error reviewing application:", error)
+      alert("An error occurred while reviewing the application. Please try again.")
     } finally {
       setIsSubmitting(false)
       setProcessingId(null)
@@ -469,19 +485,21 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+                className="inline-flex items-center px-3 py-1.5 rounded-lg border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50 transition-colors shadow-2xs"
               >
+                <ChevronLeft className="w-4 h-4 mr-1" />
                 Previous
               </button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm font-medium text-muted-foreground px-2">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="px-3 py-1 rounded border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50"
+                className="inline-flex items-center px-3 py-1.5 rounded-lg border border-border text-sm font-medium bg-background hover:bg-muted disabled:opacity-50 transition-colors shadow-2xs"
               >
                 Next
+                <ChevronRight className="w-4 h-4 ml-1" />
               </button>
             </div>
           </div>
@@ -489,19 +507,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
 
         {applications.length === 0 && (
           <div className="text-center py-12">
-            <svg
-              className="mx-auto h-12 w-12 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
+            <FileText className="mx-auto h-12 w-12 text-muted-foreground/60 stroke-[1.5]" />
             <h3 className="mt-2 text-sm font-medium text-foreground">No applications</h3>
             <p className="mt-1 text-sm text-muted-foreground">No applications found for the selected filter.</p>
           </div>
@@ -510,9 +516,9 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
 
       {/* View Details Modal */}
       {showViewModal && viewingApp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto smooth-modal">
+            <div className="p-5 sm:p-6 border-b border-border">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-foreground">Application Details</h3>
                 <button
@@ -520,11 +526,9 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                     setShowViewModal(false)
                     setViewingApp(null)
                   }}
-                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -821,9 +825,21 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
 
       {/* Review Modal */}
       {showReviewModal && selectedApp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Review Application</h3>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-md smooth-modal">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Review Application</h3>
+              <button
+                onClick={() => {
+                  setShowReviewModal(false)
+                  setSelectedApp(null)
+                  setRejectionReason("")
+                }}
+                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <p className="text-sm text-muted-foreground mb-4">
               Reviewing application from <strong>{selectedApp.nameEnglish}</strong>
             </p>
@@ -832,7 +848,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Action</label>
                 <div className="flex space-x-4">
-                  <label className="flex items-center">
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="radio"
                       name="reviewAction"
@@ -841,9 +857,9 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                       onChange={(e) => setReviewAction(e.target.value as "approve" | "reject")}
                       className="mr-2"
                     />
-                    <span className="text-sm text-foreground">Approve</span>
+                    <span className="text-sm font-medium text-foreground">Approve</span>
                   </label>
-                  <label className="flex items-center">
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="radio"
                       name="reviewAction"
@@ -852,7 +868,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                       onChange={(e) => setReviewAction(e.target.value as "approve" | "reject")}
                       className="mr-2"
                     />
-                    <span className="text-sm text-foreground">Reject</span>
+                    <span className="text-sm font-medium text-foreground">Reject</span>
                   </label>
                 </div>
               </div>
@@ -863,7 +879,7 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                   <textarea
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground text-sm"
                     rows={3}
                     placeholder="Please provide a reason for rejection..."
                     required
@@ -880,14 +896,14 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
                   setRejectionReason("")
                 }}
                 disabled={isSubmitting}
-                className={`px-4 py-2 text-sm font-medium text-foreground border border-border rounded-md ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-muted"}`}
+                className={`px-4 py-2 text-sm font-medium text-foreground border border-border rounded-lg ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-muted"}`}
               >
                 Cancel
               </button>
               <button
                 onClick={handleReview}
                 disabled={isSubmitting || (reviewAction === "reject" && !rejectionReason.trim())}
-                className={`px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/90"}`}
+                className={`px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/90"}`}
               >
                 {isSubmitting ? "Submitting..." : "Submit Review"}
               </button>
@@ -898,9 +914,21 @@ export default function ApplicationsTable({ statusFilter = "all", unitNo = "all"
 
       {/* Transfer Unit Modal */}
       {showTransferModal && transferringApp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Transfer Unit</h3>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-md smooth-modal">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Transfer Unit</h3>
+              <button
+                onClick={() => {
+                  setShowTransferModal(false)
+                  setTransferringApp(null)
+                  setNewUnitNo("")
+                }}
+                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-2">

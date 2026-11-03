@@ -209,7 +209,7 @@ export default function SocialPostsPage() {
     <ProtectedRoute requiredRole="sub-admin">
       <AdminHeader title="Social Media Posts" subtitle="Manage NSS social media posts for volunteers" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -387,8 +387,8 @@ export default function SocialPostsPage() {
 
         {/* Add/Edit Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-card rounded-xl border border-border max-w-2xl w-full my-8 flex flex-col max-h-[90vh]">
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-card rounded-2xl border border-border max-w-2xl w-full my-8 flex flex-col max-h-[90vh] shadow-2xl smooth-modal">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card rounded-t-xl z-10">
                 <h2 className="text-2xl font-bold text-foreground">
@@ -610,8 +610,8 @@ export default function SocialPostsPage() {
 
         {/* Viewers Modal */}
         {showViewersModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-card rounded-xl border border-border p-6 max-w-4xl w-full my-8 max-h-[80vh] flex flex-col">
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-card rounded-2xl border border-border max-w-4xl w-full my-8 max-h-[85vh] flex flex-col shadow-2xl smooth-modal">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                   <Users className="w-6 h-6 text-primary" />

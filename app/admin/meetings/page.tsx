@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Calendar, Plus, Edit, Trash2, Loader2, X, Save, Clock, MapPin, XCircle, Users } from "lucide-react"
 import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
+import AdminHeader from "@/components/admin/AdminHeader"
 
 export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<any[]>([])
@@ -285,15 +286,10 @@ export default function MeetingsPage() {
 
   return (
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="events.view">
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center">
-              <Calendar className="w-8 h-8 mr-3 text-primary" />
-              Meeting Management
-            </h1>
-            <p className="text-muted-foreground mt-2">Create and manage NSS meetings</p>
-          </div>
+      <AdminHeader
+        title="Meetings"
+        subtitle="Create and manage NSS meetings"
+        action={
           <button
             onClick={() => {
               setEditingMeeting(null)
@@ -312,12 +308,16 @@ export default function MeetingsPage() {
               setError(null)
               setShowModal(true)
             }}
-            className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-primary text-primary-foreground text-xs sm:text-sm font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-xs active:scale-95 shrink-0"
           >
-            <Plus className="w-5 h-5 mr-2" />
-            Add Meeting
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Meeting</span>
+            <span className="sm:hidden">Add</span>
           </button>
-        </div>
+        }
+      />
+
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
 
         {meetings.length === 0 ? (
           <div className="bg-card rounded-xl border border-border p-12 text-center">
@@ -445,8 +445,8 @@ export default function MeetingsPage() {
 
         {/* Add/Edit Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-card rounded-xl border border-border max-w-3xl w-full my-8 flex flex-col max-h-[90vh]">
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-card rounded-2xl border border-border max-w-3xl w-full my-8 flex flex-col max-h-[90vh] shadow-2xl smooth-modal">
               {/* Sticky Header */}
               <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card rounded-t-xl z-10">
                 <h2 className="text-2xl font-bold text-foreground">
@@ -647,8 +647,8 @@ export default function MeetingsPage() {
 
         {/* Cancel Modal */}
         {showCancelModal && selectedMeeting && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl border border-border max-w-md w-full p-6">
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-card rounded-2xl border border-border max-w-md w-full p-4 sm:p-6 shadow-2xl smooth-modal">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-foreground">Cancel Meeting</h2>
                 <button

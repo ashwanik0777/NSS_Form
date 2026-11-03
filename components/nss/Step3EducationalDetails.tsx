@@ -219,7 +219,7 @@ export default function Step3EducationalDetails({
             clipRule="evenodd"
           />
         </svg>
-        High School Certificate (Mandatory - Now uploaded ✓) / हाई स्कूल प्रमाण पत्र (अनिवार्य - अब अपलोड किया गया ✓)
+        High School Certificate (Mandatory - Uploaded) / हाई स्कूल प्रमाण पत्र (अनिवार्य - अपलोड किया गया)
           </li>
           <li className="flex items-center">
         <svg className="w-4 h-4 min-w-[1rem] min-h-[1rem] md:w-4 md:h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">

@@ -7,6 +7,8 @@ import VolunteerEvent from "@/models/VolunteerEvent"
 import VolunteerProject from "@/models/VolunteerProject"
 import EventRegistration from "@/models/EventRegistration"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = (await getServerSession(authOptions)) as any
@@ -34,7 +36,15 @@ export async function GET(request: NextRequest) {
     for (const event of allEvents) {
       if (event.status !== "cancelled") {
         const eventStartTime = (!Array.isArray(event) && event.startTime) ? new Date(event.startTime) : new Date(event.eventDate)
-        const eventEndTime = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
+        let eventEndTime: Date
+        if (event.endTime) {
+          eventEndTime = new Date(event.endTime)
+        } else if (event.startTime) {
+          eventEndTime = new Date(new Date(event.startTime).getTime() + 3 * 60 * 60 * 1000)
+        } else {
+          eventEndTime = new Date(event.eventDate)
+          eventEndTime.setHours(23, 59, 59, 999)
+        }
         
         let newStatus = event.status
         if (now < eventStartTime) {
@@ -83,6 +93,8 @@ export async function GET(request: NextRequest) {
           description: e.description,
           eventDate: e.eventDate,
           location: e.location,
+          locationCoordinates: e.locationCoordinates,
+          attendanceRadius: e.attendanceRadius || 50,
           startTime: e.startTime,
           endTime: e.endTime,
           status: e.status,
@@ -220,8 +232,8 @@ export async function POST(request: NextRequest) {
       if (
         !Array.isArray(event) &&
         event.locationCoordinates &&
-        event.locationCoordinates.latitude &&
-        event.locationCoordinates.longitude
+        typeof event.locationCoordinates.latitude === "number" &&
+        typeof event.locationCoordinates.longitude === "number"
       ) {
         const distance = calculateDistance(
           event.locationCoordinates.latitude,
@@ -230,13 +242,16 @@ export async function POST(request: NextRequest) {
           location.longitude
         )
 
-        // Increased radius to 150 meters as requested
-        if (distance > 150) {
+        // Allowed radius (defaults to 50 meters)
+        const allowedRadius = (event as any).attendanceRadius || 50
+
+        if (distance > allowedRadius) {
           return NextResponse.json(
             {
               success: false,
-              message: "You are not at the event location. Please be within 150 meters of the event location to mark attendance.",
+              message: `You are not at the event location (${Math.round(distance)}m away). Attendance must be marked within ${allowedRadius} meters of the event venue.`,
               distance: Math.round(distance),
+              allowedRadius,
             },
             { status: 400 }
           )
@@ -342,8 +357,6 @@ export async function POST(request: NextRequest) {
         allowedUntil,
       })
     } else if (action === "end") {
-       // Deprecated/Disabled as per request, but keeping a fallback just in case
-       // or simply return success if called by accident
        return NextResponse.json({ success: true, message: "Attendance already completed via single-step." })
     } else {
       if (!photo || !location) {
@@ -384,7 +397,6 @@ export async function POST(request: NextRequest) {
           eventAssignedHours = (end - start) / (1000 * 60 * 60)
         }
       }
-      // If event defines a hard maximum per volunteer, use it as cap (optional)
       const eventMaxHours = typeof event.maxHours === "number" ? event.maxHours : eventAssignedHours
       const assignedHoursRounded = Math.max(0, Math.round(eventAssignedHours * 10) / 10)
       const cappedHours = Math.max(0, Math.round(Math.min(assignedHoursRounded, eventMaxHours) * 10) / 10)
@@ -394,8 +406,8 @@ export async function POST(request: NextRequest) {
       if (
         !Array.isArray(event) &&
         event.locationCoordinates &&
-        event.locationCoordinates.latitude &&
-        event.locationCoordinates.longitude
+        typeof event.locationCoordinates.latitude === "number" &&
+        typeof event.locationCoordinates.longitude === "number"
       ) {
         distance = calculateDistance(
           event.locationCoordinates.latitude,
@@ -404,7 +416,9 @@ export async function POST(request: NextRequest) {
           location.longitude
         )
 
-        if (distance > 50) {
+        const allowedRadius = (event as any).attendanceRadius || 50
+
+        if (distance > allowedRadius) {
           volunteerEvent.endPhoto = photo
           volunteerEvent.endLocation = {
             latitude: location.latitude,
@@ -478,4 +492,3 @@ export async function POST(request: NextRequest) {
     }, { status: 500 })
   }
 }
-

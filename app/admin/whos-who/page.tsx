@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
+import AdminHeader from "@/components/admin/AdminHeader"
 import {
   Users,
   Plus,
@@ -222,37 +223,33 @@ export default function AdminWhosWhoPage() {
       : members.filter((m) => m.unitNo === selectedUnitFilter)
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Users className="w-7 h-7 text-primary" />
-            Who's Who Management
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Manage Program Officers (POs), Faculty Mentors, and Leadership across all 6 Units.
-          </p>
-        </div>
+    <>
+      <AdminHeader
+        title="Who's Who (Officers & Mentors)"
+        subtitle="Manage Program Officers (POs), Faculty Mentors, and Leadership across all 6 Units"
+        action={
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              href="/whos-who"
+              target="_blank"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-300 dark:border-border hover:bg-slate-100 dark:hover:bg-muted text-slate-700 dark:text-slate-200 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-primary" />
+              <span>Public Page</span>
+            </Link>
+            <button
+              onClick={openAddModal}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add Member</span>
+              <span className="sm:hidden">Add</span>
+            </button>
+          </div>
+        }
+      />
 
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <Link
-            href="/whos-who"
-            target="_blank"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-300 dark:border-border hover:bg-slate-100 dark:hover:bg-muted text-slate-700 dark:text-slate-200 transition-colors"
-          >
-            <ExternalLink className="w-4 h-4 text-primary" />
-            View Public Page
-          </Link>
-          <button
-            onClick={openAddModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            Add Member
-          </button>
-        </div>
-      </div>
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -288,9 +285,10 @@ export default function AdminWhosWhoPage() {
           </p>
           <button
             onClick={openAddModal}
-            className="mt-4 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
           >
-            + Add First Member
+            <Plus className="w-4 h-4" />
+            Add First Member
           </button>
         </div>
       ) : (
@@ -646,7 +644,8 @@ export default function AdminWhosWhoPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

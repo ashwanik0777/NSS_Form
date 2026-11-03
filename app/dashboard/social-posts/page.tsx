@@ -208,13 +208,13 @@ export default function SocialPostsPage() {
                                     setTotalPoints(data.totalPoints)
                                     
                                     if (data.pointsAwarded) {
-                                      alert(`🎉 Congratulations! You earned ${data.pointsEarned} points for completing all platforms! Total: ${data.totalPoints}`)
+                                      alert(`Congratulations! You earned ${data.pointsEarned} points for completing all platforms! Total: ${data.totalPoints}`)
                                     } else {
                                       const remaining = availableMainPlatforms.length - (likedPlatforms.length + 1)
                                       if (remaining > 0) {
-                                        alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}. ${remaining} more platform${remaining > 1 ? 's' : ''} to go!`)
+                                        alert(`Great! You earned 2 points for ${platformLabels[platform]}. ${remaining} more platform${remaining > 1 ? 's' : ''} to go!`)
                                       } else {
-                                        alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}!`)
+                                        alert(`Great! You earned 2 points for ${platformLabels[platform]}!`)
                                       }
                                     }
                                     await fetchPosts()

@@ -66,6 +66,13 @@ export async function GET(request: NextRequest) {
         pendingHours: 0,
         reviewNotes: "",
         reviewedAt: null,
+        photo: null,
+        startPhoto: null,
+        endPhoto: null,
+        location: null,
+        startTime: null,
+        endTime: null,
+        workDescription: "",
       })
     })
 
@@ -84,14 +91,29 @@ export async function GET(request: NextRequest) {
         pendingHours: 0,
         reviewNotes: "",
         reviewedAt: null,
+        photo: null,
+        startPhoto: null,
+        endPhoto: null,
+        location: null,
+        startTime: null,
+        endTime: null,
+        workDescription: "",
       }
 
+      existing.attendanceId = record._id?.toString()
       existing.attendanceStatus = record.status
       existing.attendanceReviewStatus = record.reviewStatus
       existing.hoursWorked = record.hoursWorked || 0
       existing.pendingHours = record.pendingHours || 0
       existing.reviewNotes = record.reviewNotes || ""
       existing.reviewedAt = record.reviewedAt || null
+      existing.photo = record.endPhoto || record.startPhoto || null
+      existing.startPhoto = record.startPhoto || null
+      existing.endPhoto = record.endPhoto || null
+      existing.location = record.endLocation || record.startLocation || null
+      existing.startTime = record.startTime || null
+      existing.endTime = record.endTime || null
+      existing.workDescription = record.workDescription || ""
 
       participantsMap.set(key, existing)
     })
@@ -116,6 +138,7 @@ export async function GET(request: NextRequest) {
         title: event.title,
         status: event.status,
         eventDate: event.eventDate,
+        nssHours: event.nssHours || 0,
       },
       summary,
       participants,
@@ -146,7 +169,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { eventId, action, volunteerIds } = body
+    const { eventId, action, volunteerIds, volunteerId, reviewStatus, hoursWorked, reviewNotes } = body
 
     if (!eventId) {
       return NextResponse.json({ success: false, message: "eventId is required" }, { status: 400 })
@@ -159,62 +182,98 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Event not found" }, { status: 404 })
     }
     
-    // Validate nssHours from event
-    // The max hours a volunteer can get is limited to nssHours of the event
-    const allowedHours = event.nssHours || 0;
+    // Default hours from event
+    const allowedHours = event.nssHours || 0
 
-    // Build filter query
-    let filter: any = { eventId };
+    // Mode A: Edit individual volunteer attendance
+    if (action === "edit" || action === "update-single") {
+      if (!volunteerId) {
+        return NextResponse.json({ success: false, message: "volunteerId is required for editing" }, { status: 400 })
+      }
+
+      if (reviewStatus === "not-submitted") {
+        // Delete volunteer event record if reverting to not submitted
+        await VolunteerEvent.deleteOne({ eventId, volunteerId })
+        return NextResponse.json({
+          success: true,
+          message: "Attendance reverted to Not Submitted",
+        })
+      }
+
+      const parsedHours = typeof hoursWorked === "number" ? hoursWorked : parseFloat(hoursWorked || "0") || 0
+      const newStatus = reviewStatus === "approved" ? "completed" : reviewStatus === "rejected" ? "absent" : "registered"
+
+      const updated = await VolunteerEvent.findOneAndUpdate(
+        { eventId, volunteerId },
+        {
+          $set: {
+            projectId: event.projectId,
+            reviewStatus: reviewStatus || "approved",
+            status: newStatus,
+            hoursWorked: reviewStatus === "approved" ? parsedHours : 0,
+            pendingHours: reviewStatus === "pending" ? parsedHours : 0,
+            reviewNotes: reviewNotes || "",
+            reviewedAt: new Date(),
+            reviewedBy: session.user.id,
+          },
+          $setOnInsert: {
+            startTime: event.startTime || event.eventDate,
+            endTime: event.endTime || event.eventDate,
+            createdAt: new Date(),
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      )
+
+      return NextResponse.json({
+        success: true,
+        message: "Attendance updated successfully",
+        record: updated,
+      })
+    }
+
+    // Mode B: Bulk approve or reject
+    let filter: any = { eventId }
     
     // If specific volunteers are provided, filter by them
     if (volunteerIds && Array.isArray(volunteerIds) && volunteerIds.length > 0) {
-      filter.volunteerId = { $in: volunteerIds };
+      filter.volunteerId = { $in: volunteerIds }
     }
     
-    // Only target records that match certain criteria based on action
     if (action === 'approve') {
-       // Only approve pending records? Or can re-approve? 
-       // Usually we approve 'pending' records.
-       // User requirement: "all approval ka bhi option do"
-       // Update: We should only update 'pending' or 'rejected' to 'approved' if re-evaluating.
-       // Let's assume action 'approve-all' or 'approve-selected'
-       // But simpler: Update status wherereviewStatus is pending
-       
        if (!volunteerIds) {
-          // Bulk approve all PENDING for this event
-          filter.reviewStatus = 'pending';
+          filter.reviewStatus = 'pending'
        }
     } else if (action === 'reject') {
        if (!volunteerIds) {
-          filter.reviewStatus = 'pending';
+          filter.reviewStatus = 'pending'
        }
     }
 
-    // Determine updates based on action
-    let update: any = {};
+    let update: any = {}
     if (action === 'approve') {
        update = { 
          reviewStatus: 'approved',
-         status: 'attended', // Ensure status is attended
-         hoursWorked: allowedHours, // STRICTLY LIMIT HOURS TO EVENT HOURS
+         status: 'completed',
+         hoursWorked: allowedHours,
          pendingHours: 0,
          reviewedAt: new Date(),
          reviewedBy: session.user.id
-       };
+       }
     } else if (action === 'reject') {
        update = {
          reviewStatus: 'rejected',
-         // status: 'absent', // Should we mark as absent? Keep what it was but rejected credit?
+         status: 'absent',
          hoursWorked: 0,
          pendingHours: 0,
          reviewedAt: new Date(),
          reviewedBy: session.user.id
-       };
+       }
     } else {
         return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 })
     }
 
-    const result = await VolunteerEvent.updateMany(filter, update);
+    const result = await VolunteerEvent.updateMany(filter, update)
 
     return NextResponse.json({
       success: true,
@@ -223,7 +282,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-     console.error("Bulk attendance update error:", error)
+     console.error("Attendance update error:", error)
      return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }

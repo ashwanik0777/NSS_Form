@@ -34,7 +34,7 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get volunteer's project
-    const projectAssignment = await VolunteerProject.findOne({
+    const projectAssignment: any = await VolunteerProject.findOne({
       volunteerId: volunteerObjectId,
       status: "active",
     }).lean()

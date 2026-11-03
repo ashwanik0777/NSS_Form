@@ -266,8 +266,102 @@ export async function GET(request: NextRequest) {
         .sort({ removedAt: -1 })
         .lean()
 
+      if (format === "excel" || format === "pdf") {
+        const fieldsParam = searchParams.get("fields")
+        const requestedFields = fieldsParam ? fieldsParam.split(",").filter(Boolean) : null
+
+        const PAST_FIELD_MAP: Record<string, { label: string; getValue: (v: any) => string }> = {
+          name: { label: "Name", getValue: (v) => v.nameEnglish || v.userId?.name || "" },
+          fatherName: { label: "Father Name", getValue: (v) => v.fatherName || "" },
+          motherName: { label: "Mother Name", getValue: (v) => v.motherName || "" },
+          email: { label: "Email", getValue: (v) => v.userId?.email || v.emailId || "" },
+          mobileNo: { label: "Mobile No", getValue: (v) => v.mobileNo || "" },
+          dob: { label: "DOB", getValue: (v) => v.dateOfBirth ? new Date(v.dateOfBirth).toLocaleDateString("en-IN") : "" },
+          gender: { label: "Gender", getValue: (v) => v.gender || "" },
+          category: { label: "Category", getValue: (v) => v.category || "" },
+          bloodGroup: { label: "Blood Group", getValue: (v) => v.bloodGroup || "" },
+          addressType: { label: "Address Type", getValue: (v) => v.addressType || "" },
+          hostelAddress: { label: "Hostel Address", getValue: (v) => v.hostelAddress || "" },
+          homeAddress: { label: "Home Address", getValue: (v) => v.homeAddress || "" },
+          schoolName: { label: "School", getValue: (v) => v.schoolName || "" },
+          departmentName: { label: "Department", getValue: (v) => v.departmentName || "" },
+          courseName: { label: "Course", getValue: (v) => v.courseName || "" },
+          year: { label: "Year", getValue: (v) => v.enrollment || "" },
+          rollNumber: { label: "Roll Number", getValue: (v) => v.formNo || "" },
+          highSchoolRollNo: { label: "High School Roll No", getValue: (v) => v.highSchoolRollNo || "" },
+          classSemester: { label: "Class/Semester", getValue: (v) => v.classSemester || "" },
+          unitNo: { label: "Unit", getValue: (v) => v.unitNo || "" },
+          removalReason: { label: "Removal Reason", getValue: (v) => v.removalReason || "" },
+          removedAt: {
+            label: "Removed Date",
+            getValue: (v) => v.removedAt ? new Date(v.removedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : ""
+          },
+          removedBy: {
+            label: "Removed By",
+            getValue: (v) => v.removedBy?.name || "Admin"
+          },
+          programOfficerName: { label: "Program Officer", getValue: (v) => v.programOfficerName || "" },
+          nssEnrollmentYear: { label: "NSS Enrollment Year", getValue: (v) => v.nssEnrollmentYear || "" },
+          myBharatRegistered: { label: "My Bharat Registered", getValue: (v) => v.myBharatPortalRegistered ? "Yes" : "No" },
+          myBharatPortalId: { label: "My Bharat ID", getValue: (v) => v.myBharatPortalId || "" },
+        }
+
+        const DEFAULT_PAST_FIELDS = [
+          "name", "email", "mobileNo", "unitNo", "departmentName", "schoolName", "removalReason", "removedAt", "removedBy"
+        ]
+
+        const selectedFields = (requestedFields || DEFAULT_PAST_FIELDS).filter(f => PAST_FIELD_MAP[f])
+
+        const rows = pastApps.map((v: any) => {
+          const row: Record<string, string> = {}
+          for (const key of selectedFields) {
+            row[key] = PAST_FIELD_MAP[key].getValue(v)
+          }
+          return row
+        })
+
+        const fileNameBase =
+          (searchParams.get("unitNo") && searchParams.get("unitNo") !== "all")
+            ? `past_volunteers_unit_${searchParams.get("unitNo")}`
+            : "past_volunteers_all_units"
+
+        if (format === "pdf") {
+          const unitInfo =
+            searchParams.get("unitNo") && searchParams.get("unitNo") !== "all"
+              ? `Unit ${searchParams.get("unitNo")} Past Volunteers`
+              : "All Units Past Volunteers"
+
+          const columns = selectedFields.map(key => ({ key, label: PAST_FIELD_MAP[key].label }))
+          const pdfBytes = await generateVolunteerExportPDF(rows, unitInfo, columns)
+
+          return new NextResponse(pdfBytes as any, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/pdf",
+              "Content-Disposition": `attachment; filename="${fileNameBase}.pdf"`,
+            },
+          })
+        } else {
+          const header = selectedFields.map(key => PAST_FIELD_MAP[key].label).join("\t") + "\n"
+          const body = rows
+            .map(row => selectedFields.map(key => (row[key] || "").replace(/\t|\n|\r/g, " ")).join("\t"))
+            .join("\n")
+          const content = header + body + "\n"
+
+          return new NextResponse(content, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/vnd.ms-excel; charset=utf-8",
+              "Content-Disposition": `attachment; filename="${fileNameBase}.xls"`,
+            },
+          })
+        }
+      }
+
       const pastVolunteers = pastApps.map((app: any) => ({
-        _id: String(app.userId?._id || app.userId),
+        _id: String(app.userId?._id || app.userId || app._id),
+        applicationId: String(app._id),
+        userId: app.userId?._id ? String(app.userId._id) : (app.userId ? String(app.userId) : null),
         name: app.nameEnglish || app.userId?.name || "Unknown",
         email: app.userId?.email || app.emailId || "",
         mobileNo: app.mobileNo || "",

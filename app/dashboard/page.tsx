@@ -9,6 +9,7 @@ import {
   Loader2,
   FileText,
   CheckCircle,
+  CheckCircle2,
   XCircle,
   AlertCircle,
   Award,
@@ -280,8 +281,9 @@ export default function VolunteerDashboard() {
           </div>
           {completion && completion.percent === 100 && (
             <div className="shrink-0">
-              <div className="bg-green-500 text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm text-center shadow-xs">
-                Profile Complete ✓
+              <div className="inline-flex items-center bg-emerald-600 text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm text-center shadow-xs">
+                <CheckCircle2 className="w-4 h-4 mr-1.5 shrink-0" />
+                Profile Complete
               </div>
             </div>
           )}
@@ -1031,13 +1033,13 @@ export default function VolunteerDashboard() {
                                         setTotalPoints(data.totalPoints)
                                         
                                         if (data.pointsAwarded) {
-                                          alert(`🎉 Congratulations! You earned ${data.pointsEarned} points for completing all platforms! Total: ${data.totalPoints}`)
+                                          alert(`Congratulations! You earned ${data.pointsEarned} points for completing all platforms! Total: ${data.totalPoints}`)
                                         } else {
                                           const remaining = availableMainPlatforms.length - (likedPlatforms.length + 1)
                                           if (remaining > 0) {
-                                            alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}. ${remaining} more platform${remaining > 1 ? 's' : ''} to go!`)
+                                            alert(`Great! You earned 2 points for ${platformLabels[platform]}. ${remaining} more platform${remaining > 1 ? 's' : ''} to go!`)
                                           } else {
-                                            alert(`✅ Great! You earned 2 points for ${platformLabels[platform]}!`)
+                                            alert(`Great! You earned 2 points for ${platformLabels[platform]}!`)
                                           }
                                         }
                                         await fetchDashboardData()
