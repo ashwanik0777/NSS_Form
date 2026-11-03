@@ -1313,9 +1313,9 @@ export default function VolunteersPage() {
         {/* Volunteer Detail Modal */}
         {showDetailModal && selectedVolunteer && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4 md:p-6 transition-all duration-200">
-            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full h-[96vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl smooth-modal overflow-hidden">
+            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full h-[96vh] sm:h-[90vh] max-h-[90vh] flex flex-col shadow-2xl smooth-modal overflow-hidden">
               {/* Header */}
-              <div className="p-3.5 sm:p-5 md:p-6 border-b border-border bg-card">
+              <div className="shrink-0 p-3.5 sm:p-4 md:p-5 border-b border-border bg-card">
                 {/* Top row: Photo + Name/Email + Action buttons */}
                 <div className="flex items-start justify-between gap-2.5 sm:gap-4">
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -1378,7 +1378,7 @@ export default function VolunteersPage() {
                 </div>
 
                 {/* Sub-row: Approval date, Unit badges, and Mobile Remove Button */}
-                <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mt-2.5 sm:mt-3 sm:ml-24">
+                <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mt-2 sm:mt-2.5 sm:ml-24">
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -1407,55 +1407,59 @@ export default function VolunteersPage() {
               </div>
 
               {/* Tabs */}
-              <div className="flex border-b border-border px-3 sm:px-6 overflow-x-auto no-scrollbar gap-1 sm:gap-2 bg-muted/20">
+              <div className="shrink-0 flex border-b border-border px-3 sm:px-6 overflow-x-auto no-scrollbar gap-1 sm:gap-2 bg-muted/20">
                 <button
+                  type="button"
                   onClick={() => setActiveTab("profile")}
-                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
                     activeTab === "profile"
-                      ? "text-primary border-b-2 border-primary bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                   }`}
                 >
-                  <User className="w-4 h-4" />
+                  <User className="w-4 h-4 shrink-0" />
                   <span>Profile Information</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setActiveTab("events")}
-                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
                     activeTab === "events"
-                      ? "text-primary border-b-2 border-primary bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                   }`}
                 >
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4 shrink-0" />
                   <span>Attended Events ({selectedVolunteer.events.length})</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setActiveTab("meetings")}
-                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
                     activeTab === "meetings"
-                      ? "text-primary border-b-2 border-primary bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                   }`}
                 >
-                  <Users className="w-4 h-4" />
+                  <Users className="w-4 h-4 shrink-0" />
                   <span>Meetings ({selectedVolunteer.meetings?.length || 0})</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setActiveTab("tasks")}
-                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
                     activeTab === "tasks"
-                      ? "text-primary border-b-2 border-primary bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                   }`}
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-4 h-4 shrink-0" />
                   <span>Tasks ({tasks.length})</span>
                 </button>
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-3.5 sm:p-6">
+              <div className="flex-1 min-h-0 overflow-y-auto scroll-smooth overscroll-contain p-3.5 sm:p-6">
                 {/* Profile Tab */}
                 {activeTab === "profile" && (
                   <div className="space-y-4 sm:space-y-6">
@@ -2362,7 +2366,7 @@ export default function VolunteersPage() {
               className="bg-card rounded-2xl border border-border max-w-2xl w-full p-4 sm:p-5 shadow-2xl flex flex-col gap-3 max-h-[92vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between pb-2 border-b border-border">
+              <div className="shrink-0 flex items-center justify-between pb-2 border-b border-border">
                 <div className="min-w-0 flex-1 pr-3">
                   <h4 className="font-bold text-sm sm:text-base text-foreground truncate">
                     {previewPhoto.title}
@@ -2391,7 +2395,7 @@ export default function VolunteersPage() {
                 </div>
               </div>
 
-              <div className="flex-1 flex items-center justify-center overflow-hidden bg-black/10 rounded-xl p-2 min-h-[260px] max-h-[65vh]">
+              <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-black/10 rounded-xl p-2 min-h-[260px] max-h-[65vh]">
                 <img
                   src={previewPhoto.url}
                   alt={previewPhoto.title}
@@ -2399,7 +2403,7 @@ export default function VolunteersPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-border text-xs text-muted-foreground">
+              <div className="shrink-0 flex items-center justify-between pt-2 border-t border-border text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Camera className="w-3.5 h-3.5 text-primary" />
                   <span>Verified Attendance Photo Proof</span>

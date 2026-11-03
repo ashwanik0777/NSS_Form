@@ -26,7 +26,7 @@ const coordinatorData = [
 		units: ["5"],
 	},
 	{
-		name: "Dr. Indrajeet Singh",
+		name: "Dr. Samar Raqshin",
 		units: ["6"],
 	},
 ]

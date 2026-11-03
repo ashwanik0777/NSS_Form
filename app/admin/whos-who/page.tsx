@@ -39,6 +39,7 @@ interface Member {
 
 const UNIT_OPTIONS = [
   "All Units",
+  "NSS Office",
   "Unit 1",
   "Unit 2",
   "Unit 3",
@@ -508,7 +509,7 @@ export default function AdminWhosWhoPage() {
                     <option value="officer">Program Officer</option>
                     <option value="mentor">Faculty Mentor</option>
                     <option value="coordinator">Program Coordinator</option>
-                    <option value="other">Staff / Member</option>
+                    <option value="other">NSS Office Staff / Administration</option>
                   </select>
                 </div>
               </div>

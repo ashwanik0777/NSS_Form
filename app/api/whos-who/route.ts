@@ -101,6 +101,20 @@ const DEFAULT_LEADERSHIP = [
     order: 7,
     isActive: true,
   },
+  {
+    name: "Pritesh Mishra",
+    designation: "Senior Assistant NSS Office",
+    category: "other",
+    unitNo: "NSS Office",
+    department: "NSS Office",
+    school: "Gautam Buddha University",
+    email: "",
+    phone: "",
+    photo: "",
+    bio: "",
+    order: 8,
+    isActive: true,
+  },
 ]
 
 export async function GET(request: NextRequest) {

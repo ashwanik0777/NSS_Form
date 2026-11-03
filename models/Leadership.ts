@@ -3,8 +3,8 @@ import mongoose, { type Document, Schema } from "mongoose"
 export interface ILeadership extends Document {
   name: string
   designation: string
-  category: "coordinator" | "officer" | "mentor" | "other"
-  unitNo: "All Units" | "Unit 1" | "Unit 2" | "Unit 3" | "Unit 4" | "Unit 5" | "Unit 6"
+  category: "coordinator" | "officer" | "mentor" | "other" | "staff"
+  unitNo: "All Units" | "NSS Office" | "Unit 1" | "Unit 2" | "Unit 3" | "Unit 4" | "Unit 5" | "Unit 6"
   department?: string
   school?: string
   email?: string
@@ -31,12 +31,12 @@ const LeadershipSchema = new Schema<ILeadership>(
     },
     category: {
       type: String,
-      enum: ["coordinator", "officer", "mentor", "other"],
+      enum: ["coordinator", "officer", "mentor", "other", "staff"],
       default: "officer",
     },
     unitNo: {
       type: String,
-      enum: ["All Units", "Unit 1", "Unit 2", "Unit 3", "Unit 4", "Unit 5", "Unit 6"],
+      enum: ["All Units", "NSS Office", "Unit 1", "Unit 2", "Unit 3", "Unit 4", "Unit 5", "Unit 6"],
       default: "All Units",
     },
     department: {
