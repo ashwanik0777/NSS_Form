@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from "react"
 import { PERMISSION_CATEGORIES, getPermissionsByCategory } from "@/lib/permissions"
+import { Loader2, UserPlus, Pencil, Trash2, X, Shield, Users } from "lucide-react"
 
 interface User {
   _id: string
   name: string
   email: string
-  role: "admin" | "sub-admin" | "user"
+  role: "admin" | "sub-admin" | "user" | "volunteer"
   permissions: string[]
   createdAt: string
   updatedAt: string
@@ -26,7 +27,7 @@ export default function UserManagement() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "sub-admin" as "admin" | "sub-admin" | "user",
+    role: "sub-admin" as "admin" | "sub-admin" | "user" | "volunteer",
     hierarchy: "",
     permissions: [] as string[],
     password: "",
@@ -239,63 +240,60 @@ export default function UserManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
-        {/* <div>
-          <h2 className="text-2xl font-bold text-foreground">User Management</h2>
-          <p className="text-muted-foreground">Manage admin users and their permissions</p>
-        </div> */}
+      <div className="flex justify-end items-center mb-6">
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 shadow-xs font-medium text-sm transition-colors"
         >
+          <UserPlus className="w-4 h-4" />
           Create Sub-Admin
         </button>
       </div>
 
       {/* Users Table */}
-      <div className="bg-card rounded-lg border border-border overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-muted/50">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   User
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Permissions
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Created
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {acceptedUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-muted/25">
+                <tr key={user._id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4">
                     <div>
                       <div className="text-sm font-medium text-foreground">{user.name}</div>
-                      <div className="text-sm text-muted-foreground">{user.email}</div>
+                      <div className="text-xs text-muted-foreground">{user.email}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-muted-foreground">{user.permissions.length} permissions</div>
+                    <div className="text-sm text-foreground">{user.permissions.length} permissions</div>
                     {(user as any).assignedUnits && (user as any).assignedUnits.length > 0 && (
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         Units: {(user as any).assignedUnits.join(", ")}
                       </div>
                     )}
@@ -303,19 +301,21 @@ export default function UserManagement() {
                   <td className="px-6 py-4 text-sm text-muted-foreground">
                     {new Date(user.createdAt).toLocaleDateString("en-IN")}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex space-x-2">
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end space-x-2">
                       <button
                         onClick={() => openEditModal(user)}
-                        className="text-primary hover:text-primary/80 text-sm font-medium"
+                        className="inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium px-2 py-1 rounded hover:bg-primary/10 transition-colors"
                       >
+                        <Pencil className="w-3.5 h-3.5 mr-1" />
                         Edit
                       </button>
                       {user.role !== "admin" && (
                         <button
                           onClick={() => handleDeleteUser(user._id)}
-                          className="text-destructive hover:text-destructive/80 text-sm font-medium"
+                          className="inline-flex items-center text-destructive hover:text-destructive/80 text-sm font-medium px-2 py-1 rounded hover:bg-destructive/10 transition-colors"
                         >
+                          <Trash2 className="w-3.5 h-3.5 mr-1" />
                           Delete
                         </button>
                       )}
@@ -330,12 +330,26 @@ export default function UserManagement() {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Create Sub-Admin</h3>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto smooth-modal">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Create Sub-Admin</h3>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setFormData({ name: "", email: "", role: "sub-admin", hierarchy: "", permissions: [], password: "", assignedUnits: [] })
+                  setSearchQuery("")
+                  setShowSearchResults(false)
+                  setSearchResults([])
+                }}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="relative">
                   <label className="block text-sm font-medium text-foreground mb-2">Name</label>
                   <input
@@ -368,7 +382,7 @@ export default function UserManagement() {
                   )}
                   {searching && (
                     <div className="absolute right-3 top-9 text-muted-foreground">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     </div>
                   )}
                 </div>
@@ -518,9 +532,24 @@ export default function UserManagement() {
 
       {/* Edit User Modal */}
       {showEditModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Edit User</h3>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto smooth-modal">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Edit User</h3>
+              <button
+                onClick={() => {
+                  setShowEditModal(false)
+                  setSelectedUser(null)
+                  setFormData({ name: "", email: "", role: "sub-admin", hierarchy: "", permissions: [], password: "", assignedUnits: [] })
+                  setSearchQuery("")
+                  setShowSearchResults(false)
+                  setSearchResults([])
+                }}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

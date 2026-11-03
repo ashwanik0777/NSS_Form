@@ -67,31 +67,31 @@ export default function ApplicationsPage() {
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="applications.view">
       <AdminHeader title="Applications" subtitle="Manage NSS volunteer applications" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
         {/* Unit-wise Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {stats && Object.keys(stats.units || {}).sort().map((unit) => {
             const u = stats.units[unit]
             return (
-              <div key={unit} className="bg-card rounded-xl border border-border p-5 shadow-sm">
+              <div key={unit} className="bg-card rounded-xl border border-border p-5 shadow-xs">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold text-foreground">Unit {unit}</h3>
-                  <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{u.total} Total</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">{u.total} Total</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <div className="p-3 rounded-lg bg-blue-50/70 border border-blue-200">
                     <div className="text-blue-900 font-semibold">{u.submitted}</div>
                     <div className="text-blue-700">Pending</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+                  <div className="p-3 rounded-lg bg-yellow-50/70 border border-yellow-200">
                     <div className="text-yellow-900 font-semibold">{u.underReview}</div>
                     <div className="text-yellow-700">Under Review</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                  <div className="p-3 rounded-lg bg-green-50/70 border border-green-200">
                     <div className="text-green-900 font-semibold">{u.approved}</div>
                     <div className="text-green-700">Approved</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                  <div className="p-3 rounded-lg bg-red-50/70 border border-red-200">
                     <div className="text-red-900 font-semibold">{u.rejected}</div>
                     <div className="text-red-700">Rejected</div>
                   </div>
@@ -103,13 +103,13 @@ export default function ApplicationsPage() {
 
         {/* Filter Tabs */}
         <div>
-          <div className="border-b border-border">
-            <nav className="-mb-px flex space-x-8">
+          <div className="border-b border-border overflow-x-auto no-scrollbar">
+            <nav className="-mb-px flex space-x-6 min-w-max pb-0.5">
               {statusFilters.map((filter) => (
                 <button
                   key={filter.value}
                   onClick={() => setActiveFilter(filter.value)}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`py-2.5 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                     activeFilter === filter.value
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"

@@ -41,6 +41,8 @@ import {
   CalendarCheck,
   Image as ImageIcon,
   ExternalLink,
+  Camera,
+  Maximize2,
 } from "lucide-react"
 
 const formatDate = (value?: string | Date) => {
@@ -107,13 +109,36 @@ interface VolunteerDetail {
   }
   events: Array<{
     _id: string
+    eventId?: string
     eventTitle: string
     projectTitle: string
     status: string
+    reviewStatus?: "pending" | "approved" | "rejected"
+    reviewNotes?: string
+    reviewedAt?: string
     startTime?: string
     endTime?: string
     hoursWorked: number
+    pendingHours?: number
     workDescription?: string
+    startPhoto?: string
+    endPhoto?: string
+    attendancePhoto?: string
+    eventDate?: string
+    location?: string
+  }>
+  meetings?: Array<{
+    _id: string
+    meetingId?: string
+    meetingTitle: string
+    description?: string
+    meetingDate: string
+    startTime?: string
+    endTime?: string
+    location?: string
+    status: "registered" | "attended" | "absent"
+    hoursGranted: number
+    checkInTime?: string
   }>
 }
 
@@ -165,7 +190,8 @@ export default function VolunteersPage() {
     dueDate: "",
   })
   const [submittingTask, setSubmittingTask] = useState(false)
-  const [activeTab, setActiveTab] = useState<"profile" | "tasks" | "events">("profile")
+  const [activeTab, setActiveTab] = useState<"profile" | "events" | "meetings" | "tasks">("profile")
+  const [previewPhoto, setPreviewPhoto] = useState<{ url: string; title: string; subtitle?: string } | null>(null)
   
   // Filters & Search
   const [unitNo, setUnitNo] = useState<string>("all")
@@ -1287,9 +1313,9 @@ export default function VolunteersPage() {
         {/* Volunteer Detail Modal */}
         {showDetailModal && selectedVolunteer && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4 md:p-6 transition-all duration-200">
-            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full h-[96vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl smooth-modal overflow-hidden">
+            <div className="bg-card rounded-2xl border border-border max-w-6xl w-full h-[96vh] sm:h-[90vh] max-h-[90vh] flex flex-col shadow-2xl smooth-modal overflow-hidden">
               {/* Header */}
-              <div className="p-3.5 sm:p-5 md:p-6 border-b border-border bg-card">
+              <div className="shrink-0 p-3.5 sm:p-4 md:p-5 border-b border-border bg-card">
                 {/* Top row: Photo + Name/Email + Action buttons */}
                 <div className="flex items-start justify-between gap-2.5 sm:gap-4">
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -1322,7 +1348,7 @@ export default function VolunteersPage() {
                     </div>
                   </div>
 
-                  {/* Actions: Remove & Close buttons */}
+                  {/* Actions: Close button always top right, Remove button desktop right / mobile in badge row */}
                   <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                     <button
                       onClick={() => {
@@ -1330,11 +1356,11 @@ export default function VolunteersPage() {
                         setRemoveReason("")
                         setShowRemoveModal(true)
                       }}
-                      className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-1.5"
+                      className="hidden sm:inline-flex px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-950/80 rounded-lg text-sm font-medium transition-colors items-center gap-1.5"
                       title="Remove Volunteer"
                     >
-                      <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden xs:inline sm:inline">Remove</span>
+                      <Ban className="w-4 h-4" />
+                      <span>Remove</span>
                     </button>
                     <button
                       onClick={() => {
@@ -1346,81 +1372,114 @@ export default function VolunteersPage() {
                       className="p-1.5 sm:p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
                       title="Close"
                     >
-                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Sub-row: Approval date and Unit badges - Full width, clean wrap on mobile, aligns under name on desktop */}
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2.5 sm:mt-3 sm:ml-24">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
-                  </span>
-                  {selectedVolunteer.application?.unitNo && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                      Unit {selectedVolunteer.application.unitNo}
+                {/* Sub-row: Approval date, Unit badges, and Mobile Remove Button */}
+                <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mt-2 sm:mt-2.5 sm:ml-24">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      Approved on: {formatDate(selectedVolunteer.application?.reviewedAt || selectedVolunteer.application?.submittedAt)}
                     </span>
-                  )}
+                    {selectedVolunteer.application?.unitNo && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                        Unit {selectedVolunteer.application.unitNo}
+                      </span>
+                    )}
+                  </div>
+                  {/* Mobile-only Remove Button */}
+                  <button
+                    onClick={() => {
+                      setRemoveTarget({ id: selectedVolunteer._id, name: selectedVolunteer.name })
+                      setRemoveReason("")
+                      setShowRemoveModal(true)
+                    }}
+                    className="sm:hidden inline-flex px-2.5 py-1 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-400 rounded-lg text-xs font-medium transition-colors items-center gap-1"
+                    title="Remove Volunteer"
+                  >
+                    <Ban className="w-3.5 h-3.5" />
+                    <span>Remove</span>
+                  </button>
                 </div>
               </div>
 
               {/* Tabs */}
-              <div className="flex border-b border-border px-3 sm:px-6 overflow-x-auto no-scrollbar gap-1 sm:gap-2">
+              <div className="shrink-0 flex border-b border-border px-3 sm:px-6 overflow-x-auto no-scrollbar gap-1 sm:gap-2 bg-muted/20">
                 <button
+                  type="button"
                   onClick={() => setActiveTab("profile")}
-                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
                     activeTab === "profile"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                   }`}
                 >
-                  Complete Profile
+                  <User className="w-4 h-4 shrink-0" />
+                  <span>Profile Information</span>
                 </button>
                 <button
-                  onClick={() => setActiveTab("tasks")}
-                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
-                    activeTab === "tasks"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Tasks ({tasks.length})
-                </button>
-                <button
+                  type="button"
                   onClick={() => setActiveTab("events")}
-                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
                     activeTab === "events"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                   }`}
                 >
-                  Events ({selectedVolunteer.events.length})
+                  <Calendar className="w-4 h-4 shrink-0" />
+                  <span>Attended Events ({selectedVolunteer.events.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("meetings")}
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
+                    activeTab === "meetings"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
+                  }`}
+                >
+                  <Users className="w-4 h-4 shrink-0" />
+                  <span>Meetings ({selectedVolunteer.meetings?.length || 0})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("tasks")}
+                  className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 border-b-2 shrink-0 ${
+                    activeTab === "tasks"
+                      ? "text-primary border-primary bg-primary/5"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
+                  }`}
+                >
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span>Tasks ({tasks.length})</span>
                 </button>
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-3.5 sm:p-6">
+              <div className="flex-1 min-h-0 overflow-y-auto scroll-smooth overscroll-contain p-3.5 sm:p-6">
                 {/* Profile Tab */}
                 {activeTab === "profile" && (
                   <div className="space-y-4 sm:space-y-6">
                     {/* Stats */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Events</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalEvents}</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Total Events</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Completed</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.completedEvents}</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Completed</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.completedEvents}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Total Hours</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalHours}h</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Total Hours</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.totalHours}h</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 sm:p-4">
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">Attendance</p>
-                        <p className="text-lg sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
+                      <div className="bg-muted/50 rounded-xl p-2.5 sm:p-4 min-w-0">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium truncate">Attendance</p>
+                        <p className="text-base sm:text-2xl font-bold text-foreground mt-0.5 sm:mt-1">{selectedVolunteer.stats.attendanceRate}%</p>
                       </div>
                     </div>
 
@@ -1926,53 +1985,435 @@ export default function VolunteersPage() {
                 {/* Events Tab */}
                 {activeTab === "events" && (
                   <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-foreground">Event History</h3>
-                    <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
+                      <div>
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-primary" />
+                          <span>Attended & Enrolled Events</span>
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Review all event participations, volunteer work descriptions, and live attendance photos.
+                        </p>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary w-fit">
+                        {selectedVolunteer.events.length} Total Records
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 sm:space-y-4">
                       {selectedVolunteer.events.length > 0 ? (
-                        selectedVolunteer.events.map((event) => (
-                          <div key={event._id} className="bg-muted/50 rounded-lg p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <p className="font-medium text-foreground">{event.eventTitle}</p>
-                                <p className="text-sm text-muted-foreground">{event.projectTitle}</p>
+                        selectedVolunteer.events.map((event) => {
+                          const hasPhoto = Boolean(event.startPhoto || event.endPhoto || event.attendancePhoto)
+                          return (
+                            <div key={event._id} className="bg-card border border-border hover:border-primary/40 rounded-xl p-4 sm:p-5 shadow-xs transition-all space-y-3">
+                              {/* Event Top Bar */}
+                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="font-bold text-base text-foreground leading-snug">
+                                    {event.eventTitle}
+                                  </h4>
+                                  {event.projectTitle && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                      Project: <span className="font-medium text-foreground">{event.projectTitle}</span>
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                                  {/* Review Status Pill */}
+                                  {event.reviewStatus && (
+                                    <span
+                                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                                        event.reviewStatus === "approved"
+                                          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                                          : event.reviewStatus === "rejected"
+                                            ? "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20"
+                                            : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+                                      }`}
+                                    >
+                                      {event.reviewStatus === "approved"
+                                        ? "Approved"
+                                        : event.reviewStatus === "rejected"
+                                          ? "Rejected"
+                                          : "Pending PO Review"}
+                                    </span>
+                                  )}
+
+                                  {/* Status Pill */}
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                                      event.status === "completed"
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : event.status === "started"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-gray-100 text-gray-800"
+                                    }`}
+                                  >
+                                    {event.status === "completed" ? "Attended" : event.status}
+                                  </span>
+
+                                  {/* Hours Credit Pill */}
+                                  {event.hoursWorked > 0 && (
+                                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary/10 text-primary flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {event.hoursWorked}h Credited
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  event.status === "completed"
-                                    ? "bg-green-100 text-green-800"
-                                    : event.status === "started"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-gray-100 text-gray-800"
-                                }`}
-                              >
-                                {event.status}
-                              </span>
+
+                              {/* Work Description note */}
+                              {event.workDescription && (
+                                <div className="p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
+                                  <span className="font-semibold text-foreground">Volunteer's Note: </span>
+                                  <span className="text-muted-foreground italic">"{event.workDescription}"</span>
+                                </div>
+                              )}
+
+                              {/* Dates & Timing row */}
+                              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
+                                {(event.eventDate || event.startTime) && (
+                                  <div className="flex items-center gap-1.5">
+                                    <Calendar className="w-3.5 h-3.5 text-primary" />
+                                    <span>
+                                      {new Date(event.eventDate || event.startTime!).toLocaleDateString("en-IN", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                      })}
+                                    </span>
+                                  </div>
+                                )}
+                                {event.startTime && (
+                                  <div className="flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5 text-primary" />
+                                    <span>
+                                      {new Date(event.startTime).toLocaleTimeString("en-IN", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                      {event.endTime &&
+                                        ` - ${new Date(event.endTime).toLocaleTimeString("en-IN", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}`}
+                                    </span>
+                                  </div>
+                                )}
+                                {event.location && (
+                                  <div className="flex items-center gap-1.5 truncate">
+                                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                                    <span className="truncate">{event.location}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* UPLOADED PHOTO WHILE ATTENDANCE SECTION */}
+                              <div className="pt-3 border-t border-border/60">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                    <Camera className="w-4 h-4 text-primary" />
+                                    <span>Uploaded Attendance Photo Proof</span>
+                                  </span>
+                                  {hasPhoto && (
+                                    <span className="text-[11px] text-primary hover:underline font-medium">
+                                      Click photo to view enlarged
+                                    </span>
+                                  )}
+                                </div>
+
+                                {hasPhoto ? (
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    {event.startPhoto && (
+                                      <div className="flex flex-col gap-1">
+                                        <span className="text-[10px] text-muted-foreground font-medium">
+                                          Check-in Photo
+                                        </span>
+                                        <div
+                                          onClick={() =>
+                                            setPreviewPhoto({
+                                              url: event.startPhoto!,
+                                              title: event.eventTitle,
+                                              subtitle: `${selectedVolunteer.name} • Attendance Check-in Proof`,
+                                            })
+                                          }
+                                          className="group relative w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border-2 border-border hover:border-primary cursor-pointer shadow-xs transition-all bg-muted"
+                                          title="Click to view full photo"
+                                        >
+                                          <img
+                                            src={event.startPhoto}
+                                            alt="Check-in Photo Proof"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                          />
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
+                                            <Maximize2 className="w-4 h-4" />
+                                            <span>View Full</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {event.endPhoto && (
+                                      <div className="flex flex-col gap-1">
+                                        <span className="text-[10px] text-muted-foreground font-medium">
+                                          Checkout / Venue Photo
+                                        </span>
+                                        <div
+                                          onClick={() =>
+                                            setPreviewPhoto({
+                                              url: event.endPhoto!,
+                                              title: event.eventTitle,
+                                              subtitle: `${selectedVolunteer.name} • Attendance Checkout Proof`,
+                                            })
+                                          }
+                                          className="group relative w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border-2 border-border hover:border-primary cursor-pointer shadow-xs transition-all bg-muted"
+                                          title="Click to view full photo"
+                                        >
+                                          <img
+                                            src={event.endPhoto}
+                                            alt="Checkout Photo Proof"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                          />
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
+                                            <Maximize2 className="w-4 h-4" />
+                                            <span>View Full</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {!event.startPhoto && !event.endPhoto && event.attendancePhoto && (
+                                      <div className="flex flex-col gap-1">
+                                        <span className="text-[10px] text-muted-foreground font-medium">
+                                          Attendance Selfie Proof
+                                        </span>
+                                        <div
+                                          onClick={() =>
+                                            setPreviewPhoto({
+                                              url: event.attendancePhoto!,
+                                              title: event.eventTitle,
+                                              subtitle: `${selectedVolunteer.name} • Attendance Proof`,
+                                            })
+                                          }
+                                          className="group relative w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border-2 border-border hover:border-primary cursor-pointer shadow-xs transition-all bg-muted"
+                                          title="Click to view full photo"
+                                        >
+                                          <img
+                                            src={event.attendancePhoto}
+                                            alt="Attendance Selfie"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                          />
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
+                                            <Maximize2 className="w-4 h-4" />
+                                            <span>View Full</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/30 border border-border/40 text-xs text-muted-foreground">
+                                    <Camera className="w-4 h-4 opacity-40 shrink-0" />
+                                    <span>No attendance selfie/photo proof was submitted for this event.</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            {event.workDescription && (
-                              <p className="text-sm text-muted-foreground mb-2">{event.workDescription}</p>
-                            )}
-                            <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                              {event.startTime && (
-                                <span>Start: {new Date(event.startTime).toLocaleString()}</span>
+                          )
+                        })
+                      ) : (
+                        <div className="p-8 text-center rounded-xl bg-muted/20 border border-border text-muted-foreground text-sm">
+                          <Calendar className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                          <p>No events found for this volunteer.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Meetings Tab */}
+                {activeTab === "meetings" && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
+                      <div>
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
+                          <Users className="w-5 h-5 text-primary" />
+                          <span>Official NSS Meetings & Attendance</span>
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Meeting attendance log and participation hours granted to this volunteer.
+                        </p>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary w-fit">
+                        {selectedVolunteer.meetings?.length || 0} Total Meetings
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 sm:space-y-4">
+                      {selectedVolunteer.meetings && selectedVolunteer.meetings.length > 0 ? (
+                        selectedVolunteer.meetings.map((meeting) => (
+                          <div
+                            key={meeting._id}
+                            className="bg-card border border-border hover:border-primary/40 rounded-xl p-4 sm:p-5 shadow-xs transition-all space-y-2.5"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-bold text-base text-foreground leading-snug">
+                                  {meeting.meetingTitle}
+                                </h4>
+                                {meeting.description && (
+                                  <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                                    {meeting.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                                {meeting.status === "attended" ? (
+                                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>Attended</span>
+                                  </span>
+                                ) : meeting.status === "absent" ? (
+                                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
+                                    Absent
+                                  </span>
+                                ) : (
+                                  <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
+                                    Registered
+                                  </span>
+                                )}
+
+                                {meeting.hoursGranted > 0 && (
+                                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary/10 text-primary flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {meeting.hoursGranted} hrs Granted
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1 border-t border-border/50">
+                              {meeting.meetingDate && (
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                                  <span>
+                                    {new Date(meeting.meetingDate).toLocaleDateString("en-IN", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </span>
+                                </div>
                               )}
-                              {event.endTime && (
-                                <span>End: {new Date(event.endTime).toLocaleString()}</span>
+                              {(meeting.startTime || meeting.endTime) && (
+                                <div className="flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-primary" />
+                                  <span>
+                                    {meeting.startTime
+                                      ? new Date(meeting.startTime).toLocaleTimeString("en-IN", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                      : "TBA"}
+                                    {meeting.endTime &&
+                                      ` - ${new Date(meeting.endTime).toLocaleTimeString("en-IN", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}`}
+                                  </span>
+                                </div>
                               )}
-                              {event.hoursWorked > 0 && (
-                                <span className="flex items-center">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  {event.hoursWorked}h
-                                </span>
+                              {meeting.location && (
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                                  <span className="truncate">{meeting.location}</span>
+                                </div>
+                              )}
+                              {meeting.checkInTime && (
+                                <div className="text-[11px] text-muted-foreground italic">
+                                  Check-in:{" "}
+                                  {new Date(meeting.checkInTime).toLocaleTimeString("en-IN", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </div>
                               )}
                             </div>
                           </div>
                         ))
                       ) : (
-                        <p className="text-muted-foreground text-center py-8">No events yet</p>
+                        <div className="p-8 text-center rounded-xl bg-muted/20 border border-border text-muted-foreground text-sm">
+                          <Users className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                          <p>No meetings recorded for this volunteer.</p>
+                        </div>
                       )}
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Lightbox / Attendance Photo Preview Modal */}
+        {previewPhoto && (
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-6 animate-in fade-in"
+            onClick={() => setPreviewPhoto(null)}
+          >
+            <div
+              className="bg-card rounded-2xl border border-border max-w-2xl w-full p-4 sm:p-5 shadow-2xl flex flex-col gap-3 max-h-[92vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="shrink-0 flex items-center justify-between pb-2 border-b border-border">
+                <div className="min-w-0 flex-1 pr-3">
+                  <h4 className="font-bold text-sm sm:text-base text-foreground truncate">
+                    {previewPhoto.title}
+                  </h4>
+                  {previewPhoto.subtitle && (
+                    <p className="text-xs text-muted-foreground truncate">{previewPhoto.subtitle}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={previewPhoto.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title="Open full size in new tab"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                  <button
+                    onClick={() => setPreviewPhoto(null)}
+                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title="Close preview"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-black/10 rounded-xl p-2 min-h-[260px] max-h-[65vh]">
+                <img
+                  src={previewPhoto.url}
+                  alt={previewPhoto.title}
+                  className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-md"
+                />
+              </div>
+
+              <div className="shrink-0 flex items-center justify-between pt-2 border-t border-border text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Camera className="w-3.5 h-3.5 text-primary" />
+                  <span>Verified Attendance Photo Proof</span>
+                </span>
+                <button
+                  onClick={() => setPreviewPhoto(null)}
+                  className="px-3.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-colors"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>

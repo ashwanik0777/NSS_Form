@@ -2,6 +2,7 @@
 
 import type { FormData } from "@/lib/types"
 import { useState } from "react"
+import { CheckCircle2, XCircle } from "lucide-react"
 
 interface Step5PreviewProps {
   formData: FormData
@@ -350,7 +351,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               <div className="flex flex-col sm:flex-row">
                 <span className="w-full sm:w-40 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">High School Certificate:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
-                  {formData.highSchoolCertificate ? "✓ Uploaded" : "Not Uploaded"}
+                  {formData.highSchoolCertificate ? "Uploaded" : "Not Uploaded"}
                 </div>
               </div>
             </div>
@@ -399,7 +400,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   <div className="flex flex-col sm:flex-row">
                     <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Proof Certificate:</span>
                     <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
-                      {formData.specialCampDetails.proof ? "✓ Uploaded" : "Not Uploaded"}
+                      {formData.specialCampDetails.proof ? "Uploaded" : "Not Uploaded"}
                     </div>
                   </div>
                 </div>
@@ -431,7 +432,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                   <div className="flex flex-col sm:flex-row">
                     <span className="w-full sm:w-48 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Portal Screenshot:</span>
                     <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
-                      {formData.myBharatPortalScreenshot ? "✓ Uploaded" : "Not Uploaded"}
+                      {formData.myBharatPortalScreenshot ? "Uploaded" : "Not Uploaded"}
                     </div>
                   </div>
                 </>
@@ -454,7 +455,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               <div className="flex flex-col sm:flex-row">
                 <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Achievement Proof:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
-                  {formData.specialNSSAchievementsProof ? "✓ Uploaded" : "Not Uploaded"}
+                  {formData.specialNSSAchievementsProof ? "Uploaded" : "Not Uploaded"}
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row">
@@ -467,7 +468,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
                 <div className="flex flex-col sm:flex-row">
                   <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">ELP Proof:</span>
                   <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
-                    {formData.elpProof ? "✓ Uploaded" : "Not Uploaded"}
+                    {formData.elpProof ? "Uploaded" : "Not Uploaded"}
                   </div>
                 </div>
               )}
@@ -480,7 +481,7 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
               <div className="flex flex-col sm:flex-row">
                 <span className="w-full sm:w-32 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0">Other Certificates:</span>
                 <div className="flex-1 border border-gray-300 px-2 py-1 text-xs sm:text-sm min-h-[24px]">
-                  {formData.otherAchievementsCertificates ? "✓ Uploaded" : "Not Uploaded"}
+                  {formData.otherAchievementsCertificates ? "Uploaded" : "Not Uploaded"}
                 </div>
               </div>
             </div>
@@ -493,47 +494,71 @@ export default function Step5Preview({ formData, onPrevious, onSubmit, isSubmitt
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs">
               <div className="space-y-2">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span>Student Photo:</span>
-                  <span className={formData.photo ? "text-green-600" : "text-red-600"}>
-                    {formData.photo ? "✓ Uploaded" : "✗ Missing"}
+                  <span className={formData.photo ? "text-emerald-600 font-medium" : "text-destructive font-medium"}>
+                    {formData.photo ? (
+                      <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Uploaded</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Missing</span>
+                    )}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span>Student Signature:</span>
-                  <span className={formData.signature ? "text-green-600" : "text-red-600"}>
-                    {formData.signature ? "✓ Uploaded" : "✗ Missing"}
+                  <span className={formData.signature ? "text-emerald-600 font-medium" : "text-destructive font-medium"}>
+                    {formData.signature ? (
+                      <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Uploaded</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Missing</span>
+                    )}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span>High School Certificate:</span>
-                  <span className={formData.highSchoolCertificate ? "text-green-600" : "text-red-600"}>
-                    {formData.highSchoolCertificate ? "✓ Uploaded" : "✗ Missing"}
+                  <span className={formData.highSchoolCertificate ? "text-emerald-600 font-medium" : "text-destructive font-medium"}>
+                    {formData.highSchoolCertificate ? (
+                      <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Uploaded</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Missing</span>
+                    )}
                   </span>
                 </div>
               </div>
               <div className="space-y-2">
                 {formData.myBharatPortalRegistered && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Portal Screenshot:</span>
-                    <span className={formData.myBharatPortalScreenshot ? "text-green-600" : "text-red-600"}>
-                      {formData.myBharatPortalScreenshot ? "✓ Uploaded" : "✗ Missing"}
+                    <span className={formData.myBharatPortalScreenshot ? "text-emerald-600 font-medium" : "text-destructive font-medium"}>
+                      {formData.myBharatPortalScreenshot ? (
+                        <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Uploaded</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Missing</span>
+                      )}
                     </span>
                   </div>
                 )}
                 {formData.attendedSpecialCamp && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Camp Proof:</span>
-                    <span className={formData.specialCampDetails?.proof ? "text-green-600" : "text-red-600"}>
-                      {formData.specialCampDetails?.proof ? "✓ Uploaded" : "✗ Missing"}
+                    <span className={formData.specialCampDetails?.proof ? "text-emerald-600 font-medium" : "text-destructive font-medium"}>
+                      {formData.specialCampDetails?.proof ? (
+                        <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Uploaded</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Missing</span>
+                      )}
                     </span>
                   </div>
                 )}
                 {formData.attendedELP && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>ELP Proof:</span>
-                    <span className={formData.elpProof ? "text-green-600" : "text-red-600"}>
-                      {formData.elpProof ? "✓ Uploaded" : "✗ Missing"}
+                    <span className={formData.elpProof ? "text-emerald-600 font-medium" : "text-destructive font-medium"}>
+                      {formData.elpProof ? (
+                        <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Uploaded</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Missing</span>
+                      )}
                     </span>
                   </div>
                 )}

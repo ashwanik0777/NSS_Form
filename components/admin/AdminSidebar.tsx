@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react"
 import { hasPermission } from "@/lib/permissions"
 import {
   LayoutDashboard,
+  Image as ImageIcon,
   FileText,
   Users,
   Settings,
@@ -69,6 +70,7 @@ const groupedSidebar: {
     accentColor: "#0369a1",
     items: [
       { id: "users", label: "User Management", href: "/admin/users", icon: <Users className="w-4 h-4" />, permission: "users.view" },
+      { id: "whos-who", label: "Who's Who (Officers & Mentors)", href: "/admin/whos-who", icon: <Shield className="w-4 h-4" /> },
       { id: "volunteers", label: "Volunteers", href: "/admin/volunteers", icon: <UserCheck className="w-4 h-4" />, permission: "volunteers.view" },
       { id: "past-volunteers", label: "Past Volunteers", href: "/admin/past-volunteers", icon: <UserX className="w-4 h-4" />, permission: "volunteers.view" },
       { id: "manage-volunteers", label: "Manage Volunteer Data", href: "/admin/volunteers/manage", icon: <UserCog className="w-4 h-4" />, permission: "volunteers.edit" },
@@ -94,6 +96,7 @@ const groupedSidebar: {
     accentColor: "#be185d",
     items: [
       { id: "announcements", label: "Announcements", href: "/admin/announcements", icon: <Megaphone className="w-4 h-4" />, permission: "announcements.view" },
+      { id: "gallery", label: "Media Gallery", href: "/admin/gallery", icon: <ImageIcon className="w-4 h-4" /> },
       { id: "social-posts", label: "Social Media Posts", href: "/admin/social-posts", icon: <Share2 className="w-4 h-4" />, permission: "social.view" },
       { id: "grievances", label: "Grievances", href: "/admin/grievances", icon: <FileText className="w-4 h-4" />, permission: "volunteers.view" },
       { id: "reports", label: "Reports & Issues", href: "/admin/reports", icon: <FileText className="w-4 h-4" />, permission: "volunteers.view" },

@@ -697,7 +697,7 @@ export default function EmailSystemPage() {
       const data = await res.json()
       if (res.ok && data.success) {
         toast({
-          title: "Test Email Delivered! ✅",
+          title: "Test Email Delivered Successfully",
           description: `Successfully sent test email to ${testEmailAddress}.`,
         })
         fetchEmailLogs()
@@ -706,7 +706,7 @@ export default function EmailSystemPage() {
       }
     } catch (err: any) {
       toast({
-        title: "Test Email Failed ❌",
+        title: "Test Email Failed",
         description: err.message || "Failed to connect to SMTP server.",
         variant: "destructive",
       })

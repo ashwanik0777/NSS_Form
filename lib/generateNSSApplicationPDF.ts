@@ -48,8 +48,14 @@ interface FormData {
   homeAddress?: string
 }
 
-function loadLocalFile(relPath: string) {
-  return fs.readFileSync(path.join(process.cwd(), relPath))
+const localFileCache = new Map<string, Buffer>()
+function loadLocalFile(relPath: string): Buffer | null {
+  if (localFileCache.has(relPath)) return localFileCache.get(relPath)!
+  const fullPath = path.join(process.cwd(), relPath)
+  if (!fs.existsSync(fullPath)) return null
+  const buf = fs.readFileSync(fullPath)
+  localFileCache.set(relPath, buf)
+  return buf
 }
 
 function formatDate(dateString?: string) {
@@ -82,10 +88,16 @@ async function imageToBuffer(src?: string): Promise<Buffer | null> {
       return Buffer.from(base64, "base64")
     }
     if (src.startsWith("http://") || src.startsWith("https://")) {
-      const res = await fetch(src)
-      if (!res.ok) return null
-      const ab = await res.arrayBuffer()
-      return Buffer.from(ab)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 6000)
+      try {
+        const res = await fetch(src, { signal: controller.signal })
+        if (!res.ok) return null
+        const ab = await res.arrayBuffer()
+        return Buffer.from(ab)
+      } finally {
+        clearTimeout(timeoutId)
+      }
     }
     // treat as local (relative to project root or public/)
     const p = src.startsWith("/") ? path.join(process.cwd(), "public", src) : path.join(process.cwd(), src)
@@ -111,11 +123,17 @@ function drawField(page: any, label: string, value?: string, x = 55, y = 0, labe
 export async function generateNSSApplicationPDF(formData: FormData) {
   const pdfDoc = await PDFDocument.create()
 
+  // Pre-load signature buffer once so we don't fetch or convert twice
+  const signatureBuffer = formData.signature ? await imageToBuffer(formData.signature) : null
+
   // try embed logos
   let logo1: any = null, logo2: any = null, logo3: any = null
-  try { logo1 = await pdfDoc.embedPng(loadLocalFile("public/1.png")) } catch {}
-  try { logo2 = await pdfDoc.embedPng(loadLocalFile("public/myBharatLogo.png")) } catch {}
-  try { logo3 = await pdfDoc.embedPng(loadLocalFile("public/nssLogo.png")) } catch {}
+  const f1 = loadLocalFile("public/1.png")
+  const f2 = loadLocalFile("public/myBharatLogo.png")
+  const f3 = loadLocalFile("public/nssLogo.png")
+  if (f1) { try { logo1 = await pdfDoc.embedPng(f1) } catch {} }
+  if (f2) { try { logo2 = await pdfDoc.embedPng(f2) } catch {} }
+  if (f3) { try { logo3 = await pdfDoc.embedPng(f3) } catch {} }
 
   // PAGE 1
   const page1 = pdfDoc.addPage([595, 842])
@@ -212,16 +230,11 @@ export async function generateNSSApplicationPDF(formData: FormData) {
 
   // Draw signature box (right column below photo) — will not overlap left column now
   page1.drawRectangle({ x: sigXShifted, y: sigY, width: sigW, height: sigH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
-  if (formData.signature) {
+  if (signatureBuffer) {
     try {
-      const buf = await imageToBuffer(formData.signature)
-      if (buf) {
-        let sImg
-        try { sImg = await pdfDoc.embedPng(buf) } catch { sImg = await pdfDoc.embedJpg(buf) }
-        page1.drawImage(sImg, { x: sigXShifted + 2, y: sigY + 2, width: sigW - 4, height: sigH - 4 })
-      } else {
-        page1.drawText("Student Signature", { x: sigXShifted + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
-      }
+      let sImg
+      try { sImg = await pdfDoc.embedPng(signatureBuffer) } catch { sImg = await pdfDoc.embedJpg(signatureBuffer) }
+      page1.drawImage(sImg, { x: sigXShifted + 2, y: sigY + 2, width: sigW - 4, height: sigH - 4 })
     } catch (e) {
       page1.drawText("Student Signature", { x: sigXShifted + 2, y: sigY - 10, size: 9, color: rgb(0.45, 0.45, 0.45) })
     }
@@ -301,14 +314,11 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   y2 -= 80
   const volX = 55, volY = y2, volW = 140, volH = 40
   page2.drawRectangle({ x: volX, y: volY, width: volW, height: volH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
-  if (formData.signature) {
+  if (signatureBuffer) {
     try {
-      const buf = await imageToBuffer(formData.signature)
-      if (buf) {
-        let sImg
-        try { sImg = await pdfDoc.embedPng(buf) } catch { sImg = await pdfDoc.embedJpg(buf) }
-        page2.drawImage(sImg, { x: volX + 2, y: volY + 2, width: volW - 4, height: volH - 4 })
-      }
+      let sImg
+      try { sImg = await pdfDoc.embedPng(signatureBuffer) } catch { sImg = await pdfDoc.embedJpg(signatureBuffer) }
+      page2.drawImage(sImg, { x: volX + 2, y: volY + 2, width: volW - 4, height: volH - 4 })
     } catch {}
   }
   page2.drawText("Signature of Volunteer", { x: volX, y: volY - 15, size: 10, color: rgb(0.3, 0.3, 0.3) })
@@ -316,12 +326,10 @@ export async function generateNSSApplicationPDF(formData: FormData) {
   const coordX = 380, coordY = volY, coordW = 140, coordH = 40
   page2.drawRectangle({ x: coordX, y: coordY, width: coordW, height: coordH, borderWidth: 1, borderColor: rgb(0.6, 0.6, 0.6) })
   
-  // Try to load and embed coordinator signature
+  // Try to load and embed coordinator signature (cached)
   try {
-    const coordPath = path.join(process.cwd(), "public", "coordinatorSign.png")
-    if (fs.existsSync(coordPath)) {
-      const coordBuf = fs.readFileSync(coordPath)
-      // Try PNG first, then JPG
+    const coordBuf = loadLocalFile("public/coordinatorSign.png")
+    if (coordBuf) {
       try {
         const coordImg = await pdfDoc.embedPng(coordBuf)
         page2.drawImage(coordImg, { x: coordX + 2, y: coordY + 2, width: coordW - 4, height: coordH - 4 })
@@ -333,12 +341,9 @@ export async function generateNSSApplicationPDF(formData: FormData) {
           console.error("Error embedding coordinator signature (both PNG and JPG failed):", jpgError)
         }
       }
-    } else {
-      console.warn("Coordinator signature file not found at:", coordPath)
     }
   } catch (e) {
     console.error("Error loading coordinator signature:", e)
-    // If signature image fails to load, just show the box with label
   }
   page2.drawText("Signature of Programme Coordinator", { x: coordX - 12, y: coordY - 15, size: 10, color: rgb(0.3, 0.3, 0.3) })
 

@@ -42,8 +42,8 @@ export async function generateVolunteerExportPDF(
   const colCount = cols.length
 
   // Give wider columns to fields that typically have more text
-  const wideFields = new Set(["name", "email", "schoolName", "departmentName", "hostelAddress", "homeAddress", "programOfficerName", "specialNSSAchievements", "otherAchievements", "fatherName", "motherName", "courseName"])
-  const narrowFields = new Set(["gender", "category", "unitNo", "year", "myBharatRegistered", "attendedSpecialCamp", "attendedELP", "classSemester", "nssEnrollmentYear", "totalHours", "eventHours", "meetingHours", "totalEvents", "completedEvents", "attendanceRate", "activeProjects", "bloodGroup"])
+  const wideFields = new Set(["name", "email", "schoolName", "departmentName", "hostelAddress", "homeAddress", "programOfficerName", "specialNSSAchievements", "otherAchievements", "fatherName", "motherName", "courseName", "removalReason"])
+  const narrowFields = new Set(["gender", "category", "unitNo", "year", "myBharatRegistered", "attendedSpecialCamp", "attendedELP", "classSemester", "nssEnrollmentYear", "totalHours", "eventHours", "meetingHours", "totalEvents", "completedEvents", "attendanceRate", "activeProjects", "bloodGroup", "removedAt"])
 
   // Calculate weighted width
   let totalWeight = 0

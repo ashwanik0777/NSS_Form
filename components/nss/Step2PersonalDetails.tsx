@@ -3,6 +3,7 @@
 import type { StepProps } from "@/lib/types"
 import { useState, useEffect } from "react"
 import { schoolDepartmentData } from "@/lib/constants"
+import { CheckCircle2 } from "lucide-react"
 
 export default function Step2PersonalDetails({
 	formData,
@@ -296,8 +297,9 @@ export default function Step2PersonalDetails({
 					{errors.photo && <p className="text-sm text-destructive">{errors.photo}</p>}
 					{formData.photo && (
 						<div className="mt-2">
-							<p className="text-xs text-green-600">
-								✓ Photo uploaded successfully
+							<p className="text-xs text-green-600 flex items-center gap-1 font-medium">
+								<CheckCircle2 className="w-3.5 h-3.5 inline shrink-0" />
+								Photo uploaded successfully
 							</p>
 							<img
 								src={formData.photo}
@@ -336,8 +338,9 @@ export default function Step2PersonalDetails({
 					{errors.signature && <p className="text-sm text-destructive">{errors.signature}</p>}
 					{formData.signature && (
 						<div className="mt-2">
-							<p className="text-xs text-green-600">
-								✓ Signature uploaded successfully
+							<p className="text-xs text-green-600 flex items-center gap-1 font-medium">
+								<CheckCircle2 className="w-3.5 h-3.5 inline shrink-0" />
+								Signature uploaded successfully
 							</p>
 							<img
 								src={formData.signature}

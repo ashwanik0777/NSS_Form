@@ -14,6 +14,7 @@ import {
   MapPin,
   Image,
   Eye,
+  X,
 } from "lucide-react"
 
 interface AttendanceRecord {
@@ -149,15 +150,15 @@ export default function AttendanceReviewPage() {
     <ProtectedRoute requiredRole="sub-admin" requiredPermission="events.manage">
       <AdminHeader title="Attendance Review" subtitle="Approve volunteer attendance submissions" />
 
-      <div className="p-6 space-y-6">
-        <div className="bg-card rounded-xl border border-border p-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+        <div className="bg-card rounded-xl border border-border p-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shadow-xs">
           <div className="flex gap-3">
-            <div className="flex items-center px-3 py-2 border border-border rounded-lg bg-input">
-              <Filter className="w-4 h-4 text-muted-foreground mr-2" />
+            <div className="flex items-center px-3 py-2 border border-border rounded-lg bg-input w-full sm:w-auto">
+              <Filter className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
               <select
                 value={filters.reviewStatus}
                 onChange={(e) => setFilters((prev) => ({ ...prev, reviewStatus: e.target.value }))}
-                className="bg-transparent outline-none text-sm"
+                className="bg-transparent outline-none text-sm w-full"
               >
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
@@ -166,20 +167,20 @@ export default function AttendanceReviewPage() {
               </select>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center px-3 py-2 border border-border rounded-lg bg-input">
-              <Search className="w-4 h-4 text-muted-foreground mr-2" />
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center px-3 py-2 border border-border rounded-lg bg-input flex-1 md:w-64">
+              <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
               <input
                 type="text"
                 placeholder="Search volunteer or event"
                 value={filters.search}
                 onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-                className="bg-transparent outline-none text-sm w-48"
+                className="bg-transparent outline-none text-sm w-full"
               />
             </div>
             <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium shrink-0"
             >
               Apply
             </button>
@@ -263,17 +264,30 @@ export default function AttendanceReviewPage() {
       </div>
 
       {selectedRecord && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="bg-card rounded-2xl border border-border shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between p-6 border-b border-border">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-card rounded-2xl border border-border shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto smooth-modal">
+            <div className="flex items-start justify-between p-5 sm:p-6 border-b border-border">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Event</p>
-                <h2 className="text-2xl font-bold text-foreground">{selectedRecord.eventId?.title || "Event"}</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Attendance Review</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">{selectedRecord.eventId?.title || "Event"}</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                   {selectedRecord.eventId?.eventDate ? new Date(selectedRecord.eventId.eventDate).toLocaleString() : "—"}
                 </p>
               </div>
-              <div className="flex items-center gap-2">{getReviewBadge(selectedRecord.reviewStatus)}</div>
+              <div className="flex items-center gap-3">
+                {getReviewBadge(selectedRecord.reviewStatus)}
+                <button
+                  onClick={() => {
+                    setSelectedRecord(null)
+                    setNotes("")
+                    setHoursInput("")
+                    setError(null)
+                  }}
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-6">

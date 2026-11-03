@@ -190,7 +190,7 @@ export default function ProfileCompletionPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* Success Message */}
       {successMessage && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg flex items-center justify-between">
@@ -205,23 +205,23 @@ export default function ProfileCompletionPage() {
       )}
 
       {/* Header Card */}
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20 p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <User className="w-8 h-8 text-primary" />
+      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20 p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2.5 sm:p-3 bg-primary/10 rounded-xl shrink-0">
+              <User className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">Complete Your Profile</h1>
-              <p className="text-muted-foreground mt-1">Fill in the missing information to proceed to project selection</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Complete Your Profile</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">Fill in the missing information to proceed to project selection</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-center md:text-right">
-              <div className="text-4xl md:text-5xl font-bold leading-none whitespace-nowrap text-primary">
+          <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-border/60">
+            <div className="text-left sm:text-right">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-bold leading-none whitespace-nowrap text-primary">
                 {String(percent)}%
               </div>
-              <div className="text-sm text-muted-foreground font-medium mt-1">Complete</div>
+              <div className="text-xs sm:text-sm text-muted-foreground font-medium mt-1">Complete</div>
             </div>
             {getStatusIcon()}
           </div>
@@ -282,7 +282,7 @@ export default function ProfileCompletionPage() {
       </div> */}
 
       {/* Form Fields */}
-      <div className="bg-card rounded-xl border border-border shadow-sm p-6 md:p-8 space-y-8">
+      <div className="bg-card rounded-xl border border-border shadow-sm p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         {/* Section: Personal Details */}
         <div>
           <div className="flex items-center gap-2 mb-6">
@@ -652,14 +652,14 @@ export default function ProfileCompletionPage() {
               {errors.general}
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {completion.percent < 100 ? "Complete all required fields to proceed to project selection" : "All required fields are complete!"}
             </p>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-lg hover:from-primary/90 hover:to-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-lg hover:from-primary/90 hover:to-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium"
             >
               {saving ? (
                 <>

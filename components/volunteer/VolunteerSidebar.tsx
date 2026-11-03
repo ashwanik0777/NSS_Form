@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
@@ -18,14 +18,21 @@ import {
   Calendar,
   CreditCard,
   Shield,
+  X,
 } from "lucide-react"
-
 
 interface SidebarItem {
   id: string
   label: string
   icon: React.ReactNode
   href: string
+}
+
+interface VolunteerSidebarProps {
+  /** Controlled by parent layout on mobile */
+  mobileOpen?: boolean
+  /** Called when mobile overlay or close button is clicked */
+  onClose?: () => void
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -97,12 +104,32 @@ const sidebarItems: SidebarItem[] = [
   },
 ]
 
-export default function VolunteerSidebar() {
+export default function VolunteerSidebar({ mobileOpen: controlledMobileOpen, onClose }: VolunteerSidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [uncontrolledMobileOpen, setUncontrolledMobileOpen] = useState(false)
   const { data: session } = useSession()
   const user = session?.user as any
+
+  const isMobileOpen = controlledMobileOpen !== undefined ? controlledMobileOpen : uncontrolledMobileOpen
+  const effectiveOnClose = onClose || (() => setUncontrolledMobileOpen(false))
+
+  // Close mobile drawer on Escape key
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        effectiveOnClose()
+      }
+    },
+    [effectiveOnClose]
+  )
+
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.addEventListener("keydown", handleKeyDown)
+    }
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [isMobileOpen, handleKeyDown])
 
   const items = [...sidebarItems]
 
@@ -126,77 +153,82 @@ export default function VolunteerSidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-card border border-border rounded-lg shadow-lg hover:bg-muted transition-colors"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
-
       {/* Mobile Overlay */}
-      {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <div
+        className={`lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 transition-opacity duration-300 ${
+          isMobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={effectiveOnClose}
+        aria-hidden="true"
+      />
 
       <aside
-        className={`${collapsed ? "w-20" : "w-72"
-          } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          } bg-gradient-to-b from-card to-card/80 backdrop-blur-md border-r border-border/50 transition-all duration-300 ease-in-out shadow-xl h-screen flex flex-col fixed lg:relative z-50`}
+        className={`${collapsed ? "w-20" : "w-72"} ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        } bg-gradient-to-b from-card to-card/95 backdrop-blur-md border-r border-border/50 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none h-screen flex flex-col fixed lg:relative z-50`}
+        aria-label="Volunteer navigation"
       >
-        <div className="flex items-center justify-between p-6 border-b border-border/50">
-          {!collapsed && (
-            <div className="flex items-center">
-              <div className="rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                {/* <Award className="w-6 h-6 text-white" /> */}
-                {/* nss logo */}
-                <img
-                  src="/nssLogo.png"
-                  alt="NSS Logo"
-                  className="w-12 h-12 object-contain"
-                />
-
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">NSS Volunteer</h2>
-                <p className="text-sm text-muted-foreground">Portal</p>
-              </div>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border/50">
+          <div className="flex items-center">
+            <div className="rounded-xl flex items-center justify-center mr-3 shadow-md">
+              <img
+                src="/nssLogo.png"
+                alt="NSS Logo"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+              />
             </div>
-          )}
+            <div>
+              <h2 className="text-base sm:text-xl font-bold text-foreground leading-tight">NSS Volunteer</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">Portal</p>
+            </div>
+          </div>
+
+          {/* Desktop collapse toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-2 hover:bg-muted rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
+            className="hidden lg:flex p-2 hover:bg-muted rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <ChevronLeft className={`w-5 h-5 transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`} />
           </button>
+
+          {/* Mobile close drawer button */}
+          <button
+            onClick={effectiveOnClose}
+            className="lg:hidden p-2 hover:bg-muted rounded-xl transition-all duration-150 active:scale-95"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
         </div>
 
-        <nav className="p-4 flex-1">
-          <ul className="space-y-2">
+        <nav className="p-3 sm:p-4 flex-1 overflow-y-auto scroll-smooth overscroll-contain">
+          <ul className="space-y-1.5 sm:space-y-2">
             {items.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href))
               return (
                 <li key={item.id}>
                   <Link
                     href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`group flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${isActive
-                        ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25"
-                        : "text-foreground hover:bg-muted/80 hover:scale-105"
-                      }`}
+                    onClick={effectiveOnClose}
+                    className={`group flex items-center px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? "bg-gradient-to-r from-primary to-secondary text-white shadow-md shadow-primary/25"
+                        : "text-foreground hover:bg-muted/80 hover:translate-x-1"
+                    }`}
                     title={collapsed ? item.label : undefined}
                   >
                     <span
-                      className={`flex-shrink-0 transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"
-                        }`}
+                      className={`flex-shrink-0 transition-transform duration-200 ${
+                        isActive ? "scale-110" : "group-hover:scale-110"
+                      }`}
                     >
                       {item.icon}
                     </span>
                     {!collapsed && (
-                      <span className="ml-4 text-sm font-semibold transition-all duration-300">{item.label}</span>
+                      <span className="ml-3 sm:ml-4 text-xs sm:text-sm font-semibold transition-all duration-200">
+                        {item.label}
+                      </span>
                     )}
                     {!collapsed && isActive && (
                       <div className="ml-auto w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -209,41 +241,37 @@ export default function VolunteerSidebar() {
         </nav>
 
         {!collapsed && (
-          <div className="p-4 border-t border-border/50">
-            <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 mb-3 flex items-center justify-center">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mr-3 shadow-md">
-                  {/* user photo */}
+          <div className="p-3 sm:p-4 border-t border-border/50">
+            <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-3 border border-border/30 flex items-center justify-between gap-2">
+              <div className="flex items-center min-w-0">
+                <div className="w-9 h-9 bg-primary/10 text-primary rounded-xl flex items-center justify-center mr-2.5 shadow-xs shrink-0 overflow-hidden">
                   {user?.image ? (
                     <img
-                      src={user.photo}
+                      src={user.image}
                       alt={user.name || "Profile Photo"}
-                      className="w-10 h-10 rounded-xl object-cover"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Award className="w-5 h-5 text-white" />
+                    <Award className="w-5 h-5 text-primary" />
                   )}
-                  
-                  {/* user name */}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{user?.name || "Volunteer"}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{user?.name || "Volunteer"}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                 </div>
               </div>
 
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
+                className="p-2 hover:bg-red-50 text-muted-foreground hover:text-red-600 rounded-lg transition-colors shrink-0"
+                title="Sign out"
               >
-                <LogOut className="w-4 h-4 ml-2 mt-2" />
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
-
           </div>
         )}
       </aside>
     </>
   )
 }
-

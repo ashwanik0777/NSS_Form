@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-  TrendingUp,
   ChevronRight,
   BarChart3,
   Activity,
@@ -20,6 +19,7 @@ import {
   Eye,
   Loader2,
   ArrowRight,
+  Share2,
 } from "lucide-react"
 
 interface DashboardStats {
@@ -47,6 +47,9 @@ interface CompletedEvent {
   title: string
   eventDate: string
   participation: number
+  registrations?: number
+  approvedAttendance?: number
+  pendingAttendance?: number
 }
 
 // ── Stat Card Component ──────────────────────────────────────────────────────
@@ -102,11 +105,11 @@ function SectionHeader({
   iconColor: string
 }) {
   return (
-    <div className="flex items-center gap-3 mb-5">
-      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: iconBg }}>
+    <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+      <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: iconBg }}>
         <span style={{ color: iconColor }}>{icon}</span>
       </div>
-      <h3 className="text-[15px] font-semibold tracking-tight" style={{ color: "#0f1f3d" }}>
+      <h3 className="text-sm sm:text-[15px] font-semibold tracking-tight" style={{ color: "#0f1f3d" }}>
         {title}
       </h3>
     </div>
@@ -279,7 +282,7 @@ export default function AdminDashboard() {
     <>
       <AdminHeader title="Dashboard" subtitle="NSS Application & Activity Management" />
 
-      <div className="p-3 sm:p-6 space-y-5 sm:space-y-7 admin-fade-in">
+      <div className="p-3 sm:p-5 space-y-3.5 sm:space-y-4.5 admin-fade-in">
 
         {/* ── Overview Statistics ─────────────────────────────────────────── */}
         <section>
@@ -289,7 +292,7 @@ export default function AdminDashboard() {
             iconBg="#dbeafe"
             iconColor="#1e40af"
           />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
             {overviewCards.map((card, index) => (
               <StatCard
                 key={index}
@@ -305,370 +308,355 @@ export default function AdminDashboard() {
 
         {/* ── Pending Actions ─────────────────────────────────────────────── */}
         <section>
-          <SectionHeader
-            icon={<AlertCircle className="w-3.5 h-3.5" />}
-            title="Pending Actions"
-            iconBg="#fef3c7"
-            iconColor="#d97706"
-          />
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* Application Reviews */}
-            <Link
-              href="/admin/applications"
-              className="group flex items-center justify-between gap-4 rounded-2xl border p-5 transition-all duration-250 hover:-translate-y-0.5"
-              style={{
-                background: "#ffffff",
-                borderColor: "#e8edf5",
-                boxShadow: "0 2px 6px rgba(15,31,61,0.05)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#fbbf24"
-                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(217,119,6,0.12)"
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#e8edf5"
-                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 2px 6px rgba(15,31,61,0.05)"
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "#fef3c7" }}>
-                  <FileText className="w-5 h-5" style={{ color: "#d97706" }} />
+          <div className="admin-card !p-3.5 sm:!p-4">
+            <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "#fef3c7" }}>
+                  <AlertCircle className="w-3 h-3" style={{ color: "#d97706" }} />
                 </div>
-                <div>
-                  <p className="font-semibold text-sm" style={{ color: "#0f1f3d" }}>Application Reviews</p>
-                  <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>
-                    {loading ? "Loading..." : `${stats?.pendingApprovals || 0} applications awaiting review`}
-                  </p>
-                </div>
+                <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-slate-800">
+                  Pending Actions
+                </h3>
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">· Immediate review required</span>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {!loading && (stats?.pendingApprovals || 0) > 0 && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#fef3c7", color: "#b45309" }}>
-                    {stats?.pendingApprovals}
-                  </span>
-                )}
-                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" style={{ color: "#94a3b8" }} />
-              </div>
-            </Link>
+              {!loading && ((stats?.pendingApprovals || 0) + (stats?.pendingAttendance || 0)) > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: "#fef3c7", color: "#b45309" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  {((stats?.pendingApprovals || 0) + (stats?.pendingAttendance || 0))} pending
+                </span>
+              )}
+            </div>
 
-            {/* Attendance Verification */}
-            <Link
-              href="/admin/attendance"
-              className="group flex items-center justify-between gap-4 rounded-2xl border p-5 transition-all duration-250 hover:-translate-y-0.5"
-              style={{
-                background: "#ffffff",
-                borderColor: "#e8edf5",
-                boxShadow: "0 2px 6px rgba(15,31,61,0.05)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#fda4af"
-                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(225,29,72,0.1)"
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#e8edf5"
-                ;(e.currentTarget as HTMLElement).style.boxShadow = "0 2px 6px rgba(15,31,61,0.05)"
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "#ffe4e6" }}>
-                  <ClipboardList className="w-5 h-5" style={{ color: "#e11d48" }} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
+              {/* Application Reviews */}
+              <Link
+                href="/admin/applications"
+                className="group flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-slate-200/70 bg-slate-50/50 hover:bg-amber-50/60 hover:border-amber-300 transition-all duration-150"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
+                    style={{ background: "#fef3c7" }}
+                  >
+                    <FileText className="w-4 h-4" style={{ color: "#d97706" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs sm:text-sm text-slate-900 group-hover:text-amber-950 transition-colors">
+                      Application Reviews
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                      {loading ? "Loading..." : `${stats?.pendingApprovals || 0} applications awaiting review`}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-sm" style={{ color: "#0f1f3d" }}>Attendance Verification</p>
-                  <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>
-                    {loading ? "Loading..." : `${stats?.pendingAttendance || 0} verifications pending`}
-                  </p>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {!loading && (stats?.pendingApprovals || 0) > 0 ? (
+                    <span
+                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
+                      style={{ background: "#fef3c7", color: "#b45309" }}
+                    >
+                      {stats?.pendingApprovals}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium text-slate-400 bg-white border border-slate-200">
+                      0
+                    </span>
+                  )}
+                  <ArrowRight
+                    className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    style={{ color: "#94a3b8" }}
+                  />
                 </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {!loading && (stats?.pendingAttendance || 0) > 0 && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#ffe4e6", color: "#be123c" }}>
-                    {stats?.pendingAttendance}
-                  </span>
-                )}
-                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" style={{ color: "#94a3b8" }} />
-              </div>
-            </Link>
+              </Link>
+
+              {/* Attendance Verification */}
+              <Link
+                href="/admin/attendance"
+                className="group flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-slate-200/70 bg-slate-50/50 hover:bg-rose-50/60 hover:border-rose-300 transition-all duration-150"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
+                    style={{ background: "#ffe4e6" }}
+                  >
+                    <ClipboardList className="w-4 h-4" style={{ color: "#e11d48" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs sm:text-sm text-slate-900 group-hover:text-rose-950 transition-colors">
+                      Attendance Verification
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                      {loading ? "Loading..." : `${stats?.pendingAttendance || 0} verifications pending`}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {!loading && (stats?.pendingAttendance || 0) > 0 ? (
+                    <span
+                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
+                      style={{ background: "#ffe4e6", color: "#be123c" }}
+                    >
+                      {stats?.pendingAttendance}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium text-slate-400 bg-white border border-slate-200">
+                      0
+                    </span>
+                  )}
+                  <ArrowRight
+                    className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    style={{ color: "#94a3b8" }}
+                  />
+                </div>
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* ── Events Overview ─────────────────────────────────────────────── */}
         <section>
-          <SectionHeader
-            icon={<Calendar className="w-3.5 h-3.5" />}
-            title="Events Overview"
-            iconBg="#ede9fe"
-            iconColor="#7c3aed"
-          />
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* Upcoming Events */}
-            <div className="admin-card">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#dbeafe" }}>
-                    <CalendarCheck className="w-4 h-4" style={{ color: "#1e40af" }} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>Upcoming Events</p>
-                    <p className="text-[11px]" style={{ color: "#94a3b8" }}>Next scheduled events</p>
-                  </div>
+          <div className="admin-card !p-3.5 sm:!p-4">
+            <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "#ede9fe" }}>
+                  <Calendar className="w-3 h-3" style={{ color: "#7c3aed" }} />
                 </div>
-                <Link href="/admin/events" className="text-[11px] font-medium px-2 py-1 rounded-lg transition-colors hover:bg-blue-50" style={{ color: "#1e40af" }}>
-                  View all
-                </Link>
-              </div>
-
-              {loading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-12 admin-skeleton rounded-xl" />
-                  ))}
-                </div>
-              ) : upcomingEvents.length > 0 ? (
-                <div className="space-y-1.5">
-                  {upcomingEvents.map((event) => (
-                    <div key={event._id} className="admin-event-row">
-                      <div className="flex-1 min-w-0 pr-3">
-                        <p className="text-sm font-medium truncate" style={{ color: "#1e293b" }}>{event.title}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: "#94a3b8" }}>
-                          {formatDate(event.eventDate)}{event.location ? ` · ${event.location}` : ""}
-                        </p>
-                      </div>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0" style={{ background: "#dbeafe", color: "#1e40af" }}>
-                        {event.registrations}{event.maxParticipants ? `/${event.maxParticipants}` : ""} reg.
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2" style={{ background: "#f0f4f8" }}>
-                    <CalendarCheck className="w-5 h-5" style={{ color: "#94a3b8" }} />
-                  </div>
-                  <p className="text-sm" style={{ color: "#64748b" }}>No upcoming events</p>
-                </div>
-              )}
-            </div>
-
-            {/* Completed Events */}
-            <div className="admin-card">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#d1fae5" }}>
-                    <CheckCircle2 className="w-4 h-4" style={{ color: "#059669" }} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>Recently Completed</p>
-                    <p className="text-[11px]" style={{ color: "#94a3b8" }}>Participation summary</p>
-                  </div>
-                </div>
-                <Link href="/admin/events" className="text-[11px] font-medium px-2 py-1 rounded-lg transition-colors hover:bg-emerald-50" style={{ color: "#059669" }}>
-                  View all
-                </Link>
-              </div>
-
-              {loading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-12 admin-skeleton rounded-xl" />
-                  ))}
-                </div>
-              ) : completedEvents.length > 0 ? (
-                <div className="space-y-1.5">
-                  {completedEvents.map((event) => (
-                    <div key={event._id} className="admin-event-row">
-                      <div className="flex-1 min-w-0 pr-3">
-                        <p className="text-sm font-medium truncate" style={{ color: "#1e293b" }}>{event.title}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: "#94a3b8" }}>{formatDate(event.eventDate)}</p>
-                      </div>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap flex-shrink-0" style={{ background: "#d1fae5", color: "#059669" }}>
-                        {event.participation} participated
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2" style={{ background: "#f0f4f8" }}>
-                    <CheckCircle2 className="w-5 h-5" style={{ color: "#94a3b8" }} />
-                  </div>
-                  <p className="text-sm" style={{ color: "#64748b" }}>No completed events yet</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Meetings Overview + Attendance ──────────────────────────────── */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Meetings */}
-          <div className="admin-card">
-            <SectionHeader
-              icon={<Calendar className="w-3.5 h-3.5" />}
-              title="Meetings Overview"
-              iconBg="#fef3c7"
-              iconColor="#d97706"
-            />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: "Total", value: meetings.total, bg: "#f8fafc", text: "#1e293b" },
-                { label: "Upcoming", value: meetings.upcomingOrOngoing, bg: "#dbeafe", text: "#1e40af" },
-                { label: "Completed", value: meetings.completed, bg: "#d1fae5", text: "#059669" },
-                { label: "Cancelled", value: meetings.cancelled, bg: "#ffe4e6", text: "#e11d48" },
-              ].map((item) => (
-                <div key={item.label} className="rounded-xl p-3 text-center" style={{ background: item.bg }}>
-                  <p className="text-[11px] font-medium mb-1" style={{ color: "#94a3b8" }}>{item.label}</p>
-                <p className="text-xl sm:text-2xl font-bold" style={{ color: item.text }}>{item.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Meeting Attendance */}
-          <div className="admin-card">
-            <SectionHeader
-              icon={<UserCheck className="w-3.5 h-3.5" />}
-              title="Meeting Attendance"
-              iconBg="#cffafe"
-              iconColor="#0891b2"
-            />
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: "Registrations", value: meetingAttendance.totalRegistrations, bg: "#f8fafc", text: "#1e293b" },
-                { label: "Attended", value: meetingAttendance.attended, bg: "#d1fae5", text: "#059669" },
-                { label: "Absent", value: meetingAttendance.absent, bg: "#ffe4e6", text: "#e11d48" },
-              ].map((item) => (
-                <div key={item.label} className="rounded-xl p-3 text-center" style={{ background: item.bg }}>
-                  <p className="text-[11px] font-medium mb-1" style={{ color: "#94a3b8" }}>{item.label}</p>
-                <p className="text-xl sm:text-2xl font-bold" style={{ color: item.text }}>{item.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Reports & Recent Activity ───────────────────────────────────── */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Reports link */}
-          <Link
-            href="/admin/reports"
-            className="admin-card admin-card-hover group block"
-            style={{ textDecoration: "none" }}
-          >
-            <div className="flex items-start gap-4">
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
-                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)", boxShadow: "0 4px 12px rgba(30,64,175,0.25)" }}
-              >
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base font-semibold transition-colors duration-150 group-hover:text-blue-700" style={{ color: "#0f1f3d" }}>
-                  Reports & Analytics
+                <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-slate-800">
+                  Events Overview
                 </h3>
-                <p className="text-sm mt-1" style={{ color: "#64748b" }}>Monthly events, attendance trends & volunteer stats</p>
-                <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#1e40af" }}>
-                  View reports
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </div>
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">· Scheduled & completed events</span>
               </div>
+              <Link
+                href="/admin/events"
+                className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+              >
+                All Events
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-          </Link>
 
-          {/* Recent Activity */}
-          <div className="admin-card">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "#cffafe" }}>
-                <Activity className="w-6 h-6" style={{ color: "#0891b2" }} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 sm:gap-3.5">
+              {/* Upcoming Events Column */}
+              <div className="p-3 rounded-xl border border-slate-200/70 bg-slate-50/40 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-200/50">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: "#dbeafe" }}>
+                      <CalendarCheck className="w-3 h-3" style={{ color: "#1e40af" }} />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-800">Upcoming Events</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">Next scheduled</span>
+                </div>
+
+                {loading ? (
+                  <div className="space-y-1.5 py-1">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-9 admin-skeleton rounded-lg" />
+                    ))}
+                  </div>
+                ) : upcomingEvents.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {upcomingEvents.map((event) => (
+                      <Link
+                        key={event._id}
+                        href="/admin/events"
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/60 hover:border-blue-300 hover:bg-blue-50/30 transition-all text-xs"
+                      >
+                        <div className="flex-1 min-w-0 pr-2">
+                          <p className="font-medium text-slate-800 truncate">{event.title}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                            {formatDate(event.eventDate)}{event.location ? ` · ${event.location}` : ""}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0" style={{ background: "#dbeafe", color: "#1e40af" }}>
+                          {event.registrations}{event.maxParticipants ? `/${event.maxParticipants}` : ""} reg.
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-5 text-center">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-1 bg-slate-100">
+                      <CalendarCheck className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                    <p className="text-xs text-slate-500">No upcoming events scheduled</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <h3 className="text-base font-semibold" style={{ color: "#0f1f3d" }}>System Summary</h3>
-                <p className="text-sm mt-0.5" style={{ color: "#64748b" }}>Live application & event metrics</p>
+
+              {/* Completed Events Column */}
+              <div className="p-3 rounded-xl border border-slate-200/70 bg-slate-50/40 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-200/50">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: "#d1fae5" }}>
+                      <CheckCircle2 className="w-3 h-3" style={{ color: "#059669" }} />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-800">Recently Completed</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">Turnout records</span>
+                </div>
+
+                {loading ? (
+                  <div className="space-y-1.5 py-1">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-9 admin-skeleton rounded-lg" />
+                    ))}
+                  </div>
+                ) : completedEvents.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {completedEvents.map((event) => (
+                      <Link
+                        key={event._id}
+                        href="/admin/events"
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/60 hover:border-emerald-300 hover:bg-emerald-50/30 transition-all text-xs"
+                      >
+                        <div className="flex-1 min-w-0 pr-2">
+                          <p className="font-medium text-slate-800 truncate">{event.title}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                            {formatDate(event.eventDate)}
+                            {typeof event.registrations === "number" && event.registrations > 0
+                              ? ` · ${event.registrations} registered`
+                              : ""}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0" style={{ background: "#d1fae5", color: "#059669" }}>
+                          {event.participation} participated
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-5 text-center">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-1 bg-slate-100">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                    <p className="text-xs text-slate-500">No completed events yet</p>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="space-y-2">
-              {[
-                {
-                  dot: "#16a34a",
-                  label: "Applications",
-                  value: `${legacyStats.approved} approved · ${legacyStats.pendingReview} pending · ${legacyStats.rejected} rejected`,
-                },
-                {
-                  dot: "#1e40af",
-                  label: "Events",
-                  value: `${stats?.upcomingEvents || 0} upcoming · ${stats?.completedEvents || 0} completed`,
-                },
-                {
-                  dot: "#d97706",
-                  label: "Meetings",
-                  value: `${meetings.total} total · ${meetings.upcomingOrOngoing} upcoming`,
-                },
-              ].map((item) => (
-                <div key={item.label} className="flex items-start gap-3 px-3 py-2.5 rounded-xl" style={{ background: "#f8fafc" }}>
-                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: item.dot }} />
-                  <div>
-                    <p className="text-xs font-semibold" style={{ color: "#334155" }}>{item.label}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>{item.value}</p>
-                  </div>
+          </div>
+        </section>
+
+        {/* ── Meetings & Attendance ───────────────────────────────────────── */}
+        <section>
+          <div className="admin-card !p-3.5 sm:!p-4">
+            <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "#cffafe" }}>
+                  <UserCheck className="w-3 h-3" style={{ color: "#0891b2" }} />
                 </div>
-              ))}
+                <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-slate-800">
+                  Meetings & Attendance
+                </h3>
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">· Session status & turnout</span>
+              </div>
+              <Link
+                href="/admin/meetings"
+                className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+              >
+                All Meetings
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 sm:gap-3.5">
+              {/* Meetings Status */}
+              <div className="p-3 rounded-xl border border-slate-200/70 bg-slate-50/40">
+                <p className="text-xs font-semibold text-slate-700 mb-2">Meetings Status</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { label: "Total", value: meetings.total, bg: "#ffffff", text: "#1e293b", border: "#e2e8f0" },
+                    { label: "Upcoming", value: meetings.upcomingOrOngoing, bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe" },
+                    { label: "Completed", value: meetings.completed, bg: "#f0fdf4", text: "#059669", border: "#bbf7d0" },
+                    { label: "Cancelled", value: meetings.cancelled, bg: "#fff1f2", text: "#e11d48", border: "#fecdd3" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-lg p-2 text-center border"
+                      style={{ background: item.bg, borderColor: item.border }}
+                    >
+                      <p className="text-[10px] font-medium text-slate-500 mb-0.5">{item.label}</p>
+                      <p className="text-base sm:text-lg font-bold" style={{ color: item.text }}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Attendance Breakdown */}
+              <div className="p-3 rounded-xl border border-slate-200/70 bg-slate-50/40">
+                <p className="text-xs font-semibold text-slate-700 mb-2">Turnout Summary</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: "Registrations", value: meetingAttendance.totalRegistrations, bg: "#ffffff", text: "#1e293b", border: "#e2e8f0" },
+                    { label: "Attended", value: meetingAttendance.attended, bg: "#f0fdf4", text: "#059669", border: "#bbf7d0" },
+                    { label: "Absent", value: meetingAttendance.absent, bg: "#fff1f2", text: "#e11d48", border: "#fecdd3" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-lg p-2 text-center border"
+                      style={{ background: item.bg, borderColor: item.border }}
+                    >
+                      <p className="text-[10px] font-medium text-slate-500 mb-0.5">{item.label}</p>
+                      <p className="text-base sm:text-lg font-bold" style={{ color: item.text }}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* ── Quick Actions ────────────────────────────────────────────────── */}
         <section>
-          <SectionHeader
-            icon={<Eye className="w-3.5 h-3.5" />}
-            title="Quick Actions"
-            iconBg="#f3e8ff"
-            iconColor="#9333ea"
-          />
-          <div className="admin-card">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="admin-card !p-3.5 sm:!p-4">
+            <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "#f3e8ff" }}>
+                  <Eye className="w-3 h-3" style={{ color: "#9333ea" }} />
+                </div>
+                <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-slate-800">
+                  Quick Actions
+                </h3>
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">· Frequent admin shortcuts</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
               {[
                 {
                   href: "/admin/applications",
                   bg: "#dbeafe",
-                  icon: <FileText className="w-5 h-5" style={{ color: "#1e40af" }} />,
+                  icon: <FileText className="w-4 h-4" style={{ color: "#1e40af" }} />,
                   label: "Review Applications",
                   sub: `${legacyStats.pendingReview} pending`,
                 },
                 {
                   href: "/admin/users",
                   bg: "#cffafe",
-                  icon: <Users className="w-5 h-5" style={{ color: "#0891b2" }} />,
+                  icon: <Users className="w-4 h-4" style={{ color: "#0891b2" }} />,
                   label: "Manage Users",
-                  sub: "Admin & sub-admin accounts",
+                  sub: "Admin accounts",
                 },
                 {
                   href: "/admin/volunteers",
                   bg: "#d1fae5",
-                  icon: <UserCheck className="w-5 h-5" style={{ color: "#059669" }} />,
+                  icon: <UserCheck className="w-4 h-4" style={{ color: "#059669" }} />,
                   label: "Manage Volunteers",
-                  sub: `${stats?.totalVolunteers || 0} active volunteers`,
+                  sub: `${stats?.totalVolunteers || 0} active`,
                 },
               ].map((action) => (
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="group flex items-center gap-3.5 p-4 rounded-xl border border-transparent transition-all duration-200"
-                  style={{ background: "#f8fafc" }}
-                  onMouseEnter={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.background = action.bg
-                    ;(e.currentTarget as HTMLElement).style.borderColor = action.bg
-                  }}
-                  onMouseLeave={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.background = "#f8fafc"
-                    ;(e.currentTarget as HTMLElement).style.borderColor = "transparent"
-                  }}
+                  className="group flex items-center gap-2.5 px-3 py-2 rounded-lg border border-slate-200/70 bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all duration-150"
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105" style={{ background: action.bg }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105" style={{ background: action.bg }}>
                     {action.icon}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>{action.label}</p>
-                    <p className="text-xs mt-0.5 truncate" style={{ color: "#64748b" }}>{action.sub}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-primary transition-colors">{action.label}</p>
+                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{action.sub}</p>
                   </div>
                 </Link>
               ))}
@@ -678,18 +666,26 @@ export default function AdminDashboard() {
 
         {/* ── NSS Social Media ─────────────────────────────────────────────── */}
         <section>
-          <div className="admin-card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[15px] font-semibold" style={{ color: "#0f1f3d" }}>NSS Social Media</h3>
+          <div className="admin-card !p-3.5 sm:!p-4">
+            <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "#dbeafe" }}>
+                  <Share2 className="w-3 h-3" style={{ color: "#1e40af" }} />
+                </div>
+                <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-slate-800">
+                  NSS Social Media
+                </h3>
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">· Official public channels</span>
+              </div>
               <Link
                 href="/admin/social-links"
-                className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all duration-150 hover:bg-blue-50"
-                style={{ color: "#1e40af", borderColor: "#bfdbfe" }}
+                className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
               >
                 Edit Links
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap pt-1">
               {[
                 {
                   key: "facebook",
@@ -759,7 +755,9 @@ export default function AdminDashboard() {
               {!social.facebook && !social.instagram && !social.twitter && !social.linkedin && (
                 <p className="text-sm ml-1" style={{ color: "#94a3b8" }}>
                   No social links configured yet.{" "}
-                  <Link href="/admin/social-links" style={{ color: "#1e40af" }} className="hover:underline">Add links →</Link>
+                  <Link href="/admin/social-links" style={{ color: "#1e40af" }} className="hover:underline inline-flex items-center">
+                    Add links <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Link>
                 </p>
               )}
             </div>

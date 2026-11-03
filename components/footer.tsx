@@ -105,19 +105,31 @@ const Footer = () => {
         <nav aria-label="Quick links">
           <h3 className="font-semibold text-lg mb-3">Quick Links</h3>
           <ul className="space-y-2 text-gray-300 text-sm">
-            {[
-              "About",
-              "Volunteer Registration",
-            ].map((link) => (
-              <li key={link}>
-                <a
-                  href="#"
-                  className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded"
-                >
-                  {link}
-                </a>
-              </li>
-            ))}
+            <li>
+              <Link href="/" className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/about-nss" className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">
+                About NSS
+              </Link>
+            </li>
+            <li>
+              <Link href="/whos-who" className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">
+                Who's Who (PO & Mentors)
+              </Link>
+            </li>
+            <li>
+              <Link href="/register" className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">
+                Volunteer Registration
+              </Link>
+            </li>
+            <li>
+              <Link href="/login" className="hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">
+                Portal Login
+              </Link>
+            </li>
           </ul>
         </nav>
 

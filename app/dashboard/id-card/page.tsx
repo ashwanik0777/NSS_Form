@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Download, Eye, Loader2, AlertCircle, CheckCircle2, CreditCard } from "lucide-react"
+import { Download, Eye, Loader2, AlertCircle, CheckCircle2, CreditCard, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -147,17 +147,23 @@ export default function VolunteerIDCardPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <CreditCard className="w-8 h-8 text-primary" />
-            NSS Identity Card
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Generate and download your official NSS Volunteer Identity Card
-          </p>
-        </div>
+    <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+      <button
+        onClick={() => router.push("/dashboard")}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-all w-fit shadow-xs"
+      >
+        <ArrowRight className="w-4 h-4 rotate-180" />
+        <span>Back to Dashboard</span>
+      </button>
+
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-foreground flex items-center gap-2.5 sm:gap-3 tracking-tight">
+          <CreditCard className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
+          <span>Official NSS Identity Card</span>
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-1.5">
+          Generate, preview, and download your verified university NSS Volunteer Identity Card
+        </p>
       </div>
 
       {error && (
@@ -175,19 +181,21 @@ export default function VolunteerIDCardPage() {
             {eligibility.reason?.includes("profile") && (
               <Button
                 variant="link"
-                className="ml-2 p-0 h-auto"
+                className="ml-2 p-0 h-auto inline-flex items-center"
                 onClick={() => router.push("/dashboard/profile")}
               >
-                Complete Profile →
+                Complete Profile
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             )}
             {eligibility.reason?.includes("project") && (
               <Button
                 variant="link"
-                className="ml-2 p-0 h-auto"
+                className="ml-2 p-0 h-auto inline-flex items-center"
                 onClick={() => router.push("/dashboard/projects")}
               >
-                Select Project →
+                Select Project
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             )}
           </AlertDescription>
@@ -195,32 +203,32 @@ export default function VolunteerIDCardPage() {
       )}
 
       <Card>
-        <CardHeader>
-          <CardTitle>ID Card Generation</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl">ID Card Generation</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
             Your ID card will be generated with all your verified information
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4 sm:space-y-6">
           {eligibility?.eligible ? (
             <>
-              <div className="bg-muted/50 rounded-lg p-6 border border-border">
-                <div className="flex items-start gap-4">
+              <div className="bg-muted/50 rounded-xl p-4 sm:p-6 border border-border">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 sm:gap-4">
                   <div className="flex-shrink-0">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-8 h-8 text-primary" />
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-foreground mb-2">You're eligible!</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base mb-1 sm:mb-2">You're eligible!</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Your profile is complete and you have selected a project. You can now generate your NSS Identity Card.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <Button
                   onClick={handleViewIDCard}
                   disabled={generating}

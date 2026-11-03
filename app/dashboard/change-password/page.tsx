@@ -58,21 +58,21 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto p-3 sm:p-5 md:p-8 space-y-4 sm:space-y-6">
       <Link
         href="/dashboard"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-3 sm:mb-4"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Dashboard
       </Link>
 
-      <div className="bg-card rounded-lg border border-border p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center">
-          <Lock className="w-6 h-6 mr-2 text-primary" />
+      <div className="bg-card rounded-xl border border-border p-4 sm:p-6 md:p-8 shadow-sm">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 sm:mb-2 flex items-center">
+          <Lock className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-primary" />
           Change Password
         </h1>
-        <p className="text-muted-foreground mb-6">Update your account password</p>
+        <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">Update your account password</p>
 
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6">

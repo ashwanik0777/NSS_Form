@@ -9,6 +9,7 @@ import User from "@/models/User"
 import NSSApplication from "@/models/NSSApplication"
 import EventRegistration from "@/models/EventRegistration"
 import VolunteerEvent from "@/models/VolunteerEvent"
+import EventReport from "@/models/EventReport"
 import { sendEventNotificationEmail } from "@/lib/email"
 import { hasPermission, PermissionKey } from "@/lib/permissions"
 
@@ -38,22 +39,91 @@ export async function GET(request: NextRequest) {
     try {
        await NSSProject.init()
     } catch (e) {
-
+      // Ignored if already initialized
     }
 
     const { searchParams } = new URL(request.url)
     const pageParam = Number.parseInt(searchParams.get("page") || "1")
-    const limitParam = Number.parseInt(searchParams.get("limit") || "20")
+    const limitParam = Number.parseInt(searchParams.get("limit") || "10")
+    const statusParam = searchParams.get("status")?.trim() || ""
+    const searchParam = searchParams.get("search")?.trim() || ""
+
     const page = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam
-    const limit = Number.isNaN(limitParam) || limitParam < 1 ? 20 : limitParam
+    const limit = Number.isNaN(limitParam) || limitParam < 1 ? 10 : limitParam
     const skip = (page - 1) * limit
 
-    const events = await Event.find()
-      .populate("projectId")
-      .sort({ eventDate: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean()
+    // Build filter query for list
+    const filter: any = {}
+    if (statusParam && statusParam !== "all") {
+      filter.status = statusParam
+    }
+    if (searchParam) {
+      filter.$or = [
+        { title: { $regex: searchParam, $options: "i" } },
+        { description: { $regex: searchParam, $options: "i" } },
+        { location: { $regex: searchParam, $options: "i" } },
+        { coordinator: { $regex: searchParam, $options: "i" } },
+      ]
+    }
+
+    // Auto-update event status based on timing before pagination
+    const allPendingOrOngoingEvents = await Event.find({
+      status: { $in: ["upcoming", "ongoing"] },
+    })
+
+    const now = new Date()
+    for (const evt of allPendingOrOngoingEvents) {
+      const eventStartTime = evt.startTime ? new Date(evt.startTime) : new Date(evt.eventDate)
+      let eventEndTime: Date
+      if (evt.endTime) {
+        eventEndTime = new Date(evt.endTime)
+      } else if (evt.startTime) {
+        eventEndTime = new Date(new Date(evt.startTime).getTime() + 3 * 60 * 60 * 1000)
+      } else {
+        eventEndTime = new Date(evt.eventDate)
+        eventEndTime.setHours(23, 59, 59, 999)
+      }
+
+      let newStatus = evt.status
+      if (now < eventStartTime) {
+        newStatus = "upcoming"
+      } else if (now >= eventStartTime && now < eventEndTime) {
+        newStatus = "ongoing"
+      } else if (now >= eventEndTime) {
+        newStatus = "completed"
+      }
+
+      if (newStatus !== evt.status) {
+        await Event.findByIdAndUpdate(evt._id, { status: newStatus })
+      }
+    }
+
+    const [
+      events,
+      filteredCount,
+      totalCount,
+      upcomingCount,
+      ongoingCount,
+      completedCount,
+      cancelledCount,
+      totalRegistrations,
+      totalVerifiedAttendance,
+    ] = await Promise.all([
+      Event.find(filter)
+        .populate("projectId")
+        .sort({ eventDate: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Event.countDocuments(filter),
+      Event.countDocuments({}),
+      Event.countDocuments({ status: "upcoming" }),
+      Event.countDocuments({ status: "ongoing" }),
+      Event.countDocuments({ status: "completed" }),
+      Event.countDocuments({ status: "cancelled" }),
+      EventRegistration.countDocuments({ registrationStatus: "registered" }),
+      VolunteerEvent.countDocuments({ reviewStatus: "approved" }),
+    ])
 
     const eventIds = events.map((event) => event._id)
 
@@ -105,32 +175,7 @@ export async function GET(request: NextRequest) {
     )
     const attendanceStatsMap = new Map(attendanceStats.map((stat: any) => [stat._id.toString(), stat]))
 
-    const now = new Date()
-    const updatedEvents = []
-
-    // Auto-update event status based on timing
-    for (const event of events) {
-      let status = event.status
-      
-      // Only auto-update if not cancelled
-      if (status !== "cancelled") {
-        const eventStartTime = event.startTime ? new Date(event.startTime) : new Date(event.eventDate)
-        const eventEndTime = event.endTime ? new Date(event.endTime) : new Date(event.eventDate)
-        
-        if (now < eventStartTime) {
-          status = "upcoming"
-        } else if (now >= eventStartTime && now < eventEndTime) {
-          status = "ongoing"
-        } else if (now >= eventEndTime) {
-          status = "completed"
-        }
-
-        // Update in database if status changed
-        if (status !== event.status) {
-          await Event.findByIdAndUpdate(event._id, { status })
-        }
-      }
-
+    const updatedEvents = events.map((event) => {
       const registrationStat = registrationStatsMap.get(event._id.toString()) || {
         total: 0,
         registered: 0,
@@ -144,7 +189,7 @@ export async function GET(request: NextRequest) {
         rejected: 0,
       }
 
-      updatedEvents.push({
+      return {
         _id: event._id,
         title: event.title,
         description: event.description,
@@ -157,10 +202,11 @@ export async function GET(request: NextRequest) {
         coordinator: event.coordinator,
         maxParticipants: event.maxParticipants,
         currentParticipants: event.currentParticipants,
-        status: status,
+        status: event.status,
         attendanceExtensionMinutes: event.attendanceExtensionMinutes,
         nssHours: event.nssHours,
         locationCoordinates: event.locationCoordinates,
+        attendanceRadius: event.attendanceRadius || 50,
         createdAt: event.createdAt,
         updatedAt: event.updatedAt,
         participantStats: {
@@ -172,19 +218,26 @@ export async function GET(request: NextRequest) {
           pendingAttendance: attendanceStat.pending || 0,
           rejectedAttendance: attendanceStat.rejected || 0,
         },
-      })
-    }
-
-    const totalEvents = await Event.countDocuments()
+      }
+    })
 
     return NextResponse.json({
       success: true,
       events: updatedEvents,
+      stats: {
+        total: totalCount,
+        upcoming: upcomingCount,
+        ongoing: ongoingCount,
+        completed: completedCount,
+        cancelled: cancelledCount,
+        totalRegistrations,
+        totalVerifiedAttendance,
+      },
       pagination: {
         page,
         limit,
-        total: totalEvents,
-        pages: Math.max(1, Math.ceil(totalEvents / limit)),
+        total: filteredCount,
+        pages: Math.max(1, Math.ceil(filteredCount / limit)),
       },
     })
   } catch (error) {
@@ -220,6 +273,7 @@ export async function POST(request: NextRequest) {
       eventDate, 
       location, 
       locationCoordinates,
+      attendanceRadius,
       startTime, 
       endTime, 
       coordinator, 
@@ -237,6 +291,23 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
+    // Validate locationCoordinates
+    let parsedCoordinates = undefined
+    if (
+      locationCoordinates &&
+      typeof locationCoordinates.latitude === "number" &&
+      typeof locationCoordinates.longitude === "number" &&
+      !isNaN(locationCoordinates.latitude) &&
+      !isNaN(locationCoordinates.longitude)
+    ) {
+      parsedCoordinates = {
+        latitude: locationCoordinates.latitude,
+        longitude: locationCoordinates.longitude,
+      }
+    }
+
+    const parsedRadius = attendanceRadius ? Math.max(10, parseInt(attendanceRadius)) : 50
+
     // Create event
     const event = new Event({
       title,
@@ -244,11 +315,12 @@ export async function POST(request: NextRequest) {
       projectId,
       eventDate: new Date(eventDate),
       location,
-      locationCoordinates,
+      locationCoordinates: parsedCoordinates,
+      attendanceRadius: parsedRadius,
       startTime: startTime ? new Date(startTime) : undefined,
       endTime: endTime ? new Date(endTime) : undefined,
       coordinator,
-      maxParticipants,
+      maxParticipants: maxParticipants ? parseInt(maxParticipants) : undefined,
       status: "upcoming",
       currentParticipants: 0,
       attendanceExtensionMinutes: attendanceExtensionMinutes ? parseInt(attendanceExtensionMinutes) : 30,
@@ -311,6 +383,8 @@ export async function POST(request: NextRequest) {
         projectId: event.projectId,
         eventDate: event.eventDate,
         location: event.location,
+        locationCoordinates: event.locationCoordinates,
+        attendanceRadius: event.attendanceRadius,
         startTime: event.startTime,
         endTime: event.endTime,
         coordinator: event.coordinator,
@@ -362,14 +436,49 @@ export async function PATCH(request: NextRequest) {
       updateData.nssHours = updateData.nssHours ? parseFloat(updateData.nssHours) : undefined
     }
 
+    // Convert maxParticipants to number if present
+    if (updateData.maxParticipants !== undefined) {
+      updateData.maxParticipants = updateData.maxParticipants ? parseInt(updateData.maxParticipants) : undefined
+    }
+
+    // Convert attendanceRadius
+    if (updateData.attendanceRadius !== undefined) {
+      updateData.attendanceRadius = updateData.attendanceRadius ? Math.max(10, parseInt(updateData.attendanceRadius)) : 50
+    }
+
     // Convert attendanceExtensionMinutes to number if present
     if (updateData.attendanceExtensionMinutes !== undefined) {
       updateData.attendanceExtensionMinutes = updateData.attendanceExtensionMinutes 
         ? parseInt(updateData.attendanceExtensionMinutes) 
-        : 0;
+        : 0
     }
 
-    const event = await Event.findByIdAndUpdate(eventId, updateData, { new: true })
+    // Handle coordinates update or unsetting
+    const mongoUpdate: any = { $set: {} }
+
+    if (updateData.locationCoordinates) {
+      const lat = Number(updateData.locationCoordinates.latitude)
+      const lng = Number(updateData.locationCoordinates.longitude)
+      if (!isNaN(lat) && !isNaN(lng)) {
+        mongoUpdate.$set.locationCoordinates = { latitude: lat, longitude: lng }
+      } else {
+        mongoUpdate.$unset = { locationCoordinates: 1 }
+      }
+      delete updateData.locationCoordinates
+    } else if (updateData.locationCoordinates === null) {
+      mongoUpdate.$unset = { locationCoordinates: 1 }
+      delete updateData.locationCoordinates
+    }
+
+    // Copy remaining fields into $set
+    for (const [key, value] of Object.entries(updateData)) {
+      mongoUpdate.$set[key] = value
+    }
+
+    // Clean up empty objects
+    if (Object.keys(mongoUpdate.$set).length === 0) delete mongoUpdate.$set
+
+    const event = await Event.findByIdAndUpdate(eventId, mongoUpdate, { new: true })
 
     if (!event) {
       return NextResponse.json({ success: false, message: "Event not found" }, { status: 404 })
@@ -420,13 +529,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Event not found" }, { status: 404 })
     }
 
+    // Clean up related records
+    await Promise.allSettled([
+      EventRegistration.deleteMany({ eventId }),
+      VolunteerEvent.deleteMany({ eventId }),
+      EventReport.deleteMany({ eventId }),
+    ])
+
     return NextResponse.json({
       success: true,
-      message: "Event deleted successfully",
+      message: "Event and associated records deleted successfully",
     })
   } catch (error) {
     console.error("Event deletion error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
-

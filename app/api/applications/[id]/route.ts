@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse, after } from "next/server"
 import dbConnect from "@/lib/mongodb"
 import NSSApplication from "@/models/NSSApplication"
 import User from "@/models/User" 
@@ -10,8 +10,9 @@ import { hasPermission, PermissionKey } from "@/lib/permissions"
 import bcrypt from "bcryptjs"   
 import { getUnitNoQuery } from "@/lib/unit"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
+    const { id } = await Promise.resolve(params)
     const session = (await getServerSession(authOptions)) as any
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     await dbConnect()
 
-    const application = await NSSApplication.findById(params.id)
+    const application = await NSSApplication.findById(id)
       .populate("userId", "name email")
       .populate("reviewedBy", "name email")
 
@@ -49,10 +50,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  console.log("PATCH /api/applications/:id called, id =", params.id)
+export async function PATCH(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+  const { id } = await Promise.resolve(params)
+  console.log("PATCH /api/applications/:id called, id =", id)
   try {
-    const id = params.id
     const body = await req.json()
 
     const session = (await getServerSession(authOptions)) as any
@@ -76,25 +77,25 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const { status, rejectionReason } = body
 
+    const existingApplication = await NSSApplication.findById(id)
+    if (!existingApplication) {
+      return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
+    }
+
     // Check unit capacity before approving
     if (status === "approved") {
-      const application = await NSSApplication.findById(params.id)
-      if (!application) {
-        return NextResponse.json({ success: false, message: "Application not found" }, { status: 404 })
-      }
-
       const MAX_STUDENTS_PER_UNIT = 100
       const currentCount = await NSSApplication.countDocuments({
-        unitNo: getUnitNoQuery(application.unitNo),
+        unitNo: getUnitNoQuery(existingApplication.unitNo),
         status: "approved",
-        _id: { $ne: application._id },
+        _id: { $ne: existingApplication._id },
       })
 
       if (currentCount >= MAX_STUDENTS_PER_UNIT) {
         return NextResponse.json(
           {
             success: false,
-            message: `Cannot approve: Unit ${application.unitNo} is full. Maximum ${MAX_STUDENTS_PER_UNIT} students allowed per unit. Please transfer students to another unit first.`,
+            message: `Cannot approve: Unit ${existingApplication.unitNo} is full. Maximum ${MAX_STUDENTS_PER_UNIT} students allowed per unit. Please transfer students to another unit first.`,
           },
           { status: 400 }
         )
@@ -122,7 +123,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       updateData.rejectionReason = rejectionReason
     }
 
-    const application = await NSSApplication.findByIdAndUpdate(params.id, updateData, { new: true }).populate(
+    const application = await NSSApplication.findByIdAndUpdate(id, updateData, { new: true }).populate(
       "userId",
       "name email",
     )
@@ -135,112 +136,112 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const appPlain = application.toObject ? application.toObject() : application
     const appData = appPlain as any
 
-    try {
-      if (status === "approved") {
-        // Prepare formData for PDF - include all fields including courseName, bloodGroup, and address details
-        const formData = {
-          institutionName: application.institutionName,
-          formNo: application.formNo,
-          enrollment: application.enrollment,
-          programOfficerName: application.programOfficerName,
-          unitNo: application.unitNo,
-          schoolName: appData.schoolName || '',
-          nameEnglish: application.nameEnglish,
-          nameHindi: appData.nameHindi || application.nameEnglish,
-          fatherName: application.fatherName,
-          motherName: application.motherName,
-          dateOfBirth: application.dateOfBirth?.toISOString().split('T')[0] || '',
-          mobileNo: application.mobileNo,
-          emailId: application.emailId,
-          departmentName: application.departmentName || '',
-          courseName: appData.courseName || '',
-          gender: application.gender || '',
-          category: application.category || '',
-          institutionalIdCard: application.institutionalIdCard || '',
-          photo: application.photo || '',
-          signature: application.signature || '',
-          highSchoolRollNo: application.highSchoolRollNo,
-          classSemester: application.classSemester,
-          bloodGroup: appData.bloodGroup || '',
-          nssEnrollmentYear: application.nssEnrollmentYear || '',
-          attendedSpecialCamp: application.attendedSpecialCamp || false,
-          specialCampDetails: application.specialCampDetails || undefined,
-          myBharatPortalRegistered: application.myBharatPortalRegistered || false,
-          myBharatPortalId: appData.myBharatPortalId || '',
-          myBharatPortalScreenshot: appData.myBharatPortalScreenshot || '',
-          specialNSSAchievements: appData.specialNSSAchievements || 'No',
-          specialNSSAchievementsProof: appData.specialNSSAchievementsProof || null,
-          attendedELP: application.attendedELP || false,
-          elpProof: appData.elpProof || null,
-          otherAchievements: appData.otherAchievements || 'No',
-          otherAchievementsCertificates: appData.otherAchievementsCertificates || null,
-          addressType: appData.addressType || '',
-          hostelAddress: appData.hostelAddress || '',
-          homeAddress: appData.homeAddress || '',
-        };
+    let credentialsToSend: { email: string; password: string } | null = null
+    let formData: any = null
 
-        // --- Volunteer Account Creation / Reset Logic ---
-        // Always generate first-login password: nameEnglish + birth year
-        // Remove all spaces and convert to consistent case
-        const name = application.nameEnglish.replace(/\s+/g, "").replace(/[^a-zA-Z]/g, "");
-        const birthYear = application.dateOfBirth ? new Date(application.dateOfBirth).getFullYear().toString() : "1234";
-        const generatedPassword = `${name}${birthYear}`;
+    if (status === "approved") {
+      // Prepare formData for PDF - include all fields including courseName, bloodGroup, and address details
+      formData = {
+        institutionName: application.institutionName,
+        formNo: application.formNo,
+        enrollment: application.enrollment,
+        programOfficerName: application.programOfficerName,
+        unitNo: application.unitNo,
+        schoolName: appData.schoolName || '',
+        nameEnglish: application.nameEnglish,
+        nameHindi: appData.nameHindi || application.nameEnglish,
+        fatherName: application.fatherName,
+        motherName: application.motherName,
+        dateOfBirth: application.dateOfBirth?.toISOString().split('T')[0] || '',
+        mobileNo: application.mobileNo,
+        emailId: application.emailId,
+        departmentName: application.departmentName || '',
+        courseName: appData.courseName || '',
+        gender: application.gender || '',
+        category: application.category || '',
+        institutionalIdCard: application.institutionalIdCard || '',
+        photo: application.photo || '',
+        signature: application.signature || '',
+        highSchoolRollNo: application.highSchoolRollNo,
+        classSemester: application.classSemester,
+        bloodGroup: appData.bloodGroup || '',
+        nssEnrollmentYear: application.nssEnrollmentYear || '',
+        attendedSpecialCamp: application.attendedSpecialCamp || false,
+        specialCampDetails: application.specialCampDetails || undefined,
+        myBharatPortalRegistered: application.myBharatPortalRegistered || false,
+        myBharatPortalId: appData.myBharatPortalId || '',
+        myBharatPortalScreenshot: appData.myBharatPortalScreenshot || '',
+        specialNSSAchievements: appData.specialNSSAchievements || 'No',
+        specialNSSAchievementsProof: appData.specialNSSAchievementsProof || null,
+        attendedELP: application.attendedELP || false,
+        elpProof: appData.elpProof || null,
+        otherAchievements: appData.otherAchievements || 'No',
+        otherAchievementsCertificates: appData.otherAchievementsCertificates || null,
+        addressType: appData.addressType || '',
+        hostelAddress: appData.hostelAddress || '',
+        homeAddress: appData.homeAddress || '',
+      };
 
-        // Check if user exists; create or reset password for first login
-        let volunteerUser = await User.findOne({ email: application.emailId });
-        
-        let credentialsToSend = null;
+      // --- Volunteer Account Creation / Reset Logic ---
+      const name = application.nameEnglish.replace(/\s+/g, "").replace(/[^a-zA-Z]/g, "");
+      const birthYear = application.dateOfBirth ? new Date(application.dateOfBirth).getFullYear().toString() : "1234";
+      const generatedPassword = `${name}${birthYear}`;
 
-        if (!volunteerUser) {
-           // Should not happen if application exists, but safety first
-           const hashedPassword = await bcrypt.hash(generatedPassword, 10);
-           volunteerUser = new User({
-            name: application.nameEnglish,
-            email: application.emailId,
-            password: hashedPassword,
-            role: "volunteer",
-            mustChangePassword: true,
-          });
+      // Check if user exists; create or reset password for first login
+      let volunteerUser = await User.findOne({ email: application.emailId });
+
+      if (!volunteerUser) {
+        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+        volunteerUser = new User({
+          name: application.nameEnglish,
+          email: application.emailId,
+          password: hashedPassword,
+          role: "volunteer",
+          mustChangePassword: true,
+        });
+        await volunteerUser.save();
+        credentialsToSend = { email: application.emailId, password: generatedPassword };
+      } else {
+        if (volunteerUser.role === 'volunteer' || volunteerUser.role === 'admin' || volunteerUser.role === 'sub-admin') {
+          console.log(`User ${application.emailId} is already a ${volunteerUser.role}. Skipping password reset.`);
+        } else {
+          const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+          volunteerUser.password = hashedPassword;
+          volunteerUser.role = "volunteer" as any;
+          volunteerUser.mustChangePassword = true;
           await volunteerUser.save();
           credentialsToSend = { email: application.emailId, password: generatedPassword };
-        } else {
-            // If User exists, check if they are ALREADY a volunteer / verified user
-            if (volunteerUser.role === 'volunteer' || volunteerUser.role === 'admin' || volunteerUser.role === 'sub-admin') {
-                // Existing account. DO NOT RESET PASSWORD.
-                // Just ensure role is correct? (It is).
-                console.log(`User ${application.emailId} is already a ${volunteerUser.role}. Skipping password reset.`);
-                // We do NOT send credentials if we didn't reset password.
-            } else {
-                // User Role is 'user' (Pending/Applicant). FIRST TIME APPROVAL.
-                // Reset password for first login and ensure role is volunteer
-                const hashedPassword = await bcrypt.hash(generatedPassword, 10);
-                volunteerUser.password = hashedPassword;
-                volunteerUser.role = "volunteer" as any;
-                volunteerUser.mustChangePassword = true;
-                await volunteerUser.save();
-                credentialsToSend = { email: application.emailId, password: generatedPassword };
-            }
         }
-
-        // 5. Send acceptance email with credentials
-        await sendApplicationApprovedEmail(application.emailId, {
-          name: application.nameEnglish,
-          applicationId: application._id.toString(),
-          institutionName: application.institutionName,
-          formData,
-          // Only include credentials if we generated/reset them
-          credentials: credentialsToSend || undefined,
-        })
-      } else if (status === "rejected") {
-        await sendApplicationRejectedEmail(application.emailId, {
-          name: application.nameEnglish,
-          applicationId: application._id.toString(),
-          rejectionReason: rejectionReason || "No specific reason provided",
-        })
       }
-    } catch (emailError) {
-      console.error("Error sending status email:", emailError)
-      // Don't fail the status update if email fails
+    }
+
+    // Send notifications in the background via Next.js after() to keep approval instant
+    const sendNotification = async () => {
+      try {
+        if (status === "approved") {
+          await sendApplicationApprovedEmail(application.emailId, {
+            name: application.nameEnglish,
+            applicationId: application._id.toString(),
+            institutionName: application.institutionName,
+            formData,
+            credentials: credentialsToSend || undefined,
+          })
+        } else if (status === "rejected") {
+          await sendApplicationRejectedEmail(application.emailId, {
+            name: application.nameEnglish,
+            applicationId: application._id.toString(),
+            rejectionReason: rejectionReason || "No specific reason provided",
+          })
+        }
+      } catch (emailError) {
+        console.error("Background error sending status email:", emailError)
+      }
+    }
+
+    try {
+      after(sendNotification)
+    } catch {
+      sendNotification().catch((err) => console.error("Background email error:", err))
     }
 
     return NextResponse.json({

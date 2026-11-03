@@ -16,22 +16,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 })
     }
 
-    // Determine if it's an image or video
+    // Determine file type
     const isImage = file.type.startsWith("image/")
     const isVideo = file.type.startsWith("video/")
+    const isPdf = file.type === "application/pdf" || file.name?.toLowerCase().endsWith(".pdf")
+    const isDoc =
+      isPdf ||
+      file.type.includes("word") ||
+      file.type.includes("document") ||
+      file.name?.toLowerCase().endsWith(".doc") ||
+      file.name?.toLowerCase().endsWith(".docx")
 
-    if (!isImage && !isVideo) {
+    if (!isImage && !isVideo && !isDoc) {
       return NextResponse.json(
-        { success: false, message: "Only image and video files are allowed" },
+        { success: false, message: "Only image, video, and document (PDF/Doc) files are allowed" },
         { status: 400 }
       )
     }
 
-    // Validate file size (10MB for images, 100MB for videos)
-    const maxSize = isImage ? 10 * 1024 * 1024 : 100 * 1024 * 1024
+    // Validate file size (10MB for images & documents, 100MB for videos)
+    const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024
     if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, message: `File size must be less than ${isImage ? "10MB" : "100MB"}` },
+        { success: false, message: `File size must be less than ${isVideo ? "100MB" : "10MB"}` },
         { status: 400 }
       )
     }
@@ -40,11 +47,13 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
+    const customFolder = form.get("folder") as string | null
+
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const uploadOptions: any = {
-        folder: isImage ? "nss-uploads/images" : "nss-uploads/videos",
-        resource_type: isImage ? "image" : "video",
+        folder: customFolder || (isImage ? "nss-uploads/images" : isVideo ? "nss-uploads/videos" : "nss-uploads/documents"),
+        resource_type: isDoc ? "auto" : isImage ? "image" : "video",
       }
 
       // Add transformations for images
