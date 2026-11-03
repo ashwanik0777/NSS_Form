@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
-import { Loader2, Send, PlusCircle } from "lucide-react"
+import { Loader2, Send, PlusCircle, ArrowLeft, AlertCircle } from "lucide-react"
+import Link from "next/link"
 
 export default function VolunteerGrievancesPage() {
   const [grievances, setGrievances] = useState<any[]>([])
@@ -73,17 +74,29 @@ export default function VolunteerGrievancesPage() {
 
   return (
     <ProtectedRoute requiredRole="volunteer">
-      <div className="p-3 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-all w-fit shadow-xs"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Dashboard</span>
+        </Link>
+
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Grievance Portal</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">Submit and track your grievances</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">
+              Grievance & Support Portal
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
+              Submit concerns or suggestions directly to your Program Officer
+            </p>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium shadow-xs"
+            className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all text-xs sm:text-sm font-semibold shadow-xs active:scale-95"
           >
-            <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            <PlusCircle className="w-4 h-4 mr-2" />
             New Grievance
           </button>
         </div>

@@ -147,17 +147,23 @@ export default function VolunteerIDCardPage() {
   }
 
   return (
-    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2.5 sm:gap-3">
-            <CreditCard className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
-            <span>NSS Identity Card</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
-            Generate and download your official NSS Volunteer Identity Card
-          </p>
-        </div>
+    <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+      <button
+        onClick={() => router.push("/dashboard")}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-all w-fit shadow-xs"
+      >
+        <ArrowRight className="w-4 h-4 rotate-180" />
+        <span>Back to Dashboard</span>
+      </button>
+
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-foreground flex items-center gap-2.5 sm:gap-3 tracking-tight">
+          <CreditCard className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
+          <span>Official NSS Identity Card</span>
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-1.5">
+          Generate, preview, and download your verified university NSS Volunteer Identity Card
+        </p>
       </div>
 
       {error && (

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Loader2, FolderKanban, CheckCircle, AlertCircle, ArrowRight } from "lucide-react"
+import Link from "next/link"
+import { Loader2, FolderKanban, CheckCircle, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react"
 
 interface Project {
   _id: string
@@ -111,15 +112,23 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="p-3 sm:p-5 md:p-6 max-w-6xl mx-auto space-y-4 sm:space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-all w-fit shadow-xs"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Dashboard</span>
+      </Link>
+
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2.5 sm:gap-3">
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-foreground flex items-center gap-2.5 sm:gap-3 tracking-tight">
           <FolderKanban className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0" />
-          <span>Select NSS Project</span>
+          <span>Select NSS Community Project</span>
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
-          Choose a project to participate in. You can only select one project.
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-1.5">
+          Choose your long-term NSS service initiative. You can participate in one project at a time.
         </p>
       </div>
 

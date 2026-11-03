@@ -70,16 +70,16 @@ export default function ApplicationPage() {
   }
 
   return (
-    <div className="p-3 sm:p-5 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
+    <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-300">
       <Link
         href="/dashboard"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-all w-fit shadow-xs mb-2"
       >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Dashboard</span>
       </Link>
 
-      <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+      <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-xs space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
             <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2.5 text-primary shrink-0" />
