@@ -6,6 +6,7 @@ import User from "@/models/User"
 import VolunteerProject from "@/models/VolunteerProject"
 import VolunteerEvent from "@/models/VolunteerEvent"
 import VolunteerMeeting from "@/models/VolunteerMeeting"
+import Meeting from "@/models/Meeting"
 import Event from "@/models/Event"
 import NSSApplication from "@/models/NSSApplication"
 import NSSProject from "@/models/NSSProject"
@@ -140,8 +141,18 @@ export async function GET(request: NextRequest) {
         .sort({ createdAt: -1 })
         .lean()
 
-      const meetings = await VolunteerMeeting.find({ volunteerId, status: "attended" }).lean()
-      const meetingHours = meetings.reduce((sum: number, m: any) => sum + (m.hoursGranted || 0), 0)
+      // Ensure Meeting model is initialized before populate
+      try {
+        await Meeting.findOne({}).limit(0).lean()
+      } catch (e) {}
+
+      const allMeetings = await VolunteerMeeting.find({ volunteerId })
+        .populate("meetingId")
+        .sort({ createdAt: -1 })
+        .lean()
+
+      const attendedMeetings = allMeetings.filter((m: any) => m.status === "attended")
+      const meetingHours = attendedMeetings.reduce((sum: number, m: any) => sum + (m.hoursGranted || 0), 0)
 
       const totalEvents = events.length
       const approvedEvents = events.filter(
@@ -168,12 +179,15 @@ export async function GET(request: NextRequest) {
           },
           events: events.map((e: any) => ({
             _id: e._id,
+            eventId: e.eventId?._id,
             eventTitle: e.eventId?.title || "Unknown Event",
             projectTitle: e.projectId?.title || "Unknown Project",
+            eventDate: e.eventId?.eventDate,
+            location: e.eventId?.location || e.startLocation?.address,
             status: e.status,
-             reviewStatus: e.reviewStatus || "pending",
-             reviewNotes: e.reviewNotes,
-             reviewedAt: e.reviewedAt,
+            reviewStatus: e.reviewStatus || "pending",
+            reviewNotes: e.reviewNotes,
+            reviewedAt: e.reviewedAt,
             startTime: e.startTime,
             endTime: e.endTime,
             hoursWorked: e.hoursWorked || 0,
@@ -181,6 +195,20 @@ export async function GET(request: NextRequest) {
             workDescription: e.workDescription,
             startPhoto: e.startPhoto,
             endPhoto: e.endPhoto,
+            attendancePhoto: e.startPhoto || e.endPhoto,
+          })),
+          meetings: allMeetings.map((m: any) => ({
+            _id: m._id,
+            meetingId: m.meetingId?._id,
+            meetingTitle: m.meetingId?.title || "NSS Meeting",
+            description: m.meetingId?.description,
+            meetingDate: m.meetingId?.meetingDate || m.createdAt,
+            startTime: m.meetingId?.startTime,
+            endTime: m.meetingId?.endTime,
+            location: m.meetingId?.location,
+            status: m.status || "registered",
+            hoursGranted: m.hoursGranted || 0,
+            checkInTime: m.checkInTime,
           })),
         },
       })
